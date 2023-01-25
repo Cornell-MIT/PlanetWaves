@@ -7,6 +7,8 @@ To do:
 	
 Targets of interest for model: how does the wave field change for different liquid parameters (density, viscocity)?
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Notes from meeting with Taylor (1/8/2023) : 
 
 Was able to run the model using the smoothed LM bathymetry but it was really slow so he coarsened it by a factor of 3 in each direction (9x fewer gridpoints)
