@@ -1,9 +1,9 @@
 Notes from meeting with Alex (1/25/2023) :
 
 To do:
-	Replicate patch-model results for a pure methane liquid with wind speed vs mature sig wave height
-	Compare results between energy models with the umwm models for sig wave height at different wind speeds
-	Get FORTRAN model working for comparison with MATLAB version for a sanity-check
+	-Replicate patch-model results for a pure methane liquid with wind speed vs mature sig wave height
+	-Compare results between energy models with the umwm models for sig wave height at different wind speeds
+	-Get FORTRAN model working for comparison with MATLAB version for a sanity-check
 	
 Targets of interest for model: how does the wave field change for different liquid parameters (density, viscocity)?
 
