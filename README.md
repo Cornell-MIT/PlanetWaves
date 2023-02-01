@@ -1,7 +1,9 @@
 # umwm_titan
 
-Possible new architecture for fetchLaws?
+![image](https://user-images.githubusercontent.com/24469269/216115106-07c52808-777f-43b3-aaa8-96d51b80508c.png)
+(Donelan et al. 2012 "Modelling waves and wind stress"
 
+Possible new architecture for fetchLaws?
 
 ![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
 
