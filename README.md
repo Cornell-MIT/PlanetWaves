@@ -13,12 +13,14 @@ Possible new architecture for fetchLaws?
 
 Notes from meeting with Alex (1/25/2023) :
 
+```
 To do:
 	-Replicate patch-model results for a pure methane liquid with wind speed vs mature sig wave height
 	-Compare results between energy models with the umwm models for sig wave height at different wind speeds
 	-Get FORTRAN model working for comparison with MATLAB version for a sanity-check
 	-get descriptions of the scripts' main functions, subroutines, and outputs 
-	
+```
+
 Targets of interest for model: how does the wave field change for different liquid parameters (density, viscocity)?
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,7 +35,7 @@ To run UMWM_Titan_2c.m and/or UMWM_Titan_FetchLaws.m requires a directory named 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Initial Notes from Alex (12/16/2022):
 
-
+```
 MAIN SCRIPTS : 
 |
 |_UMWM_Titan_Ligeia_Noplot_3m_v1.m : wave model using LM bathymetry map for uniform 2.5 and 3 m/s winds <-- most commented/recently updated
@@ -56,3 +58,4 @@ MAIN OUTPUTS :
 |_2. Wave field energy spectrum 
 |
 |_3. Magnitudes of dissipation terms in the model
+```
