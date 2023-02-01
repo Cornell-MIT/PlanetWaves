@@ -308,7 +308,7 @@ lz(lz > zref) = zref;
 
 E = zeros(m,n,o,p); % initializing the energy term in x,y,k,theta with zeros UGS
 
-if cont == 1;% Read in last step to continue (ignore this for now, maybe get rid of this functionality? throw in an outside function?) -- UGS
+if cont == 1;% Read in last step to continue
     t=60;
     UU=14;
     eval(['load Titan/Titan_',int2str(file),'_',int2str(t)])
@@ -329,14 +329,11 @@ Ccg = Cg + Uer.*cth + Uei.*sth;
 cgmax = max(max(max(max(Cg))));
 mindelx = min(squeeze(delx(1,:,1,1)));
 delt = 0.7 * mindelx / cgmax;% advection limited Courant condition.
-waveang = repmat(waveang,[o 1 m n]);
-waveang=shiftdim(waveang,2);
+waveang = repmat(waveang,[o 1 m n]);waveang=shiftdim(waveang,2);
 
 eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
 
 file = file - 1;
-
-% HERE IS WHERE THE HEART OF THE CALCULATIONS START : ---UGS
 tic
 
 sumt = 0;
@@ -354,19 +351,15 @@ for iii=1:numel(UUvec);
     UU = UUvec(iii);
     file = file + 1;
     
-    U = UU*ones(m,n); % set U everywhere in x-y plane to UUvec(iii) UGS
-    windir = 0*ones(m,n); % set wind direction to zero  everywhere in x-y plane UGS
+    U = UU*ones(m,n);
+    windir = 0*ones(m,n);
     %   windir = 45*dr*ones(m,n);
-    windir=repmat(windir,[1 1 o p]); % reshape wind direction matrix for some reason UGS
+    windir=repmat(windir,[1 1 o p]);
     
     
-    U_z = U + 0.005;% avoid division by zero. 
+    U_z = U + 0.005;% avoid division by zero.
     
-    Cd=1.2*ones(size(U)); % coefficient of friction? UGS
-
-    uj = find(U > 11);
-    Cd(uj)=.49 +.065*U(uj); % where is this from? UGS
-    Cd=Cd/1000;% Large and Pond for starters.
+    Cd=1.2*ones(size(U)); uj = find(U > 11);Cd(uj)=.49 +.065*U(uj);Cd=Cd/1000;% Large and Pond for starters.
     
     modt = 0;
     
@@ -382,8 +375,8 @@ for iii=1:numel(UUvec);
     %
     
     %   % Currents from ocean model
-    Uer=0*D + 0.0;% Eastward current, m/s % repeated above (need to condense)
-    Uei=0*D + 0.0;% Northward current, m/s % repeated above (need to condense)
+    Uer=0*D + 0.0;% Eastward current, m/s
+    Uei=0*D + 0.0;% Northward current, m/s
     
     slostart = 1;
     for t=1:Tsteps
