@@ -5,6 +5,9 @@ Possible new architecture for fetchLaws?
 
 ![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
 
+Original code architecture for fetchLaws
+
+![image](https://user-images.githubusercontent.com/24469269/216111111-2c391b4d-d258-4908-9b43-cca594bc0d49.png)
 
 
 
