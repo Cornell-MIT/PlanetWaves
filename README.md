@@ -1,5 +1,15 @@
 # umwm_titan
 
+Possible new architecture for fetchLaws?
+
+
+![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
+
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Notes from meeting with Alex (1/25/2023) :
 
