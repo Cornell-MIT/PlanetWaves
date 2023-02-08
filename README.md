@@ -1,14 +1,31 @@
 # umwm_titan
 
+![image](https://user-images.githubusercontent.com/24469269/216115106-07c52808-777f-43b3-aaa8-96d51b80508c.png)
+(Donelan et al. 2012 "Modelling waves and wind stress"
+
+Possible new architecture for fetchLaws?
+
+![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
+
+Original code architecture for fetchLaws
+
+![image](https://user-images.githubusercontent.com/24469269/216111111-2c391b4d-d258-4908-9b43-cca594bc0d49.png)
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Notes from meeting with Alex (1/25/2023) :
 
+```
 To do:
 	-Replicate patch-model results for a pure methane liquid with wind speed vs mature sig wave height
 	-Compare results between energy models with the umwm models for sig wave height at different wind speeds
 	-Get FORTRAN model working for comparison with MATLAB version for a sanity-check
 	-get descriptions of the scripts' main functions, subroutines, and outputs 
-	
+```
+
 Targets of interest for model: how does the wave field change for different liquid parameters (density, viscocity)?
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,7 +40,7 @@ To run UMWM_Titan_2c.m and/or UMWM_Titan_FetchLaws.m requires a directory named 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Initial Notes from Alex (12/16/2022):
 
-
+```
 MAIN SCRIPTS : 
 |
 |_UMWM_Titan_Ligeia_Noplot_3m_v1.m : wave model using LM bathymetry map for uniform 2.5 and 3 m/s winds <-- most commented/recently updated
@@ -46,3 +63,4 @@ MAIN OUTPUTS :
 |_2. Wave field energy spectrum 
 |
 |_3. Magnitudes of dissipation terms in the model
+```
