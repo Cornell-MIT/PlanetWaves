@@ -292,7 +292,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
     for t = 1:Tsteps
 
         sumt = 0; % used for iterating 
-        tplot = -1; % what is this?
+        tplot = -1; % counter for plotting a figure every tenth loop
         Newdelt = []; % initialize something
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -359,8 +359,302 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
             Sds(D>0) = abs(ann(D>0)*2*pi.*f(D>0).*(1+mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));
             % set Sds = 0 at land boundaries
             Sds(D<=0) = 0; % LINE 469
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% Snl -- NON-LINEAR TERM
+
+            Snl = zeros(m,n,o,p); % initialize
+            % Spread Snl to 2 next longer wavenumbers exponentially decaying as distance from donating wavenumber
+            Snl(:,:,1:end-1,:) = bf1*Snl_fac*(Sds(:,:,2:end,:).*E(:,:,2:end,:).*wn(:,:,2:end,:).*dwn(:,:,2:end,:));
+            Snl(:,:,1:end-2,:) = Snl(:,:,1:end-2,:) + bf2*Snl_fac*(Sds(:,:,3:end,:).*E(:,:,3:end,:).*wn(:,:,3:end,:).*dwn(:,:,3:end,:));
+            % Renormalize to receiving wavenumber and bandwidth
+            Snl(:,:,:,:) = Snl(:,:,:,:)./(wn(:,:,:,:).*dwn(:,:,:,:));
+            Snl(:,:,:,:) = Snl(:,:,:,:) - Snl_fac*(Sds(:,:,:,:).*E(:,:,:,:));
+            % set Snl = 0 at land
+            Snl(D <= 0) = 0;
+            
+            % Sds_wc -- WHITE-CAPPING DISSIPATION
+
+            Sds_wc = Sds; % make copy of dissipation term
+            % Add viscous, turbulent and plunging dissipation after calculation of Snl
+            Sds(D>0) = coth(0.2*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*nu*wn(D>0).^2;
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% TIME EVOLUTION FOR NEXT MODEL STE{ 
+
+            aa = Sin(:,:,ol,:) - Sds(:,:,ol,:); % input - dissipation
+            aa = aa(D(:,:,ol,:)>0); % ignore values on land
+            aa = max(abs(aa(:))); % maximum difference between input and dissipation
+            aaa = explim; % explim = 0.1 
+
+            % if the dissipation term is zero then do something to aa term whatever that is
+            if isnan(aa) == 1
+                aa = aaa/maxdelt;
+            end
+
+            % new time evolution step (I think)
+            newdelt = max([aaa/aa mindelt]);
+            % newdelt = delt to give max of 50% growth or decay
+            newdelt=min([newdelt maxdelt (Time-sumt) delt]);
+
+            fprintf('newdelt: %.3f\n',newdelt);
+
+            sumt = sumt + newdelt; % total time
+            modt = modt + newdelt; % model time 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% ENERGY SPECTRUM (PART ONE) -- Sin - 4*nu*k^2 - Sbg
+
+            E1 = zeros(size(E)); % initialize 
+            E2(:,:,:,:) = zeros(m,n,o,p); % intialize 
+            cath = ones(size(Sds)); % intialize
+
+            fac_exp=(Sin(:,:,ol,:) - Sds(:,:,ol,:)); % exponential term for long waves
+            E1(:,:,ol,:) = E(:,:,ol,:).*exp(newdelt*fac_exp); % Long waves.
+            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Snl(:,:,ol,:); % add nonlinear term
+              
+            cath(D>0)=coth(0.2*wn(D>0).*D(D>0));
+
+            fij = find((Sin(:,:,:,:) - 4*nu*wn(:,:,:,:).^2 - Sdt(:,:,:,:) - Sbf(:,:,:,:)) > 0); % index where Sin - 4*nu*k^2 - Sbg is greater than zero
+            E2(fij) = wn(fij).^(-4).*((Sin(fij)-4*nu*wn(fij).^2 - Sdt(fij) - Sbf(fij))./(cath(fij).*ann(fij)*2*pi.*f(fij).*(1+mss_fac*short(fij)).^2)).^(nnninv(fij)); 
+            
+            % set land boundaries to zero
+            E2(D<=0) = 0;
+            E1(D<=0) = 0;
+            % set negative energy to zero
+            E2(E2<0) = 0;
+            E1(E1<0) = 0;
+
+            E1(:,:,os,:) = E2(:,:,os,:);
+
+            % energy term is complex but amplitude is real
+            E1=real(E1);
+            E1(E1 < 0)=0;
+            % set land boundaries to zero
+            E1(D <= 0)=0;
+            E(D <= 0)=0;
+            % E=(E+E1)/2
+            E(:,:,os,:) = E1(:,:,os,:);
+            E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
+            %% ENERGY SPECTRUM (PART TWO) -- Advection term
+
+            advect=zeros(m,n,o,p); % initialize advection
+        
+            Ccg = Cg + Uer.*cth + Uei.*sth; % group velocity
+
+            % Upwave advection with account taken of varying delx and dely
+            advect(:,:,ol,cp)=advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...
+                - Ccg(xp,:,ol,cp).*cth(xp,:,ol,cp).*E(xp,:,ol,cp).*dely(xp,:,ol,cp))...
+                ./((dely(xp,:,ol,cp) + dely(:,:,ol,cp)).*(delx(xp,:,ol,cp) + delx(:,:,ol,cp)))*4;
+
+            advect(:,:,ol,cm)=advect(:,:,ol,cm)+(Ccg(xm,:,ol,cm).*cth(xm,:,ol,cm).*E(xm,:,ol,cm).*dely(xm,:,ol,cm)...
+                - Ccg(:,:,ol,cm).*cth(:,:,ol,cm).*E(:,:,ol,cm).*dely(:,:,ol,cm))...
+                ./((dely(:,:,ol,cm) + dely(xm,:,ol,cm)).*(delx(:,:,ol,cm) + delx(xm,:,ol,cm)))*4;
+            
+            advect(:,:,ol,sp)=advect(:,:,ol,sp)+(Ccg(:,:,ol,sp).*sth(:,:,ol,sp).*E(:,:,ol,sp).*delx(:,:,ol,sp)...
+                - Ccg(:,yp,ol,sp).*sth(:,yp,ol,sp).*E(:,yp,ol,sp).*delx(:,yp,ol,sp))...
+                ./((dely(:,yp,ol,sp) + dely(:,:,ol,sp)).*(delx(:,yp,ol,sp) + delx(:,:,ol,sp)))*4;
+            
+            advect(:,:,ol,sm)=advect(:,:,ol,sm)+(Ccg(:,ym,ol,sm).*sth(:,ym,ol,sm).*E(:,ym,ol,sm).*delx(:,ym,ol,sm)...
+                - Ccg(:,:,ol,sm).*sth(:,:,ol,sm).*E(:,:,ol,sm).*delx(:,:,ol,sm))...
+                ./((dely(:,:,ol,sm) + dely(:,ym,ol,sm)).*(delx(:,:,ol,sm) + delx(:,ym,ol,sm)))*4;
+            
+            % include advection in energy calculation
+            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*advect(:,:,ol,:);
+
+            % clean up energy term
+            E1(D <= 0)=0; % set land boundaries to zero
+            E1=real(E1); % real value amplitude
+            E1(E1<0)=0; % negative energy to zero
+            E1(D <= 0)=0; % land boundaries to zero
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% ENERGY SPECTRUM (PART THREE) -- ROTATION IN WAVE-CURRENT INTERACTION
+
+            % Refraction including wave-current interaction
+            Crot(:,:,ol,:)=(c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...
+                -(c(:,ym,ol,:)-c(:,yp,ol,:)).*cth(:,:,ol,:)./(dely(:,ym,ol,:)+dely(:,yp,ol,:));
+            
+            % Determine if rotation is clockwise or counter clockwise
+            Crotcw = zeros(size(Crot)); % initialize
+            Crotccw = zeros(size(Crot)); % initialize
+
+            Crotccw(Crot>0) = Crot(Crot>0); % if crot is positive then ccw rotation
+            Crotcw(Crot<0) = Crot(Crot<0); % if crot is negative than cw rotation
+
+            Crotccw(Crotccw > dth/newdelt) = dth/newdelt; % something
+            Crotcw(Crotcw < -1*dth/newdelt) = -1*dth/newdelt; % something
+
+            % include rotation term in energy spectrum
+            E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;
+            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;
+            E1(:,:,ol,ccw) = E1(:,:,ol,ccw) + newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;
+            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;
+
+            % clean up energy term
+            E1(E1 < 0)=0; % set negative energy to zero
+            E1(D <= 0)=0; % set land boundaries to zero 
+            E=real(E1); % only consider the real component amplitude
+            E(isnan(E)) = 0; % set all nan balues to zero
+            E1 = E; % what is the difference between E, E1, and E2?
+            E(D <= 0)=0; % set land boundaries to zero
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% FORM STRESS SPECTRUM
+
+            tauE = sum(wn.*E.*Sin.*cth./c,4)*(360/p)*(pi/180); % wind shear stress spectrum east 
+            tauN = sum(wn.*E.*Sin.*sth./c,4)*(360/p)*(pi/180); % wind shear stress spectrum north
+
+            mtail = 0.000112*U_10.*U_10 - 0.01451.*U_10 - 1.0186; % wind speed dependant tail of a slope pinned to the highest wavenumber
+            wnh = squeeze(wn(:,:,o,1)); % highest wavenumber
+
+            % include tail to spectrum
+            tauE = rhow*(sum((g+sfcT.*squeeze(wn(:,:,:,1)).^2./rhow).*squeeze(dwn(:,:,:,1)).*tauE,3) + ...
+                (g+sfcT.*squeeze(wn(:,:,o,1)).^2./rhow).*squeeze(tauE(:,:,o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1)); % eastern spectrum
+            tauN = rhow*(sum((g+sfcT.*squeeze(wn(:,:,:,1)).^2./rhow).*squeeze(dwn(:,:,:,1)).*tauN,3) + ...
+                (g+sfcT.*squeeze(wn(:,:,o,1)).^2./rhow).*squeeze(tauN(:,:,o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1)); % northern spectrum
+
+
+            % frictional velocity at surface 
+            Ustar_smooth = reshape(smooth_nu((1-wfac)*U_z(:),z,nua),m,n);
+            Ustar_smooth = (Ustar_smooth./U_z).^2;
+            Ustar_smooth = U_z.^2.*(0.3333*Ustar_smooth + 0.6667*(Ustar_smooth.^2)./(Ustar_smooth + Cd));
+
+            %Cds =  Ustar_smooth; % save a copy
+
+            % include the frictional velocity term in the shear stress
+            tauE = tauE + rhoa*Ustar_smooth.*cos(squeeze(windir(:,:,1,1))); % shear stress to east 
+            tauN = tauN + rhoa*Ustar_smooth.*sin(squeeze(windir(:,:,1,1))); % shear stress to north 
+
+            % from the definition of shear stress and law of the wall
+            Cd = abs(tauE + 1i*tauN)./rhoa./(U_z.^2); % stress coefficient
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% SIGNIFIGANT HEIGHT & MEAN SLOPE RESULT
+
+            % Integrate spectrum to find significant height 
+            ht = sum(dwn.*wn.*E,4)*dthd*dr;
+            ht = sum(ht,3);
+            ht = 4*sqrt(abs(ht));
+
+            % Integrate spectrum to find mean slope 
+            ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;
+            ms = sum(ms,3);
+            ms = sqrt(ms);
+            
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% PEAK FREQUENCY
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %% PLOTTING 
+
+           if rem(tplot,10) == 0 % plot every 10th time step
+                
+                % Omnidirectional wavenumber spectrum 
+                figure;
+                semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn([2:4:m],lati,:,:).*E([2:4:m],lati,:,:),4)*dthd*dr)','*-');
+                grid on;
+                title(['Omni directional wavenumber spectra along latitude ',num2str(lati),'. Time = ',num2str(modt/3600),' Hours'])
+                
+                % SUBPLOTS:
+                % (1) Drag coefficient vs Fetch
+                figure;
+                subplot(321);
+                plot(Cd(:,lati).*(U_z(:,lati)./U_10(:,lati)).^2,'.-');
+                xlabel('Fetch')
+                ylabel('Drag Coefficient')
+                grid on;
+                
+                % (2) k*Sin
+                subplot(322);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sin(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-');
+                title('k*Sin');
+                grid on;
+                
+                % (3a) k*Sds(b) 
+                subplot(323);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sds(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-');
+                hold on;
+                
+                % (3b) k*Sdt(g)
+                subplot(323);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sdt(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-g');
+                
+                % (3c) k*Sbf(r)
+                subplot(323);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sbf(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-r');
+                title('k*Sds(b), k*Sdt(g), k*Sbf(r)');
+                grid on
+                hold off;
+
+                % (4) k*Snl
+                subplot(324);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Snl(long,lati,:,:),4))*dthd*dr,'*-');
+                title('k*Snl');
+                grid on;
+
+                % (5) k*Spectrum
+                subplot(325);
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*E(long,lati,:,:),4))*dthd*dr,'*-');
+                title('k*spectrum');
+                grid on;
+
+                % (6) Sig H and Mean Slope
+                subplot(326);
+                plot(1:m,ht(:,lati),'.-')
+                hold on;
+                plot(1:m,ms(:,lati),'--r')
+                hold off;
+                title('Sig H and Mean Slope')
+                grid on;
+
+                % Signifigant Height 
+                [xplot,yplot] = meshgrid(1:m,1:n);
+                figure;
+                surf(xplot',yplot',ht','EdgeColor','k')
+                c = colorbar;
+                c.Label.String = 'Sig H [m]';
+                title('Sig Wave Height')
+
+                % Integrate spectrum  over wavenumber to plot directional plot of 10th wavelength
+                Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);
+                Wavel = 2*pi./Wavel;Wavel = Wavel.^(0.25); % Wavelength to 1/4 power
+                % Direction of one wavelength
+                KD = squeeze(sum(dwn(:,:,10,:).*E(:,:,10,:),3));
+                Dir_sin = sum(KD.*squeeze(sin(waveang(:,:,10,:))),3)./sum(KD,3);
+                Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3); 
+                mdir = atan2(Dir_sin,Dir_cos);
+                
+                figure;
+                quiver(Wavel'.*cos(mdir'),Wavel'.*sin(mdir'),0.8,'c');
+                title(['Sig.Ht. and \lambda^{1/4}. Time = ',num2str(modt/3600),' Hours'])
+                
+                figure;
+                contour(ht',20)
+                c = colorbar;
+                c.Label.String = 'Sig H [m]';
+                grid on;
+                title(['Sig.Ht. Time = ',num2str(modt/3600),' Hours'])
+
+                
+           end
+           
+           cgmax = max(max(max(max((E>1e-320).*Cg)))); % Adjust cgmax for active energy components
 
         end
+
+        % print time update to screen 
+        fraction_time_completed = t/Tsteps;
+        ttime=toc;
+        hours_to_complete = Tsteps/t*ttime/3600;
+
+        fprintf('fraction time completed: %.2f\n',fraction_time_completed);
+        fprintf('Seconds so far: %i\n',ttime);
+        fprintf('Hours remaining: %.2f\n',hours_to_complete);
+
+        % save data from loop to .mat file
+        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
+
     end
+
+    % print wind speeds completed so far to screen
+    [minval,minind] = min(abs(UUvec-UU));
+    disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
 
 end
