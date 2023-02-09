@@ -10,6 +10,19 @@ close all
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% prepare log file for commands
+dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
+diary(dfile);
+diary on;
+
+% create output directory for results
+parentFolder = fileparts(pwd);
+TitanResults = sprintf('%s\\Titan%s', pwd);
+if ~exist(TitanResults, 'dir')
+  mkdir(TitanResults);
+end
+
 %% MODEL SET UP %%
 
 %% global constants %%
@@ -266,7 +279,7 @@ delt = 0.7 * mindelx / cgmax; % advection is limited by the Courant condition fo
 
 
 % save data to mat file
-eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
+eval(['save Titan/Titan_',int2str(file),'_ref m n o p f f wn dwn D Uei Uer Cg c delx dely waveang'])
 file = file - 1;
 
 
@@ -279,7 +292,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
     file = file + 1; % used for saving data to a specific filename and number
     modt = 0; % something for the time iteration
 
-    U = UUvec(ii).*ones(m,n); % initialize wind vector to have same velocity everywhere on the grid
+    U = UUvec(iii).*ones(m,n); % initialize wind vector to have same velocity everywhere on the grid
     U_z = U + 0.005; % need this small addition to avoid division by zero
 
     windir =  repmat(wind_direction.*ones(m,n),[1 1 o p]); % direction vector map of incoming wind (here it is set to be all uniform direction)
@@ -528,12 +541,12 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
             %% SIGNIFIGANT HEIGHT & MEAN SLOPE RESULT
 
             % Integrate spectrum to find significant height 
-            ht = sum(dwn.*wn.*E,4)*dthd*dr;
+            ht = sum(dwn.*wn.*E,4)*(360/p)*(pi/180);
             ht = sum(ht,3);
             ht = 4*sqrt(abs(ht));
 
             % Integrate spectrum to find mean slope 
-            ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;
+            ms = sum(dwn.*wn.^3.*E,4)*(360/p)*(pi/180);
             ms = sum(ms,3);
             ms = sqrt(ms);
             
@@ -548,7 +561,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
                 
                 % Omnidirectional wavenumber spectrum 
                 figure;
-                semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn([2:4:m],lati,:,:).*E([2:4:m],lati,:,:),4)*dthd*dr)','*-');
+                semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn([2:4:m],lati,:,:).*E([2:4:m],lati,:,:),4)*(360/p)*(pi/180))','*-');
                 grid on;
                 title(['Omni directional wavenumber spectra along latitude ',num2str(lati),'. Time = ',num2str(modt/3600),' Hours'])
                 
@@ -563,35 +576,35 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
                 
                 % (2) k*Sin
                 subplot(322);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sin(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sin(long,lati,:,:).*E(long,lati,:,:),4))*(360/p)*(pi/180),'*-');
                 title('k*Sin');
                 grid on;
                 
                 % (3a) k*Sds(b) 
                 subplot(323);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sds(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sds(long,lati,:,:).*E(long,lati,:,:),4))*(360/p)*(pi/180),'*-');
                 hold on;
                 
                 % (3b) k*Sdt(g)
                 subplot(323);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sdt(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-g');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sdt(long,lati,:,:).*E(long,lati,:,:),4))*(360/p)*(pi/180),'*-g');
                 
                 % (3c) k*Sbf(r)
                 subplot(323);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sbf(long,lati,:,:).*E(long,lati,:,:),4))*dthd*dr,'*-r');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Sbf(long,lati,:,:).*E(long,lati,:,:),4))*(360/p)*(pi/180),'*-r');
                 title('k*Sds(b), k*Sdt(g), k*Sbf(r)');
                 grid on
                 hold off;
 
                 % (4) k*Snl
                 subplot(324);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Snl(long,lati,:,:),4))*dthd*dr,'*-');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*Snl(long,lati,:,:),4))*(360/p)*(pi/180),'*-');
                 title('k*Snl');
                 grid on;
 
                 % (5) k*Spectrum
                 subplot(325);
-                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*E(long,lati,:,:),4))*dthd*dr,'*-');
+                semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*E(long,lati,:,:),4))*(360/p)*(pi/180),'*-');
                 title('k*spectrum');
                 grid on;
 
@@ -649,7 +662,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
         fprintf('Hours remaining: %.2f\n',hours_to_complete);
 
         % save data from loop to .mat file
-        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
+        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht f oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
 
     end
 
@@ -658,3 +671,5 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
     disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
 
 end
+
+diary off; % close logging function
