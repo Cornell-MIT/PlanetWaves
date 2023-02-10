@@ -10,7 +10,7 @@ close all
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+tic
 % prepare log file for commands
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
@@ -22,6 +22,7 @@ TitanResults = sprintf('%s\\Titan%s', pwd);
 if ~exist(TitanResults, 'dir')
   mkdir(TitanResults);
 end
+
 
 %% MODEL SET UP %%
 
@@ -74,7 +75,7 @@ rhorat = rhoa/rhow; % air/water density ratio
 
 %% WIND CLIMATE %%
 gust = 0; % Gust factor applied to wind at each time step
-UUvec = [0.4:1:4.5]; % wind velocities of interest [m/s]
+UUvec = [0.4:1:3]; % wind velocities of interest [m/s]
 wind_direction = 0; % direction of incoming wind
 Cd=1.2*ones(n,n); % coefficient of friction is uniform over entire grid at 1.2
 
@@ -179,8 +180,8 @@ Uei=0*D + 0.0; % Northward current [m/s]
 [xplot,yplot] = meshgrid(1:m,1:n);
 figure;
 surf(xplot',yplot',D,'EdgeColor','k')
-c = colorbar;
-c.Label.String = 'Liquid Depth [m]';
+myc = colorbar;
+myc.Label.String = 'Liquid Depth [m]';
 title('Lake Model Bathymetry')
 
 
@@ -247,6 +248,7 @@ f=shiftdim(f,2);
 dom=repmat(dom',[1 p m n]);
 dom=shiftdim(dom,2);
 
+
 % wave phase velocity
 c=(2*pi*f)./wn;
 c(D<=0) = 0; % set phase velocity for negative depth to zero
@@ -286,18 +288,22 @@ file = file - 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+idx = 1; % for frame for gif
 
 for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
+
     
     file = file + 1; % used for saving data to a specific filename and number
     modt = 0; % something for the time iteration
 
     U = UUvec(iii).*ones(m,n); % initialize wind vector to have same velocity everywhere on the grid
+    Cd = 1.2*ones(m,n); % initialize Cd
+
     U_z = U + 0.005; % need this small addition to avoid division by zero
 
-    windir =  repmat(wind_direction.*ones(m,n),[1 1 o p]); % direction vector map of incoming wind (here it is set to be all uniform direction)
-    uj = find(U>11); % for some reason
-    Cd(uj) = 0.49 +.065.*U(uj); % for some reason
+    windir =  repmat(wind_direction*ones(m,n),[1 1 o p]); % direction vector map of incoming wind (here it is set to be all uniform direction)
+
+    Cd(U>11) = 0.49 +.065.*U(U>11); % for some reason
     Cd=Cd./1000; % for some reason
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -321,7 +327,8 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
             Ul = real(U_z.*sqrt(Cd)); % wind friction velocity 
             Ustar = Ul; % save copy to use elsehwere
             U_10 = 2.5*Ustar.*log(10/z) + U_z; % wind velocity profile according to the Law of the Wall
-            Ustarw = Ustar .* sqrt(rhorat); % something related to shear stress
+            ustarw = Ustar .* sqrt(rhorat); % something related to shear stress
+            Ud = - repmat(ustarw,[1 1 o p])./kappa.*log(lz/z);
 
             % reshape matrix
             Ul = repmat(Ul,[1 1 o p]);
@@ -330,12 +337,14 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
 
             %calculate wind input as a fraction of stress.
             %   Ul = (Ucos(th)-c-drift*cos(phi)).^
+            Uer = zeros(size(D)); % need to update this if we want to add it in (why is D include time in dimensions?)
+            Uei = zeros(size(D)); % need to update this if we want to add it in
             Ul(D>0)=abs(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0))...
                 .*(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0));
 
             % adjust input to lower value when waves overrun the wind (as wave speed approaches wind speed the energy extraction becomes less efficient)
             Ula = Ul; % saving a copy
-            Ul = 0.11*U1; % for some reason
+            Ul = 0.11*Ul; % for some reason
             Ul(Ul<0) = Ula(Ul<0)*0.03;% where is this fraction from? UGS
             Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;% Waves against wind.
 
@@ -492,14 +501,14 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
             Crotccw(Crot>0) = Crot(Crot>0); % if crot is positive then ccw rotation
             Crotcw(Crot<0) = Crot(Crot<0); % if crot is negative than cw rotation
 
-            Crotccw(Crotccw > dth/newdelt) = dth/newdelt; % something
-            Crotcw(Crotcw < -1*dth/newdelt) = -1*dth/newdelt; % something
+            Crotccw(Crotccw > (360/p)/newdelt) = (360/p)/newdelt; % something
+            Crotcw(Crotcw < -1*(360/p)/newdelt) = -1*(360/p)/newdelt; % something
 
             % include rotation term in energy spectrum
-            E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;
-            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;
-            E1(:,:,ol,ccw) = E1(:,:,ol,ccw) + newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;
-            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;
+            E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/(360/p);
+            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/(360/p);
+            E1(:,:,ol,ccw) = E1(:,:,ol,ccw) + newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/(360/p);
+            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/(360/p);
 
             % clean up energy term
             E1(E1 < 0)=0; % set negative energy to zero
@@ -557,7 +566,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %% PLOTTING 
 
-           if rem(tplot,10) == 0 % plot every 10th time step
+           %if rem(tplot,10) == 0 % plot every 10th time step
                 
                 % Omnidirectional wavenumber spectrum 
                 figure;
@@ -620,10 +629,13 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
                 % Signifigant Height 
                 [xplot,yplot] = meshgrid(1:m,1:n);
                 figure;
-                surf(xplot',yplot',ht','EdgeColor','k')
-                c = colorbar;
-                c.Label.String = 'Sig H [m]';
-                title('Sig Wave Height')
+                surf(xplot',yplot',ht,'EdgeColor','k')
+                myc = colorbar;
+                myc.Label.String = 'Sig H [m]';
+                title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s')
+                frame = getframe(gcf);
+                im{idx} = frame2im(frame);
+                idx = idx + 1;
 
                 % Integrate spectrum  over wavenumber to plot directional plot of 10th wavelength
                 Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);
@@ -640,16 +652,16 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
                 
                 figure;
                 contour(ht',20)
-                c = colorbar;
-                c.Label.String = 'Sig H [m]';
+                myc = colorbar;
+                myc.Label.String = 'Sig H [m]';
                 grid on;
                 title(['Sig.Ht. Time = ',num2str(modt/3600),' Hours'])
 
                 
-           end
-           
+           %end
+           close all;
            cgmax = max(max(max(max((E>1e-320).*Cg)))); % Adjust cgmax for active energy components
-
+            
         end
 
         % print time update to screen 
@@ -662,14 +674,24 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
         fprintf('Hours remaining: %.2f\n',hours_to_complete);
 
         % save data from loop to .mat file
-        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht f oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
+        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht f oa Cd Sds Sds_wc Sin Snl Sdt Sbf ms'])
 
     end
 
     % print wind speeds completed so far to screen
-    [minval,minind] = min(abs(UUvec-UU));
-    disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
+    %[minval,minind] = min(abs(UUvec-U));
+    %disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
 
 end
 
+idx_end = idx;
+filename = 'SigH.gif'; % Specify the output file name
+for idx = 1:idx_end-1
+    [A,map] = rgb2ind(im{idx},256);
+    if idx == 1
+        imwrite(A,map,filename,'gif','LoopCount',Inf,'DelayTime',1);
+    else
+        imwrite(A,map,filename,'gif','WriteMode','append','DelayTime',1);
+    end
+end
 diary off; % close logging function
