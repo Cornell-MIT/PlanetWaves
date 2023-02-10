@@ -75,7 +75,7 @@ rhorat = rhoa/rhow; % air/water density ratio
 
 %% WIND CLIMATE %%
 gust = 0; % Gust factor applied to wind at each time step
-UUvec = [0.4:1:3]; % wind velocities of interest [m/s]
+UUvec = [0.4:1:6]; % wind velocities of interest [m/s]
 wind_direction = 0; % direction of incoming wind
 Cd=1.2*ones(n,n); % coefficient of friction is uniform over entire grid at 1.2
 
@@ -632,7 +632,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
                 surf(xplot',yplot',ht,'EdgeColor','k')
                 myc = colorbar;
                 myc.Label.String = 'Sig H [m]';
-                title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s')
+                title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s'])
                 frame = getframe(gcf);
                 im{idx} = frame2im(frame);
                 idx = idx + 1;
