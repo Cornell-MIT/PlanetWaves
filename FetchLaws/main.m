@@ -686,6 +686,8 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
 
 end
 
+
+%% make gif of results
 idx_end = idx;
 filename = 'SigH.gif'; % Specify the output file name
 for idx = 1:idx_end-1
