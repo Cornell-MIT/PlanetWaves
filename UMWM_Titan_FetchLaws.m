@@ -74,7 +74,7 @@ f1 = 0.05;f2=35;dlnf=(log(f2)-log(f1))/(o-1);%Set frequencies, Titan 2014/1/3 AA
 f = exp(log(f1)+[0:o-1]*dlnf); %%%%%%%
 dom = 2*pi*dlnf.*f;
 %
-o=length(f);
+o=length(f)
 freqs = f;
 oa = 7;%top bin advected. Titan (how to adjust run time) !!!!!!!!!!  (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
 ol = [1:oa];
@@ -350,7 +350,7 @@ tplot = -1;
 %UUvec = [4:1:20]./10;
 %UUvec = linspace(4,30,100)./10;
 %for UU = UUvec;% Run several different wind speeds for fetch laws. Titan
-UUvec = [0.4:1:4.5];
+UUvec = [0.4:1:4];
 for iii=1:numel(UUvec);
     UU = UUvec(iii);
     file = file + 1;

@@ -11,6 +11,7 @@ close all
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tic
+
 % prepare log file for commands
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
@@ -33,7 +34,7 @@ kappa = 0.4; % Von-Karman constant
 m = 31; % number of gridpoints in x-direction
 n = 15; % number of gridpoints in y-direction
 p = 288; % number of angular (th) bins. Note: p must be factorable by 8 for octants.
-o = 25; % numner pf frequency bins
+o = 25; % numner of frequency bins
 
 %% delt:
 mindelt = 0.0001; % Minimum delt to minimize oscillations of delt to very small values
@@ -75,7 +76,7 @@ rhorat = rhoa/rhow; % air/water density ratio
 
 %% WIND CLIMATE %%
 gust = 0; % Gust factor applied to wind at each time step
-UUvec = [0.4:1:6]; % wind velocities of interest [m/s]
+UUvec = [0.4:.1:3.3]; % wind velocities of interest [m/s]
 wind_direction = 0; % direction of incoming wind
 Cd=1.2*ones(n,n); % coefficient of friction is uniform over entire grid at 1.2
 
@@ -124,7 +125,7 @@ Sds_fac = 1.0;% This is fac with variable power nnn in Sds.
 Sdt_fac = 0.001;
 Sbf_fac = 0.002;% Select for bottom roughness. 0.004 is for smooth sandy bottom as in GOM.
 
-%% Geographic deltas
+%% Geographic deltas?
 Delx = 1000.0; % Titan [m]
 Dely = 1000.0; % Titan [m]
 dely = Dely*ones(m,n,o,p);
@@ -140,7 +141,7 @@ slostart = 1; % what is this?
 % for saving data
 file = 1; % for filename 
 
-% something
+% something for time evolution of model
 explim = 0.1;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,20 +149,20 @@ explim = 0.1;
 %% LAKE GEOMETRY
 
 % LAKE EXAMPLE 1: Constant Depth
-%D = 100*ones(m,n); % constant liquid depth [m]
+D = 100*ones(m,n); % constant liquid depth [m]
 
 % LAKE EXAMPLE 2: Conical Island (how is this a cone?)
-
-ccm=36; % x-location of island
-ccn=26; % y-location of island
-
-D=zeros(m,n); % initialize depth array
-
-for j1=1:m
-    for j2=1:n
-        D(j1,j2) = 2*abs((j1-ccm) + 1i*(j2-ccn)) - 9;
-    end
-end
+%
+%ccm=36; % x-location of island
+%ccn=26; % y-location of island
+%
+%D=zeros(m,n); % initialize depth array
+% 
+% for j1=1:m
+%     for j2=1:n
+%         D(j1,j2) = 2*abs((j1-ccm) + 1i*(j2-ccn)) - 9;
+%     end
+% end
 
 
 D(D<=0) = 0; % all negative depths should be set to zero
@@ -292,7 +293,8 @@ idx = 1; % for frame for gif
 
 for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
 
-    
+    fprintf('Wind velocity: %.2f\n',UUvec(iii));
+
     file = file + 1; % used for saving data to a specific filename and number
     modt = 0; % something for the time iteration
 
@@ -309,7 +311,7 @@ for iii = 1:numel(UUvec) % iterate through all wind velocities of interest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     for t = 1:Tsteps
-
+        
         sumt = 0; % used for iterating 
         tplot = -1; % counter for plotting a figure every tenth loop
         Newdelt = []; % initialize something
