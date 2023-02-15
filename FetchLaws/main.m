@@ -3,7 +3,8 @@ clear all
 close all
 
 % Calculates E(x,y,k,theta) from energy balance equation.
-
+% TEST TEST TEST
+% BEEP BEEP BEEP
 % The equation to solve is:
 % E(x,y,k,th)_{n+1} = E(x,y,k,th)_n + delt * (-Cg cos(th)dE/dx -Cg sin(th)dE/dy + Sin + Snl - Sds).
 % Dimensions of x, y, k, th are m, n, ,o, p.
