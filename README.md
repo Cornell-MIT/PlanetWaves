@@ -1,9 +1,10 @@
 # umwm_titan
 
-TESTS:
+## TESTS:
 1. Non-zero current
 2. Cylindrical island?
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ![image](https://user-images.githubusercontent.com/24469269/216115106-07c52808-777f-43b3-aaa8-96d51b80508c.png)
 (Donelan et al. 2012 "Modelling waves and wind stress"
