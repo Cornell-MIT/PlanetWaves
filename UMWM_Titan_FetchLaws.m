@@ -639,7 +639,8 @@ for iii=1:numel(UUvec);
             
             Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2); % from definition of shear stress and law of the wall UGS
             Cdf = Cd;
-            Ustar_smooth = smooth_nu((1-wfac)*U_z(:),z,nua);Ustar_smooth = reshape(Ustar_smooth,m,n);% Surface current; 3.5% cm/s. GRL5 (friction velocity for hydraulically smooth interface)
+            Ustar_smooth = smooth_nu((1-wfac)*U_z(:),z,nua);
+            Ustar_smooth = reshape(Ustar_smooth,m,n);% Surface current; 3.5% cm/s. GRL5 (friction velocity for hydraulically smooth interface)
             
             Ustar_smooth = (Ustar_smooth./U_z).^2;
             Cds =  Ustar_smooth;
