@@ -1,5 +1,14 @@
 # umwm_titan
+WORKING MODEL:
 
+main_live_v2
+
+WORKING TESTS:
+
+testing_changes_results
+
+testing_changes_ref
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## TESTS:
 1. Non-zero current
 2. Cylindrical island?
