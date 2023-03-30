@@ -1,24 +1,14 @@
 # umwm_titan
-## To do:
-```
--Run model to maturity (add a maturity test for waves? ex. "for last 10% of time, less than 5% change in height")
--Run model for different composition between ethane-rich and methane-rich
--Run model for different bathymetries (eg. Ligeia Mare)
--incorporate lake function into model call
-```
+WORKING MODEL:
 
-## Unit testing
+main_live_v2
 
-Valid for: 
-```
-windspeeds = 0.4:1:3.3
-m = 31                                                                    
-n = 15                                                                  
-rho_liquid = 465
-nu_liquid = 0.0031/1e4
-bathy_map = 100.*ones(m,n)
-```
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+WORKING TESTS:
+
+testing_changes_results
+
+testing_changes_ref
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## TESTS:
 1. Non-zero current
 2. Cylindrical island?
