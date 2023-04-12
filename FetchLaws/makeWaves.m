@@ -28,19 +28,20 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     diary(dfile);
     diary on;
     
-% -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     parentFolder = fileparts(pwd);
     TitanResults = sprintf('%s\\Titan%s', pwd);
     if ~exist(TitanResults, 'dir')
       mkdir(TitanResults);
     end
     
-% -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     file = 1; 
     filec = 1;
-% -- SHOW PLOTS  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    % -- SHOW PLOTS  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     showplots = 0;                                                             % 0 = no plots made, 1 = plots every tenth loops
-% -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     % time inputs for model
     numdays = 1;
@@ -107,7 +108,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     g = 1.35;                                                                  % gravity [m/s2]
     
     % Viscocities:
-    nu = nu_liquid;                                                             % liquid viscocity [m2/s]
+    nu = nu_liquid;                                                           % liquid viscocity [m2/s]
     nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s] 
     
     % Wavenumber limits:
@@ -187,13 +188,12 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     cth2 = repmat(cth2,[o 1 m n]);
     cth2=shiftdim(cth2,2);
      
-%% -- Lake Geometry ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- Lake Geometry ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     % Constant depths:
-    D = 100;                                                                   % depth of liquid [m]
-    D = D*ones(m,n);
-    D = bathy_map;
-
+    D = bathy_map;                                                              % depth of liquid [m]
+    
+    
     % % Conical island:
     %  ccm=36;ccn=26;% coords of centre. Run 22, 16.
     % D=zeros(m,n);
@@ -225,7 +225,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     myc.Label.String = 'Liquid Depth [m]';
     title('Lake Model Bathymetry')
     
-%% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     % Fractions applied to terms from fitting with experiment/observations:
     mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not.
@@ -236,7 +236,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom)
     
     
-%% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     wn(:,:,:) = ones(m,n,o);
     nnn(:,:,:) = ones(m,n,o);
@@ -244,7 +244,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     for jm = 1:m
         for jn = 1:n
             if D(jm,jn) > 0;
-                wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number
+                wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);            % wave number
                 nnn(jm,jn,:) = 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power of Sds
                 ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);               % Power of Sds
             end
@@ -256,19 +256,19 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     nnn = repmat(nnn,[1 1 1 p]);
     ann = repmat(ann,[1 1 1 p]);
     nnn = (2.53/2.5).*nnn;
-    nnninv = 1./nnn;
+    nnninv = 1./nnn;%
     Depth = D; D = repmat(D,[1 1 o p]);
     f=repmat(f',[1 p m n]);
     f=shiftdim(f,2);
     dom=repmat(dom',[1 p m n]);
     dom=shiftdim(dom,2);
     
-%% -- ocean currents ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- ocean currents ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     Uer=uec*D + 0.0;                                                                                                                           % Eastward current, m/s
     Uei=unc*D + 0.0;                                                                                                                           % Northward current, m/s
     
-%% -- wave speed and group velocity --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- wave speed and group velocity --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     c=(2*pi*f)./wn;
     c(D<=0) = 0;Cg=zeros(size(c));
     Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*sfcT.*wn(D>0)./rhow./(g./wn(D>0) + sfcT.*wn(D>0)./rhow));        % Group velocity for all waves.
@@ -300,7 +300,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     
     file = file - 1;
     
-%% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     tic
     
     sumt = 0;                                                                  % initialize total model time passed
@@ -321,10 +321,10 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
         
         U_z = U + 0.005;                                                       % add small number to wind speed to avoid division by zero. 
         
-        Cd = 1.2*ones(size(U));                                                % drag coefficient for weak (less than 11 m/s) winds
+        Cd = 1.2*ones(size(U)); % coefficient of friction? UGS
     
         uj = find(U > 11);
-        Cd(uj) = 0.49 +0.065*U(uj);                                            % drag coefficient for strong (greater than 11 m/s) winds
+        Cd(uj) = 0.49 +0.065*U(uj);                                            % drag coefficient
         Cd=Cd/1000;
         
         modt = 0;
@@ -335,7 +335,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
         Uei=0*D + 0.0;                                                         % Northward current [m/s]
         
      
-%% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         for t = 1:Tsteps                                                         % loop through time
             
             Newdelt = [];
@@ -383,7 +383,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 Ul(fij) = Ula(fij)*0.015;                                      % Waves against wind
                 clear fij;
     
-% -- Sin: Input from wind ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 % input to energy spectrum from wind
                 Sin = zeros(size(Ul));
                 Sin(D>0)=rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(g+sfcT.*wn(D>0).*wn(D>0)./rhow));
@@ -404,15 +404,15 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 end
                 short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);
                 
-% -- Sdt: turbulent dissipation -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
                 Sdt(:,:,:,:) = repmat(Ustar,[1 1 o p]);
                 clear Ustar
                 Sdt = Sdt_fac*sqrt(rhorat).*Sdt.*wn;
-%-- Sbf: bottom friction ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 Sbf = zeros(m,n,o,p);
                 Sbf(D>0) = Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));
-% -- Sds: dissipation --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 Sds = zeros(size(Sin));
                 Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                   % LH p 712. vol 1 
                 
@@ -432,7 +432,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 % Remove downshifted energy
                 Snl(:,:,:,:) = Snl(:,:,:,:) - Snl_fac*(Sds(:,:,:,:).*E(:,:,:,:));
                 Snl(D <= 0) = 0;
-% -- Sds_wc: white-capping -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 % Integrate source functions
                 Sds_wc = Sds;                                                                                                       % Keep whitecapping (wc) only dissipation for calculating snl growth.
                 Sds(D>0) = coth(0.2*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*nu*wn(D>0).^2;                             % Add viscous, turbulent and plunging dissipation after calculation of Snl
@@ -457,7 +457,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     
                 fac_exp=(Sin(:,:,ol,:) - Sds(:,:,ol,:));
                 
- % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+     % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
                 E1 = zeros(size(E));
                 E1(:,:,ol,:) = E(:,:,ol,:).*exp(newdelt*fac_exp);                                                                  % Long waves.
@@ -494,7 +494,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                      % E = (E+E1)/2
                 
     
-% -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 advect=zeros(m,n,o,p);
                 Ccg = Cg + Uer.*cth + Uei.*sth;
                 
@@ -516,7 +516,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                     - Ccg(:,:,ol,sm).*sth(:,:,ol,sm).*E(:,:,ol,sm).*delx(:,:,ol,sm))...
                     ./((dely(:,:,ol,sm) + dely(:,ym,ol,sm)).*(delx(:,:,ol,sm) + delx(:,ym,ol,sm)))*4;
                 
-% -- Full energy from source, sink, and advection -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Full energy from source, sink, and advection -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
                 E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*advect(:,:,ol,:);
                 
@@ -528,7 +528,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 E1(ji)=0;
                 
     
-% -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    % -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 
                 Crot(:,:,ol,:)=(c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...
                     -(c(:,ym,ol,:)-c(:,yp,ol,:)).*cth(:,:,ol,:)./(dely(:,ym,ol,:)+dely(:,yp,ol,:));
@@ -596,7 +596,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                 Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);
                 
          
-                if rem(tplot,10) == 0 && showplots                                                                              % plot every 10th time step. 
+                if rem(tplot,10) == 0   && showplots                                                                             % plot every 10th time step. 
                     
                     % diagnostic plot
                     figure(16);clf;semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn([2:4:m],lati,:,:).*E([2:4:m],lati,:,:),4)*dthd*dr)','*-');grid on
@@ -622,33 +622,34 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                     % title('sheltering coeff.');grid on
                     figure(202);hold on;subplot(325);semilogx(squeeze(wn(long,lati,:,10)),squeeze(sum(wn(long,lati,:,:).^2.*E(long,lati,:,:),4))*dthd*dr,'*-');
                     title('k*spectrum');grid on
-                    
-% -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                end     
+    % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
                    % integrate spectrum to find significant height   
                     ht = sum(dwn.*wn.*E,4)*dthd*dr;
                     ht = sum(ht,3);
                     ht = 4*sqrt(abs(ht));
-    
-    
+                    
+                    sigH(iii,t) = max(max(ht));
+
+                if rem(tplot,10) == 0   && showplots                                                                             % plot every 10th time step.
                     % Plot Signifigant Height 
                     [xplot,yplot] = meshgrid(1:m,1:n);
-                    figure;
                     surf(xplot',yplot',ht,'EdgeColor','k')
                     myc = colorbar;
                     myc.Label.String = 'Sig H [m]';
                     title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s'])
                     frame = getframe(gcf);
                     im{idx} = frame2im(frame);
-                    idx = idx + 1;
-    
-% -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    idx = idx + 1;                     
+                end
+    % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % integrate spectrum to find mean slope
                     ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;
                     ms = sum(ms,3);
                     ms = sqrt(ms);
     
-    
+                 if rem(tplot,10) == 0   && showplots                                                                             % plot every 10th time step. 
                     figure(202);hold on;subplot(326);plot([1:m],ht(:,lati),'.-',[1:m],ms(:,lati),'--r');
                     title('Sig. Ht. & mean slope');
                     grid on
@@ -656,7 +657,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                     
                     figure(20);clf;pcolor(ht');shading interp;colorbar;grid
     
-    
+                 end
     
                     % Integrate spectrum  over wavenumber to plot directional plot of 10th wavelength.
                     Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);
@@ -667,7 +668,8 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                     Dir_sin = sum(KD.*squeeze(sin(waveang(:,:,10,:))),3)./sum(KD,3);
                     Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3); 
                     mdir = atan2(Dir_sin,Dir_cos);
-    
+                    
+                 if rem(tplot,10) == 0   && showplots                                                                             % plot every 10th time step. 
                     figure(20);
                     hold on;
                     quiver(Wavel'.*cos(mdir'),Wavel'.*sin(mdir'),0.8,'c');
@@ -679,10 +681,11 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
                     colorbar;
                     grid on
                     title(['Sig.Ht. Time = ',num2str(modt/3600),' Hours'])
+                 end 
                         
                     
                     
-                end % end plot loop
+                 
                 
                 cgmax = max(max(max(max((E>1e-320).*Cg))));                                                              % Adjust cgmax for active energy components.
                 
@@ -695,21 +698,21 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
             seconds_so_far = toc;
             hours_to_complete = Tsteps/t*ttime/3600;
     
-            fprintf('fraction time completed: %.2f\n',fraction_time_completed);
-            fprintf('Seconds so far: %i\n',ttime);
-            fprintf('Hours remaining: %.2f\n',hours_to_complete);
+            %fprintf('fraction time completed: %.2f\n',fraction_time_completed);
+            %fprintf('Seconds so far: %i\n',ttime);
+            %fprintf('Hours remaining: %.2f\n',hours_to_complete);
             
-            sigH(t) = max(max(ht));
-
+            
             eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
         end
         
         [minval,minind] = min(abs(UUvec-UU));
         disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
         
-    end % end of wind speed loop.
-    
-%% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    end % end of wind speed for loop
+
+    close all
+    %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     
     % Make gif of results:
@@ -728,94 +731,94 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
     
     diary off; % close logging function
     
-    
+end 
 % ==============================================================================================================================================================================================================================================================================================================================================================================================================================
 % User-Defined Functions:    
-    
-    function k = wavekgt( f, H, g, T, R, tol )
-    %
-    %    k = wavekgt( f, H, g, T, R, tol )
-    %
-    %    Returns a column vector of wavenumbers [k] (1/m) at frequencies [f] (Hz)
-    %    using the linear wave dispersion relation for water depth H (m).  tol
-    %    is an optional error bound on the predicted f's (the default is 1e-4). 
-    %    T is surface tension in N/m = dynes/cm * .001: default is 0.074
-    %    R = water density in Kgm/m^3: default is
-    
-    %    Note: [f] > 0 must increase monotonically from small to large.  This
-    %    routine is optimized for speed and works best when length(f) is large.
-    
-                                 % some initial housekeeping
-    
-    if nargin<6,  tol = 1e-4;  end         % default tolerance
-    % g = 9.80171; 
-    cin = 2*pi*sqrt(H/g);    
-    f = cin * f(:);  Nf = length(f);         % non-dimensionalize f
-    BB = T/(R*g*H*H);                       % non-dimensionalize T
-    k = zeros(Nf,1);
-    
-    
-        k(1) = f(1)^2;                     % use deep water limit as initial guess
-        for nd=1:Nf
-        dk=1;
-        if nd>1
-        k(nd)=k(nd-1);
-        end
-    
-        while ( abs(dk) ) > tol         % Newton-Raphson iteration loop
-            ta = 1;
-            if k(nd)<20
-            ta = tanh( k(nd) ) ;
-            end
-            dk = -(f(nd).^2 - k(nd).*(1+BB.*k(nd).^2)*ta)...
-                 ./ ( 3*BB.*k(nd).^2*ta+ta  + k(nd)*(1+BB.*k(nd).^2)*( 1 - ta.^2 ) ) ;
-            k(nd) = k(nd) - dk ;
-        end
-        k(nd) = abs( k(nd) ) ;               % f(k) = f(-k), so k>0 == k<0 roots
+
+function k = wavekgt( f, H, g, T, R, tol )
+%
+%    k = wavekgt( f, H, g, T, R, tol )
+%
+%    Returns a column vector of wavenumbers [k] (1/m) at frequencies [f] (Hz)
+%    using the linear wave dispersion relation for water depth H (m).  tol
+%    is an optional error bound on the predicted f's (the default is 1e-4). 
+%    T is surface tension in N/m = dynes/cm * .001: default is 0.074
+%    R = water density in Kgm/m^3: default is
+
+%    Note: [f] > 0 must increase monotonically from small to large.  This
+%    routine is optimized for speed and works best when length(f) is large.
+
+                             % some initial housekeeping
+
+if nargin<6,  tol = 1e-4;  end         % default tolerance
+% g = 9.80171; 
+cc = 2*pi*sqrt(H/g);    
+f = cc * f(:);  Nf = length(f);         % non-dimensionalize f
+BB = T/(R*g*H*H);                       % non-dimensionalize T
+k = zeros(Nf,1);
+
+
+    k(1) = f(1)^2;                     % use deep water limit as initial guess
+    for nn=1:Nf
+    dk=1;
+    if nn>1,
+    k(nn)=k(nn-1);
     end
-    
-    N = min( find( k>50 ) ) ;              % inform user if err > tol
-    if isempty(N),  N = Nf;  end
-    err = abs( f(2:N) - sqrt( k(2:N).*tanh(k(2:N)) ) )./f(2:N) ;
-    %if max( err ) > tol,  fprintf('\n WAVEK: error exceeds %g \n', tol),  end
-    
-    k = k / H ;                            % give k dimensions of 1/meter
+
+    while ( abs(dk) ) > tol         % Newton-Raphson iteration loop
+        tt = 1;
+        if k(nn)<20,
+        tt = tanh( k(nn) ) ;
+        end
+        dk = -(f(nn).^2 - k(nn).*(1+BB.*k(nn).^2)*tt)...
+             ./ ( 3*BB.*k(nn).^2*tt+tt  + k(nn)*(1+BB.*k(nn).^2)*( 1 - tt.^2 ) ) ;
+        k(nn) = k(nn) - dk ;
     end
-    
+    k(nn) = abs( k(nn) ) ;               % f(k) = f(-k), so k>0 == k<0 roots
+end
+
+N = min( find( k>50 ) ) ;              % inform user if err > tol
+if isempty(N),  N = Nf;  end
+err = abs( f(2:N) - sqrt( k(2:N).*tanh(k(2:N)) ) )./f(2:N) ;
+%if max( err ) > tol,  fprintf('\n WAVEK: error exceeds %g \n', tol),  end
+
+k = k / H ;                            % give k dimensions of 1/meter
+end
+
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+function ustar = smooth_nu(U,z,nu) 
+
+    % To calculate the friction velocity for smooth flow of any gas.
+    %
+    % function ustar = smooth(U,z) 
+    %
+    % ustar = friction velocity [m/s]
+    % U     = wind speed [m/s] at height z
+    % z     = height of wind speed measurement [m]
+    % nu    = kinematic viscosity of gas [m^2/s]
+    %
     
-    function ustar = smooth_nu(U,z,nu) 
     
-        % To calculate the friction velocity for smooth flow of any gas.
-        %
-        % function ustar = smooth(U,z) 
-        %
-        % ustar = friction velocity [m/s]
-        % U     = wind speed [m/s] at height z
-        % z     = height of wind speed measurement [m]
-        % nu    = kinematic viscosity of gas [m^2/s]
-        %
+    len=length(U);
+    z0=0.001;
+    z1=0.002;
+    % nu=0.156/10000;
+    del=0.00001;
+    
+    for j=1:len
+        mmm=0;
+        u=U(j);
+        z1=z0+2*del;
+        %while abs(z0-z1) > del
         
-        
-        len=length(U);
-        z0=0.001;
-        z1=0.002;
-        % nu=0.156/10000;
-        del=0.00001;
-        
-        for j=1:len
-            mm=0;
-            u=U(j);
-            z1=z0+2*del;
-            %while abs(z0-z1) > del
-            
-            for k=1:6
-                mm=mm+1;
-                z1=z0;
-                ust=0.4*u/(log(z/z0));
-                z0=0.132*nu/ust;
-            end
-            ustar(j)=ust;
+        for k=1:6
+        mmm=mmm+1;
+        z1=z0;
+        ust=0.4*u/(log(z/z0));
+        z0=0.132*nu/ust;
         end
+        ustar(j)=ust;
     end
 end
+
