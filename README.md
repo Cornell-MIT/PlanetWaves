@@ -1,5 +1,17 @@
 # umwm_titan
 
+## Unit testing
+
+Valid for: 
+```
+windspeeds = 0.4:1:3.3
+m = 31                                                                    
+n = 15                                                                  
+rho_liquid = 465
+nu_liquid = 0.0031/1e4
+bathy_map = 100.*ones(m,n)
+```
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
 ## TESTS:
 1. Non-zero current
 2. Cylindrical island?
