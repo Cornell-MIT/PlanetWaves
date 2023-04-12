@@ -15,3 +15,9 @@ nu_liquid = 0.0031/1e4;
 bathy_map = 100.*ones(m,n);
 
 sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map);
+
+save('makeWavesTest.mat','sigH')
+
+plot(windspeeds,SigH)
+xlabel('u [m/s]')
+ylabel('Sig H [m]')
