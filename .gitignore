@@ -1,12 +1,8 @@
 
-*.mat
-FetchLaws/main.asv
-*.txt
-FetchLaws/largerun_main_Titan/Omni.gif
-*.gif
-FetchLaws/largerun_main_Titan/main.asv
-FetchLaws/groundtruthing/TestingChanges.xlsx
 *.asv
+*.txt
+*.gif
+*.xlsx
 FetchLaws/groundtruthing/testing_changes_ref.mlx
 FetchLaws/reformat_main_live.mlx
 FetchLaws/main_live_v2.mlx
