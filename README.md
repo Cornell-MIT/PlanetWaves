@@ -1,9 +1,10 @@
 # umwm_titan
 ## To do:
 ```
--Run model to maturity (add a maturity test for waves?)
+-Run model to maturity (add a maturity test for waves? ex. "for last 10% of time, less than 5% change in height")
 -Run model for different composition between ethane-rich and methane-rich
 -Run model for different bathymetries (eg. Ligeia Mare)
+-incorporate lake function into model call
 ```
 
 ## Unit testing
