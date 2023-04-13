@@ -12,12 +12,16 @@ n = 15;                                                                    % num
 rho_liquid = 465;
 nu_liquid = 0.0031/1e4;
 
-bathy_map = 100.*ones(m,n);
+bathy_map = 100*ones(m,n);
 
 sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map);
 
+close all
+
 save('makeWavesTest.mat','sigH')
 
-plot(windspeeds,SigH)
+plot(windspeeds,sigH,'-o')
 xlabel('u [m/s]')
 ylabel('Sig H [m]')
+legend('Tstep = 1','Tstep = 2')
+
