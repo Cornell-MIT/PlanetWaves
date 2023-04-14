@@ -50,9 +50,8 @@ kappa = 0.4;                                                               % Von
 i = sqrt(-1);                                                              % imaginary number i
 kgmolwt = 0.028;                                                           % gram molecular weight [Kgm/mol]
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
-% grid
-m = 31;                                                                    % number of gridpoints in x-direction
-n = 15;                                                                    % number of gridpoints in y-direction
+% spatial grid
+[n,m] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
 % frequency and direction bins
 o = 25;                                                                    % number of frequency bins
 p = 288;                                                                   % number of angular (th) bins, must be factorable by 8 for octants
