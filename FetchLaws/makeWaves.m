@@ -51,7 +51,7 @@ i = sqrt(-1);                                                              % ima
 kgmolwt = 0.028;                                                           % gram molecular weight [Kgm/mol]
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % spatial grid
-[n,m] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
+[m,n] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
 % frequency and direction bins
 o = 25;                                                                    % number of frequency bins
 p = 288;                                                                   % number of angular (th) bins, must be factorable by 8 for octants
@@ -542,9 +542,11 @@ for iii=1:numel(UUvec)                                                     % loo
                [xplot,yplot] = meshgrid(1:m,1:n);
                figure;
                surf(xplot',yplot',ht,'EdgeColor','k')
+               zlim([0 1.5]);
                myc = colorbar;
-               myc.Label.String = 'Sig H [m]';
-               title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s'])
+               clim([0 1.15]);
+               myc.Label.String = 'Sig H[m]';
+               title(['Sig Wave Height for u = ',num2str(UUvec(iii)),' m/s. Max Sig. ht =', num2str(max(max(ht))), ' m'])
                frame = getframe(gcf);
                im{idx} = frame2im(frame);
                idx = idx + 1;
