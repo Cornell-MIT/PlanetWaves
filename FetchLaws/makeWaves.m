@@ -40,7 +40,11 @@ showplots = 0;                                                             % 0 =
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
 numdays = 1;
+<<<<<<< Updated upstream
 Time = 10000;                                                              %  Total time to run
+=======
+Time = 1;                                                              %  Total time to run
+>>>>>>> Stashed changes
 Tsteps = 2;
 Newdelt = [];
 mindelt = 0.0001;                                                          % Minimum delt to minimize oscillations of delt to very small values.
