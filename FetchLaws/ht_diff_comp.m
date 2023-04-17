@@ -5,22 +5,14 @@ close all
 % make plots of signifigant wave height for different compositions
 
 
-<<<<<<< Updated upstream
-windspeeds = [0.4 1];
-=======
 windspeeds = [0.4:.4:3.4];
->>>>>>> Stashed changes
 
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
 
 bathy_map = 100.*ones(m,n);
 
-<<<<<<< Updated upstream
-% from titanpool at 90K
-=======
 % % from titanpool at 90K
->>>>>>> Stashed changes
 
 rho_methane = 540;
 nu_methane = 3e-7; % m2/s
@@ -28,8 +20,6 @@ nu_methane = 3e-7; % m2/s
 rho_ethane = 660; % Titanpool and Hayes 2012
 nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
 
-<<<<<<< Updated upstream
-=======
 %from titanpool at 92K (steckloff et al., 2020)
 comp = [0:10:100];
 rho_min = 654.091;
@@ -39,7 +29,6 @@ nu_min = nu_ethane;
 nu_max = nu_methane;
 nu_comp = (((nu_max-nu_min)./(max(comp)-min(comp))).*comp) + nu_min;
 
->>>>>>> Stashed changes
 % % Ontario composition of 51:38:11 percent methane:ethane:nitrogen from Mastrogiuseppe 2018
 % rho_ontario = NaN;
 % nu_ontario = NaN;
@@ -48,24 +37,12 @@ nu_comp = (((nu_max-nu_min)./(max(comp)-min(comp))).*comp) + nu_min;
 % rho_punga = NaN;
 % nu_punga = NaN;
 
-<<<<<<< Updated upstream
-sigH_methane = makeWaves(windspeeds,rho_methane,nu_methane,bathy_map);
-sigH_ethane = makeWaves(windspeeds,rho_ethane,nu_ethane,bathy_map);
-% sigH_ontario = makeWaves(windspeeds,rho_ontario,nu_ontario,bathy_map);
-% sigH_punga = makeWaves(windspeeds,rho_punga,nu_punga,bathy_map);
-
-figure
-plot(windspeeds,sigH_methane(:,2),'-o')
-hold on
-plot(windspeeds,sigH_ethane(:,2),'-o')
-legend('Methane-N2','Ethane-N2')
-xlabel('wind speed [m/s]')
-ylabel('sig H [cm]')
-=======
 % sigH_methane = makeWaves(windspeeds,rho_methane,nu_methane,bathy_map);
 % sigH_ethane = makeWaves(windspeeds,rho_ethane,nu_ethane,bathy_map);
 % sigH_ontario = makeWaves(windspeeds,rho_ontario,nu_ontario,bathy_map);
 % sigH_punga = makeWaves(windspeeds,rho_punga,nu_punga,bathy_map);
+
+
 sigH_100ethane_0methane = makeWaves(windspeeds,rho_comp(:,1),nu_comp(:,1),bathy_map);
 sigH_90ethane_10methane = makeWaves(windspeeds,rho_comp(:,2),nu_comp(:,2),bathy_map);
 sigH_80ethane_20methane = makeWaves(windspeeds,rho_comp(:,3),nu_comp(:,3),bathy_map);
@@ -108,6 +85,3 @@ xlabel('wind speed [m/s]')
 ylabel('sig H [cm]')
 title('windspeed vs sig H at 92K')
 hold off
-
-
->>>>>>> Stashed changes
