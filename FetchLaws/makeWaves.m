@@ -41,7 +41,7 @@ showplots = 0;                                                             % 0 =
 % time inputs for model
 numdays = 1;
 Time = 10000;                                                              %  Total time to run
-Tsteps = 2;
+Tsteps = 5;
 Newdelt = [];
 mindelt = 0.0001;                                                          % Minimum delt to minimize oscillations of delt to very small values.
 maxdelt = 2000.0;                                                          % Maximum delt to prevent large values as wind ramps up at startup
@@ -51,10 +51,10 @@ i = sqrt(-1);                                                              % ima
 kgmolwt = 0.028;                                                           % gram molecular weight [Kgm/mol]
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % spatial grid
-[n,m] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
+[m,n] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
 % frequency and direction bins
 o = 25;                                                                    % number of frequency bins
-p = 288;                                                                   % number of angular (th) bins, must be factorable by 8 for octants
+p = 64;                                                                   % number of angular (th) bins, must be factorable by 8 for octants
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(p);                                                            % conversion from radians to degrees
 dth = 360/p;                                                               % copy of conversion from radians to degrees
@@ -74,8 +74,8 @@ wind_angle = 0;                                                            % win
 uec = 0;                                                                   % Eastward current [m/s]
 unc = 0;                                                                   % Northward current [m/s]
 % location of interest within grid
-long = 29;                                                                 % longitude within grid for Punga Mare
-lati = 8;                                                                  % latitude within grid for Punga Mare
+long = 10;                                                                 % longitude within grid for Punga Mare
+lati = 10;                                                                  % latitude within grid for Punga Mare
 % Surface Conditions:
 sfcpress = 1.5*101300;                                                     % surface pressure [Pa]
 sfctemp = 92;                                                              % surface temperature [K]
@@ -172,7 +172,7 @@ D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:m,1:n);
 figure;
-surf(xplot',yplot',D,'EdgeColor','k')
+surf(xplot,yplot,D','EdgeColor','k')
 myc = colorbar;
 myc.Label.String = 'Liquid Depth [m]';
 title('Lake Model Bathymetry')
@@ -188,9 +188,10 @@ Sbf_fac = 0.002;                                                           % fra
 wn(:,:,:) = ones(m,n,o);
 nnn(:,:,:) = ones(m,n,o);
 ann(:,:,:) = ones(m,n,o);
+
 for jm = 1:m
    for jn = 1:n
-       if D(jm,jn) > 0;
+       if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);            % wave number
            nnn(jm,jn,:) = 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power of Sds
            ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);               % Power of Sds
