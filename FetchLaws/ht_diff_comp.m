@@ -5,7 +5,7 @@ close all
 % make plots of signifigant wave height for different compositions
 
 
-windspeeds = [0.5 1 3.3];
+windspeeds = [0.5 1];
 
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
@@ -37,9 +37,7 @@ figure
 plot(windspeeds,sigH_methane(:,1),'-o')
 hold on
 plot(windspeeds,sigH_methane(:,2),'-o')
-plot(windspeeds,sigH_methane(:,3),'-o')
-plot(windspeeds,sigH_methane(:,4),'-o')
-plot(windspeeds,sigH_methane(:,5),'-o')
-legend('T1','T2','T3','T4','T5')
+legend('T1','T2')
 xlabel('wind speed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
+
