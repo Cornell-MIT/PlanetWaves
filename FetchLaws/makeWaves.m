@@ -13,7 +13,7 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
 %   (1) none
 %
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% Aprox time to run: ~3 hours (for 3 wind speeds, T = 10000)
+% Aprox time to run: 20 minutes (for 2 wind speeds, Time = 100, Tsteps = 200)
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Cite:
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,10 +40,11 @@ showplots = 0;                                                             % 0 =
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
 numdays = 1;
-Time = 100;                                                                % Total time to run in model (SIZE OF TIME STEP?)
-Tsteps = 200;                                                              % NUMBER OF TIME STEP?
-mindelt = 0.0001;                                                          % Minimum time step to minimize oscillations of delt to very small values.
+Time = 100;                                                                % Total size of time step (maximum size of dynamic sub time step)
+Tsteps = 200;                                                              % maximum number of time steps
+mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
 maxdelt = 2000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
+tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
 i = sqrt(-1);                                                              % imaginary number i
@@ -233,6 +234,8 @@ tic
 sumt = 0;                                                                  % initialize total model time passed
 tplot = -1;
 idx = 1;                                                                   % for frame for gif
+sigH = NaN(numel(UUvec),length(1:Tsteps));                                 % initialize sigH for returning 
+
 for iii=1:numel(UUvec)                                                     % loop through wind velocities
    UU = UUvec(iii);                                                        % UU = wind speed for loop
    file = file + 1;                                                        % for naming files
@@ -568,9 +571,9 @@ for iii=1:numel(UUvec)                                                     % loo
            Wavel = 2*pi./Wavel;
            Wavel = Wavel.^(0.25); 
            % Direction of one wavelength.
-           KD = squeeze(sum(dwn(:,:,10,:).*E(:,:,10,:),3));                                                                                                 % direction vector of wave at 10 Hz (if bin size = 1)
-           Dir_sin = sum(KD.*squeeze(sin(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % x-component of wave at 10 Hz
-           Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % y-component of wave at 10 Hz
+           KD = squeeze(sum(dwn(:,:,10,:).*E(:,:,10,:),3));                                                                                                 % direction vector of wave at 10th frequency bin (near center for o = 25)
+           Dir_sin = sum(KD.*squeeze(sin(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % x-component of wave at 10th frequency bin
+           Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % y-component of wave at 10th frequency bin
            mdir = atan2(Dir_sin,Dir_cos);                                                                                                                   % average wave direction [-pi to pi]
 
            if showplots && rem(tplot,10) == 0
@@ -589,19 +592,27 @@ for iii=1:numel(UUvec)                                                     % loo
           
            cgmax = max(max(max(max((E>1e-320).*Cg))));                                                                                                      % Adjust cgmax for active energy components.
           
-       end % end while loop for time evolution
+
+       end % end while loop for sub-time steps
       
        fraction_time_completed = t/Tsteps;
        ttime=toc;
        seconds_so_far = toc;
        hours_to_complete = Tsteps/t*ttime/3600;
-       fprintf('fraction time completed: %.2f\n',fraction_time_completed);
+       fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
        %fprintf('Seconds so far: %i\n',ttime);
        %fprintf('Hours remaining: %.2f\n',hours_to_complete);
+    
       
       
        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
-   end
+
+       if t > 1 && 1 - sigH(iii,t-1)/sigH(iii,t) < tolH
+           disp('Waves have reached 99% of maturity.')
+           break
+       end
+
+   end % end of loop for Tsteps
   
    [minval,minind] = min(abs(UUvec-UU));
    disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);

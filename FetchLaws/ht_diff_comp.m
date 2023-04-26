@@ -5,7 +5,7 @@ close all
 % make plots of signifigant wave height for different compositions
 
 
-windspeeds = [0.5 1];
+windspeeds = [0.4 1 3.3 10];
 
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
@@ -33,11 +33,13 @@ sigH_methane = makeWaves(windspeeds,rho_methane,nu_methane,bathy_map);
 % sigH_ontario = makeWaves(windspeeds,rho_ontario,nu_ontario,bathy_map);
 % sigH_punga = makeWaves(windspeeds,rho_punga,nu_punga,bathy_map);
 
-figure
-plot(windspeeds,sigH_methane(:,1),'-o')
-hold on
-plot(windspeeds,sigH_methane(:,2),'-o')
-legend('T1','T2')
-xlabel('wind speed [m/s]')
-ylabel('sig H [m]')
 
+
+figure;
+plot(1:length(sigH_methane),sigH_methane(1,:),'-o')
+hold on;
+plot(1:length(sigH_methane),sigH_methane(2,:),'-o')
+plot(1:length(sigH_methane),sigH_methane(3,:),'-o')
+plot(1:length(sigH_methane),sigH_methane(end,:),'-o')
+xlabel('time step')
+legend('u = 0.4 m/s','1','3.3','10')
