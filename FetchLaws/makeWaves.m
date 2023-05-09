@@ -1,4 +1,4 @@
-function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
+function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,sfct_liquid,bathy_map)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -79,7 +79,7 @@ lati = 10;                                                                 % lat
 % Surface Conditions:
 sfcpress = 1.5*101300;                                                     % surface pressure [Pa]
 sfctemp = 92;                                                              % surface temperature [K]
-sfcT = 0.018;                                                              % surface tension of liquid [N/m] (0.027 for 75% methane)
+sfcT = sfct_liquid;                                                              % surface tension of liquid [N/m] (0.027 for 75% methane)
 % Ideal gas law: PV = nRT
 % Densities:
 rhoa = sfcpress*kgmolwt/(RRR*sfctemp);                                     % air density [kg/m3]
