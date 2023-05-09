@@ -7,12 +7,13 @@ close all
 
 windspeeds = [0.4 1 3.3 10];
 
+
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
 
 bathy_map = 100.*ones(m,n);
 
-%% from titanpool at 90K
+%% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
 
 rho_methane = 540;
 nu_methane = 3e-7; % m2/s
@@ -89,7 +90,7 @@ nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
 % nu_75_0_25 = 1.867E-4;
 % sigH_75_0_25 = makeWaves(windspeeds,rho_75_0_25,sfct_75_0_25,nu_75_0_25,bathy_map);
 
-%% lake compositions from NIST and sources
+%% lake compositions from NIST and sources (80 min for 2 windspeeds; 160 min for 4 windspeeds)
 % % Ontario composition of 51:38:11 percent methane:ethane:nitrogen from Mastrogiuseppe 2018
 rho_ontario = 476.962;
 sfct_ontario = 2.579E-2;
