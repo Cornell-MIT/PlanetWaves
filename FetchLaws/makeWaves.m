@@ -1,4 +1,4 @@
-function [sigH,T0] = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
+function [sigH] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -11,6 +11,7 @@ function [sigH,T0] = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map,time_st
 %
 %   Arguments:
 %       windspeeds     : speed of wind [m/s] above boundary layer
+%       wind_dir       : wind approach angle (CCW from East) [rad]
 %       rho_liquid     : density of the liquid [kg/m3]
 %       nu_liquid      : kinematic viscocity of liquid [m2/s]
 %       bathy_map      : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
@@ -19,7 +20,7 @@ function [sigH,T0] = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map,time_st
 %
 %   Returns:
 %       sigH           : largest signifigant wave height over the entire spatial array [m]
-%       dwn            : dominant wavenumber [1/m]
+%       T0             : wave period of waves with largest sig H [s]
 %   
 %       
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,8 +71,8 @@ RRR = 8.314;                                                               % Uni
 o = 25;                                                                    % number of frequency bins
 p = 64;                                                                    % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 dr = pi/180;                                                               % conversion from degrees to radians
-dthd = 360/(p);                                                            % small angle for integration (for angular direction) [degrees]
-dth = 360/p;                                                               % small angle for integration [degrees]
+dthd = 360/(p);                                                            % step size for angular direction [degrees]
+%dth = 360/p;                                                               % small angle for integration [degrees]
 % Set up geographic deltas
 Delx = 1000.0;                                                             % grid step size [m]
 Dely = 1000.0;                                                             % grid step size [m]
@@ -83,7 +84,7 @@ zref = 20;                                                                 % hei
 z = 10;                                                                    % height of measured wind speed [m]
 wfac = 0.035;                                                              % winddrift fraction of Uz ffor U10m
 UUvec = windspeeds;                                                        % wind speeds to model [m/s]
-wind_angle = 0;                                                            % wind approach angle
+wind_angle = wind_dir;                                                     % wind approach angle 
 % currents:
 uec = 0;                                                                   % Eastward current [m/s]
 unc = 0;                                                                   % Northward current [m/s]
@@ -113,9 +114,9 @@ kcga = 1.15*kcg;                                                           % a m
 f1 = 0.05;                                                                 % minimum frequency
 f2 = 35;                                                                   % maximum frequency
 % create frequency limits for spectrum
-dlnf=(log(f2)-log(f1))/(o-1);                                              % frequency range
+dlnf=(log(f2)-log(f1))/(o-1);                                              % frequency step size for log normal distribution
 f = exp(log(f1)+[0:o-1]*dlnf);                                             % frequencies for spectrum
-dom = 2*pi*dlnf.*f;                                                        % dominant angular frequency (w = 2pi*f)
+dom = 2*pi*dlnf.*f;                                                        % angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
 o = length(f);                                                             % set o to maximum frequency
@@ -551,15 +552,12 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % sum k^2*E over all directions                                                                               % spectral moment
-            ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface)                                                                                                                               
+            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn)                                                                            % spectral moment
+            ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
             ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)                                                                       % sig wave height = 4*sqrt(spectral moment) for narrow-banded wave spectrum
             [sigH(iii,t),~] = max(max(ht));                                                                                                                     % return the largest signifigant wave height along the grid
             
-            %m1 = sum((dwn.^2).*wn.*E,4)*dthd*dr;                            % first order moment m1 = integral f^2*S over all frequencies and direction
-            m1 = sum((dwn).*(wn.^2).*E,4)*dthd*dr; 
-            m1 = sum(m1,3);
-            T0{iii,t} = ht./m1;                                             % avg time between zeroth-moment crossing (T0 = m0/m1)
+            
             
 
 
