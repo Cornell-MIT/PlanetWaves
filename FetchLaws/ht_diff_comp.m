@@ -5,7 +5,7 @@ close all
 % make plots of signifigant wave height for different compositions
 
 
-windspeeds = [0.4 1 3.3 10];
+windspeeds = [0.45 0.47 0.5 0.57 0.6];
 
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
@@ -28,10 +28,8 @@ nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
 % rho_punga = NaN;
 % nu_punga = NaN;
 
-sigH_methane = makeWaves(windspeeds,rho_methane,nu_methane,bathy_map);
-% sigH_ethane = makeWaves(windspeeds,rho_ethane,nu_ethane,bathy_map);
-% sigH_ontario = makeWaves(windspeeds,rho_ontario,nu_ontario,bathy_map);
-% sigH_punga = makeWaves(windspeeds,rho_punga,nu_punga,bathy_map);
+sigH_methane = makeWaves(windspeeds,rho_methane,nu_methane,bathy_map,1,100); % [m]
+
 
 
 
@@ -40,6 +38,8 @@ plot(1:length(sigH_methane),sigH_methane(1,:),'-o')
 hold on;
 plot(1:length(sigH_methane),sigH_methane(2,:),'-o')
 plot(1:length(sigH_methane),sigH_methane(3,:),'-o')
-plot(1:length(sigH_methane),sigH_methane(end,:),'-o')
-xlabel('time step')
-legend('u = 0.4 m/s','1','3.3','10')
+plot(1:length(sigH_methane),sigH_methane(4,:),'-o')
+plot(1:length(sigH_methane),sigH_methane(5,:),'-o')
+legend('u = 0.45','0.47','0.5','0.57','0.6')
+xlabel('# time steps (delt = .1 s)')
+ylabel('sig H [m]')

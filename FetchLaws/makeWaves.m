@@ -1,4 +1,4 @@
-function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
+function [sigH,T0] = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -6,8 +6,22 @@ function sigH = makeWaves(windspeeds,rho_liquid,nu_liquid,bathy_map)
 % The equation to solve is:
 %   E_{n+1} = E_{n} + del*(-Cg*cos(theta)*dE/dx - Cg*sin(theta)*dE/dy] + Sin + Snl - Sds
 %
+
 % Dimensions of x,y,k,th are m,n,o,p
 %
+%   Arguments:
+%       windspeeds     : speed of wind [m/s] above boundary layer
+%       rho_liquid     : density of the liquid [kg/m3]
+%       nu_liquid      : kinematic viscocity of liquid [m2/s]
+%       bathy_map      : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
+%       time_step_size : maximum size of time step
+%       num_time_steps : total number of time steps to iterate over 
+%
+%   Returns:
+%       sigH           : largest signifigant wave height over the entire spatial array [m]
+%       dwn            : dominant wavenumber [1/m]
+%   
+%       
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % External function requirements:
 %   (1) none
@@ -36,14 +50,14 @@ end
 file = 1;
 filec = 1;
 % -- SHOW PLOTS  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-showplots = 0;                                                             % 0 = no plots made, 1 = plots every tenth loops
+showplots = 1;                                                             % 0 = no plots made, 1 = plots every tenth loops
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
 numdays = 1;
-Time = 100;                                                                % Total size of time step (maximum size of dynamic sub time step)
-Tsteps = 200;                                                              % maximum number of time steps
+Time = time_step_size;                                                     % Total size of time step (maximum size of dynamic sub time step)
+Tsteps = num_time_steps;                                                   % maximum number of time steps
 mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
-maxdelt = 2000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
+maxdelt = 5000.0;%2000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
 tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
@@ -56,7 +70,7 @@ RRR = 8.314;                                                               % Uni
 o = 25;                                                                    % number of frequency bins
 p = 64;                                                                    % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 dr = pi/180;                                                               % conversion from degrees to radians
-dthd = 360/(p);                                                            % small angle for integration [degrees]
+dthd = 360/(p);                                                            % small angle for integration (for angular direction) [degrees]
 dth = 360/p;                                                               % small angle for integration [degrees]
 % Set up geographic deltas
 Delx = 1000.0;                                                             % grid step size [m]
@@ -77,31 +91,31 @@ unc = 0;                                                                   % Nor
 long = 10;                                                                 % longitude within grid for Punga Mare
 lati = 10;                                                                 % latitude within grid for Punga Mare
 % Surface Conditions:
-sfcpress = 1.5*101300;                                                     % surface pressure [Pa]
-sfctemp = 92;                                                              % surface temperature [K]
-sfcT = 0.018;                                                              % surface tension of liquid [N/m] (0.027 for 75% methane)
+sfcpress = 1*101300;%1.5*101300;                                                     % surface pressure [Pa]
+sfctemp = 273;%92;                                                              % surface temperature [K]
+sfcT = 0.072;%0.018;                                                              % surface tension of liquid [N/m] (0.027 for 75% methane)
 % Ideal gas law: PV = nRT
 % Densities:
 rhoa = sfcpress*kgmolwt/(RRR*sfctemp);                                     % air density [kg/m3]
 rhow = rho_liquid;                                                         % liquid density [kg/m3] (550 kg/m^3 for 75% methane)
 rhorat=rhoa/rhow;                                                          % air-water density ratio.
-g = 1.35;                                                                  % gravity [m/s2]
+g = 9.81;%1.35;                                                                  % gravity [m/s2]
 % Viscocities:
 nu = nu_liquid;                                                            % liquid viscocity [m2/s]
 nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s]
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities
-kcg = sqrt(g*rhow/sfcT);                                                   % wavenumber of slowest waves defined by the capillary-gravity waves
-% From Airy dispersion: omega^2 =gktanh{k)
+kcg = sqrt(g*rhow/sfcT);                                                   % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
+% modified wavenumbers
 kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % frequency limits:
 f1 = 0.05;                                                                 % minimum frequency
 f2 = 35;                                                                   % maximum frequency
 % create frequency limits for spectrum
-dlnf=(log(f2)-log(f1))/(o-1);
+dlnf=(log(f2)-log(f1))/(o-1);                                              % frequency range
 f = exp(log(f1)+[0:o-1]*dlnf);                                             % frequencies for spectrum
-dom = 2*pi*dlnf.*f;                                                        % domminant frequency
+dom = 2*pi*dlnf.*f;                                                        % dominant angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
 o = length(f);                                                             % set o to maximum frequency
@@ -120,6 +134,7 @@ A = exp(dlnf);
 B = A.*A;
 fac = bf1.*(1-1/B) + bf2.*(1-1./B.^2);                                     % eqn. 21, Donelan 2012
 Snl_fac = ((1.0942/A)^1.9757)/fac;                                         % eqn. 21, Donelan 2012
+
 waveang = ([0:p-1]-p/2+0.5)*dthd*dr;                                       % wave angle [radians]
 op = [p/2+1:p 1:p/2];                                                      % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
 orm = [p:-1:1];                                                            % reflected directions for 100% reflection from y-boundaries.
@@ -154,14 +169,12 @@ cth2=shiftdim(cth2,2);
 
 D = bathy_map;                                                             % depth of liquid [m]
 
-% turn all negative depths to zero
-j12 = find(D<=0);
+j12 = find(D<=0);                                                          % turn all negative depths to zero
 D(j12) = 0;
 % Impose depth limits
 jj = find (D < 0);
 D(jj) = 0;                                                                 % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
-% Set array boundary depths to 0 (absorbtive boundaries)
-D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;
+D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:m,1:n);
 if showplots
@@ -173,7 +186,7 @@ if showplots
 end
 %% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Fractions applied to terms from fitting with experiment/observations:
-mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012)
+mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
 % Snl_fac = 3.5;                                                           % fraction of Sdiss that goes to longer wavenumbers
 % Snl_fac = 4.3;                                                           % fraction of Sdiss that goes to longer wavenumbers
 Sds_fac = 1.0;                                                             % fraction with variable power nnn in Sds that goes into spectrum
@@ -188,7 +201,7 @@ for jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number (using linear wave dispersion)
-           nnn(jm,jn,:) = 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power of Sds
+           nnn(jm,jn,:) = 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
            ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);               % Power of Sds
        end
    end
@@ -197,8 +210,10 @@ end
 wn = repmat(wn,[1 1 1 p]);
 nnn = repmat(nnn,[1 1 1 p]);
 ann = repmat(ann,[1 1 1 p]);
+% conversions for nnn?
 nnn = (2.53/2.5).*nnn;
 nnninv = 1./nnn;
+% reshape the matrix 
 Depth = D; D = repmat(D,[1 1 o p]);
 f=repmat(f',[1 p m n]);
 f=shiftdim(f,2);
@@ -212,8 +227,8 @@ c=(2*pi*f)./wn;                                                                 
 c(D<=0) = 0;                                                                                                                              % phase speed on land is set to zero
 Cg=zeros(size(c));                                                                                                                        % initialize group speed
 Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*sfcT.*wn(D>0)./rhow./(g./wn(D>0) + sfcT.*wn(D>0)./rhow));        % Group velocity for all waves (Kinsman "Wind Waves: Their Generation and Propogation on the Ocean Surface")
-dwn = ones(m,n,o,p);                                                                                                                      % dominant wavenumber (c = dw/dk)
-dwn(D>0)=dom(D>0)./abs(Cg(D>0));                                                                                                          % remove any values on land
+dwn = ones(m,n,o,p);                                                                                                                      % initalize dominant wavenumber (c = dw/dk)
+dwn(D>0)=dom(D>0)./abs(Cg(D>0));                                                                                                          % remove any values on land for dominant wavenumber (c = dw/dk)
 Cg(D<=0) = 0;                                                                                                                             % zero all the group velocities on land
 l2=abs(c)./f/2;                                                                                                                           % wavelength/2
 lz=abs(c)./f/2/pi;                                                                                                                        % wavelength/2/pi: kz = 1 for drift current action
@@ -247,6 +262,7 @@ for iii=1:numel(UUvec)                                                     % loo
   
    U_z = U + 0.005;                                                        % wind at modelled height (plus small number to wind speed to avoid division by zero)
   
+   % drag coefficient 
    Cd = 1.2*ones(size(U));                                                 % drag coefficient for weak/moderate winds
    uj = find(U > 11);
    Cd(uj) = 0.49 +0.065*U(uj);                                             % drag coefficient for strong winds
@@ -339,13 +355,14 @@ for iii=1:numel(UUvec)                                                     % loo
           
            % Spread Snl to 2 next longer wavenumbers exponentially decaying as distance from donating wavenumber.
            Snl = zeros(m,n,o,p);
-           Snl(:,:,1:end-1,:) = bf1*Snl_fac*(Sds(:,:,2:end,:).*E(:,:,2:end,:).*wn(:,:,2:end,:).*dwn(:,:,2:end,:));                              % eqn. 21, Donelan 2012
-           Snl(:,:,1:end-2,:) = Snl(:,:,1:end-2,:) + bf2*Snl_fac*(Sds(:,:,3:end,:).*E(:,:,3:end,:).*wn(:,:,3:end,:).*dwn(:,:,3:end,:));         % eqn. 21, Donelan 2012
+           Snl(:,:,1:end-1,:) = bf1*Snl_fac*(Sds(:,:,2:end,:).*E(:,:,2:end,:).*wn(:,:,2:end,:).*dwn(:,:,2:end,:));                              % eqn. 21, Donelan 2012 (first part of sum)
+           % a quantity of energy proportional to energy dissipated is passed to longer waves in next two lower wn bins
+           Snl(:,:,1:end-2,:) = Snl(:,:,1:end-2,:) + bf2*Snl_fac*(Sds(:,:,3:end,:).*E(:,:,3:end,:).*wn(:,:,3:end,:).*dwn(:,:,3:end,:));         % eqn. 21, Donelan 2012 (second part of sum)
           
            % Renormalize to receiving wavenumber and bandwidth.
            Snl(:,:,:,:) = Snl(:,:,:,:)./(wn(:,:,:,:).*dwn(:,:,:,:));
            % Remove downshifted energy
-           Snl(:,:,:,:) = Snl(:,:,:,:) - Snl_fac*(Sds(:,:,:,:).*E(:,:,:,:));
+           Snl(:,:,:,:) = Snl(:,:,:,:) - Snl_fac*(Sds(:,:,:,:).*E(:,:,:,:));                                                                    % eqn. 21, Donelan 2012 (last part of sum)
            Snl(D <= 0) = 0;
 % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Integrate source functions
@@ -501,7 +518,7 @@ for iii=1:numel(UUvec)                                                     % loo
            clear Ustar_smooth;
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan 2012)
           
-   
+           
            if showplots && rem(tplot,10) == 0                                                                                                   % plot every 10th time step if showplots = 1
               
                close all;
@@ -534,11 +551,17 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                                                                                                 % spectral moment
-            ht = sum(ht,3);                                                                                                                                         
-            ht = 4*sqrt(abs(ht));                                                                                                                           % sig wave height = 4*sqrt(spectral moment) for narrow-banded wave spectrum
+            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % sum k^2*E over all directions                                                                               % spectral moment
+            ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface)                                                                                                                               
+            ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)                                                                       % sig wave height = 4*sqrt(spectral moment) for narrow-banded wave spectrum
+            [sigH(iii,t),~] = max(max(ht));                                                                                                                     % return the largest signifigant wave height along the grid
             
-            sigH(iii,t) = max(max(ht));                                                                                                                     % return the largest signifigant wave height along the grid
+            %m1 = sum((dwn.^2).*wn.*E,4)*dthd*dr;                            % first order moment m1 = integral f^2*S over all frequencies and direction
+            m1 = sum((dwn).*(wn.^2).*E,4)*dthd*dr; 
+            m1 = sum(m1,3);
+            T0{iii,t} = ht./m1;                                             % avg time between zeroth-moment crossing (T0 = m0/m1)
+            
+
 
             if showplots && rem(tplot,10) == 0    
                % Plot Signifigant Height
@@ -606,10 +629,13 @@ for iii=1:numel(UUvec)                                                     % loo
       
       
        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
-
-       if t > 1 && 1 - sigH(iii,t-1)/sigH(iii,t) < tolH
+       
+       
+       if t > 10 && sigH(iii,t-1)/sigH(iii,t) < tolH
            disp('Waves have reached 99% of maturity.')
            break
+       elseif t > 1
+           fprintf('t_n-1/t_n: %.6f\n',sigH(iii,t-1)/sigH(iii,t));
        end
 
    end % end of loop for Tsteps
