@@ -20,22 +20,22 @@ idx = 1;
 [rr,tt] = meshgrid(th,dom);
 for ii = 1:100
     load(['Titan_1_' num2str(ii) '.mat'])
-%     contourf(th,dom,squeeze(E(5,5,:,:)))
-%     colorbar
-%     set(gca, 'YScale', 'log')
-%     xlabel('direction [deg]')
-%     ylabel('angular frequency [rad/s]')
-%     title(['E Time Step: ' num2str(ii)])
-%     ylim([dom(1) dom(end)])
-%     xlim([th(1) th(end)])
-    xx = rr.*cos(tt);
-    yy = rr.*sin(tt);
-    hh = polar(xx,yy);
-    hold on
-    contour(xx,yy,squeeze(E(5,5,:,:)))
-    set(hh,'Visible','off')
-    axis off
-    axis image
+    contourf(th,dom,squeeze(E(5,5,:,:)))
+    colorbar
+    set(gca, 'YScale', 'log')
+    xlabel('direction [deg]')
+    ylabel('angular frequency [rad/s]')
+    title(['E Time Step: ' num2str(ii)])
+    ylim([dom(1) dom(end)])
+    xlim([th(1) th(end)])
+%     xx = rr.*cos(tt);
+%     yy = rr.*sin(tt);
+%     hh = polar(xx,yy);
+%     hold on
+%     contour(xx,yy,squeeze(E(5,5,:,:)))
+%     set(hh,'Visible','off')
+%     axis off
+%     axis image
     drawnow
 %     frame = getframe(gcf);
 %     im{idx} = frame2im(frame);

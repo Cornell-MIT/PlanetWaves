@@ -54,11 +54,11 @@ filec = 1;
 showplots = 1;                                                             % 0 = no plots made, 1 = plots every tenth loops
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
-numdays = 1;
+%numdays = 1;
 Time = time_step_size;                                                     % Total size of time step (maximum size of dynamic sub time step)
 Tsteps = num_time_steps;                                                   % maximum number of time steps
 mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
-maxdelt = 5000.0;%2000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
+maxdelt = 5000.0;%2000.0;                                                  % Maximum time step to prevent large values as wind ramps up at startup
 tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
@@ -105,7 +105,7 @@ g = 9.81;%1.35;                                                                 
 nu = nu_liquid;                                                            % liquid viscocity [m2/s]
 nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s]
 % Wavenumber limits:
-kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities
+kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities (Donelan 2012, pg. 3)
 kcg = sqrt(g*rhow/sfcT);                                                   % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
 % modified wavenumbers
 kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
@@ -389,7 +389,7 @@ for iii=1:numel(UUvec)                                                     % loo
            fac_exp=(Sin(:,:,ol,:) - Sds(:,:,ol,:));
           
 % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-           E1 = zeros(size(E));                                                                                               % E^(n+1) in forward Euler differencing)
+           E1 = zeros(size(E));                                                                                               % E^(n+1) in forward Euler differencing
            E1(:,:,ol,:) = E(:,:,ol,:).*exp(newdelt*fac_exp);                                                                  % Long waves.
           
           
@@ -555,11 +555,9 @@ for iii=1:numel(UUvec)                                                     % loo
             ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn)                                                                            % spectral moment
             ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
             ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)                                                                       % sig wave height = 4*sqrt(spectral moment) for narrow-banded wave spectrum
-            [sigH(iii,t),~] = max(max(ht));                                                                                                                     % return the largest signifigant wave height along the grid
+            [sigH(iii,t),~] = max(max(ht));                                 % return the largest signifigant wave height along the grid
             
-            
-            
-
+      
 
             if showplots && rem(tplot,10) == 0    
                % Plot Signifigant Height
