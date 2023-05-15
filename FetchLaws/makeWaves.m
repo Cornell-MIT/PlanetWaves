@@ -1,4 +1,4 @@
-function [sigH] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
+function [sigH,E] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -20,7 +20,7 @@ function [sigH] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,t
 %
 %   Returns:
 %       sigH           : largest signifigant wave height over the entire spatial array [m]
-%       T0             : wave period of waves with largest sig H [s]
+%       E              : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %   
 %       
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -89,8 +89,8 @@ wind_angle = wind_dir;                                                     % win
 uec = 0;                                                                   % Eastward current [m/s]
 unc = 0;                                                                   % Northward current [m/s]
 % location of interest within grid
-long = 10;                                                                 % longitude within grid for Punga Mare
-lati = 10;                                                                 % latitude within grid for Punga Mare
+long = 43;                                                                 % longitude within grid for Punga Mare
+lati = 126;                                                                 % latitude within grid for Punga Mare
 % Surface Conditions:
 sfcpress = 1*101300;%1.5*101300;                                                     % surface pressure [Pa]
 sfctemp = 273;%92;                                                              % surface temperature [K]
