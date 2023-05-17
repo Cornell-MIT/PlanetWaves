@@ -7,7 +7,7 @@ close all
 addpath('..\bathymetries\')
 % export DEM values into array for UMWM bathymetry
 D = imread('OntarioDEM1.tif');
-D(D==D(1,1)) = 0; % set land values to 0 (depth is positive)
+D(D==D(1,1)) = -1; % set land values to 0 (depth is positive)
 % figure;
 % contourf(D,20)
 % xlabel('x')
@@ -16,7 +16,8 @@ D(D==D(1,1)) = 0; % set land values to 0 (depth is positive)
 % xlim([0 249])
 % ylim([0 70])
 
-[m,n] = size(D);
+dd = D(35:65,160:190);
+[m,n] = size(dd)
 
 windspeeds = 7.7; % 15 knots (waves build to 0.6-1.2 meters)
 
@@ -26,4 +27,4 @@ nu_water = 1e-6;
 wind_dir = 0;
 
 
-[sigH,E_spec] = makeWaves(windspeeds,wind_dir,rho_water,nu_water,D,1,100); % [m]
+[sigH,E_spec] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps); % [m]

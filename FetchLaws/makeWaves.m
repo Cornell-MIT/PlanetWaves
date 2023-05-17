@@ -1,4 +1,4 @@
-function [sigH,E] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,bathy_map,time_step_size,num_time_steps)
+function [sigH,E] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,planet_gravity,planet_temp,planet_press,surface_tension,bathy_map,gridX,gridY,time_step_size,num_time_steps)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -58,7 +58,7 @@ showplots = 1;                                                             % 0 =
 Time = time_step_size;                                                     % Total size of time step (maximum size of dynamic sub time step)
 Tsteps = num_time_steps;                                                   % maximum number of time steps
 mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
-maxdelt = 5000.0;%2000.0;                                                  % Maximum time step to prevent large values as wind ramps up at startup
+maxdelt = 5000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
 tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
@@ -74,8 +74,8 @@ dr = pi/180;                                                               % con
 dthd = 360/(p);                                                            % step size for angular direction [degrees]
 %dth = 360/p;                                                               % small angle for integration [degrees]
 % Set up geographic deltas
-Delx = 1000.0;                                                             % grid step size [m]
-Dely = 1000.0;                                                             % grid step size [m]
+Delx = gridX;                                                             % grid step size [m]
+Dely = gridY;                                                             % grid step size [m]
 dely = Dely*ones(m,n,o,p);
 delx = Delx*ones(m,n,o,p);
 % Wind:
@@ -89,18 +89,18 @@ wind_angle = wind_dir;                                                     % win
 uec = 0;                                                                   % Eastward current [m/s]
 unc = 0;                                                                   % Northward current [m/s]
 % location of interest within grid
-long = 43;                                                                 % longitude within grid for Punga Mare
-lati = 126;                                                                 % latitude within grid for Punga Mare
+long = 10;                                                                 % longitude within grid for Punga Mare
+lati = 10;                                                                 % latitude within grid for Punga Mare
 % Surface Conditions:
-sfcpress = 1*101300;%1.5*101300;                                                     % surface pressure [Pa]
-sfctemp = 273;%92;                                                              % surface temperature [K]
-sfcT = 0.072;%0.018;                                                              % surface tension of liquid [N/m] (0.027 for 75% methane)
+sfcpress = planet_press;                                                   % surface pressure [Pa]
+sfctemp = planet_temp;                                                     % surface temperature [K]
+sfcT = surface_tension;                                                    % surface tension of liquid [N/m] (0.027 for 75% methane)
 % Ideal gas law: PV = nRT
 % Densities:
 rhoa = sfcpress*kgmolwt/(RRR*sfctemp);                                     % air density [kg/m3]
 rhow = rho_liquid;                                                         % liquid density [kg/m3] (550 kg/m^3 for 75% methane)
 rhorat=rhoa/rhow;                                                          % air-water density ratio.
-g = 9.81;%1.35;                                                                  % gravity [m/s2]
+g = planet_gravity;                                                                  % gravity [m/s2]
 % Viscocities:
 nu = nu_liquid;                                                            % liquid viscocity [m2/s]
 nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s]
