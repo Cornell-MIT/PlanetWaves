@@ -18,21 +18,13 @@ gridY = n;
 time_step = 100; 
 num_time_steps = 200;
 
-% from titanpool at 90K
-
-rho_methane = 540;
-nu_methane = 3e-7; % m2/s
-
-rho_ethane = 660; % Titanpool and Hayes 2012
-nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
-
 %% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
 
-rho_methane = 540;
-nu_methane = 3e-7; % m2/s
-
-rho_ethane = 660; % Titanpool and Hayes 2012
-nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
+% rho_methane = 540;
+% nu_methane = 3e-7; % m2/s
+% 
+% rho_ethane = 660; % Titanpool and Hayes 2012
+% nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
 
 % %% methane:ethane:nitrogen from titanpool at 92K (steckloff et al., 2020) and
 % %NIST
