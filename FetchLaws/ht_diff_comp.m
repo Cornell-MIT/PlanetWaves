@@ -15,7 +15,7 @@ planet_press = 1.5*101300;
 bathy_map = 100.*ones(m,n);
 gridX = m;
 gridY = n;
-time_step = 100; 
+time_step_size = 100; 
 num_time_steps = 200;
 
 %% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
