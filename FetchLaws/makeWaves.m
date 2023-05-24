@@ -1,4 +1,4 @@
-function [sigH,E] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,planet_gravity,planet_temp,planet_press,surface_tension,bathy_map,gridX,gridY,time_step_size,num_time_steps)
+function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,showplots)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -10,17 +10,30 @@ function [sigH,E] = makeWaves(windspeeds,wind_dir,rho_liquid,nu_liquid,planet_gr
 % Dimensions of x,y,k,th are m,n,o,p
 %
 %   Arguments:
-%       windspeeds     : speed of wind [m/s] above boundary layer
-%       wind_dir       : wind approach angle (CCW from East) [rad]
-%       rho_liquid     : density of the liquid [kg/m3]
-%       nu_liquid      : kinematic viscocity of liquid [m2/s]
-%       bathy_map      : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
-%       time_step_size : maximum size of time step
-%       num_time_steps : total number of time steps to iterate over 
+%       planet
+%           rho_liquid      : liquid density [kg/m3]
+%           nu_liquid       : liquid kinematic viscocity [m2/s]
+%           gravity         : gravitational acceleration [m/s2]
+%           surface_temp    : surface temperature [K]
+%           surface_press   : surface pressure [Pa]
+%           surface_tension : surface tension of liquid [N/m]
+%       model
+%           m               : number of grid cells in x-dimension
+%           n               : number of grid cells in y-dimension
+%           gridX           : size of grid cell in x-dimension [m]
+%           gridY           : size of grid cell in y-dimension [m]
+%           bathy_map       : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
+%           time_step       : maximum size of time step [s]
+%           num_time_steps  : length of model run in terms of # of time steps
+%       wind
+%           dir             : direction of incoming near-surface wind (CCW from East) [radians]
+%           speed           : magnitude of incoming near-surface wind [m/s]
+%       showplots           : 0 = no plots made, 1 = plots every tenth loops
 %
 %   Returns:
 %       sigH           : largest signifigant wave height over the entire spatial array [m]
-%       E              : wave energy spectrum (x,y) in space and in (frequency,direction) space
+%       htgrid         : signifigant wave height for each grid cell [m]
+%       E_each         : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %   
 %       
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,13 +63,11 @@ end
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
 filec = 1;
-% -- SHOW PLOTS  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-showplots = 1;                                                             % 0 = no plots made, 1 = plots every tenth loops
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
 %numdays = 1;
-Time = time_step_size;                                                     % Total size of time step (maximum size of dynamic sub time step)
-Tsteps = num_time_steps;                                                   % maximum number of time steps
+Time = model.time_step;                                                    % Total size of time step (maximum size of dynamic sub time step)
+Tsteps = model.num_time_steps;                                             % maximum number of time steps
 mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
 maxdelt = 5000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
 tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
@@ -66,16 +77,16 @@ i = sqrt(-1);                                                              % ima
 kgmolwt = 0.028;                                                           % gram molecular weight [Kgm/mol]
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % spatial grid
-[m,n] = size(bathy_map);                                                   % [number of gridpoints in y-direction,number of gridpoints in y-direction]
+[m,n] = size(model.bathy_map);                                             % [number of gridpoints in x-direction,number of gridpoints in y-direction]
 % frequency and direction bins
 o = 25;                                                                    % number of frequency bins
 p = 64;                                                                    % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(p);                                                            % step size for angular direction [degrees]
-%dth = 360/p;                                                               % small angle for integration [degrees]
+%dth = 360/p;                                                              % small angle for integration [degrees]
 % Set up geographic deltas
-Delx = gridX;                                                             % grid step size [m]
-Dely = gridY;                                                             % grid step size [m]
+Delx = model.gridX;                                                        % grid step size [m]
+Dely = model.gridY;                                                        % grid step size [m]
 dely = Dely*ones(m,n,o,p);
 delx = Delx*ones(m,n,o,p);
 % Wind:
@@ -83,8 +94,8 @@ gust = 0;                                                                  % Gus
 zref = 20;                                                                 % height of reference wind speed, normally at 20m [m]
 z = 10;                                                                    % height of measured wind speed [m]
 wfac = 0.035;                                                              % winddrift fraction of Uz ffor U10m
-UUvec = windspeeds;                                                        % wind speeds to model [m/s]
-wind_angle = wind_dir;                                                     % wind approach angle 
+UUvec = wind.speed;                                                        % wind speeds to model [m/s]
+wind_angle = wind.dir;                                                     % wind approach angle 
 % currents:
 uec = 0;                                                                   % Eastward current [m/s]
 unc = 0;                                                                   % Northward current [m/s]
@@ -92,17 +103,17 @@ unc = 0;                                                                   % Nor
 long = 10;                                                                 % longitude within grid for Punga Mare
 lati = 10;                                                                 % latitude within grid for Punga Mare
 % Surface Conditions:
-sfcpress = planet_press;                                                   % surface pressure [Pa]
-sfctemp = planet_temp;                                                     % surface temperature [K]
-sfcT = surface_tension;                                                    % surface tension of liquid [N/m] (0.027 for 75% methane)
+sfcpress = planet.surface_press;                                           % surface pressure [Pa]
+sfctemp = planet.surface_temp;                                             % surface temperature [K]
+sfcT = planet.surface_tension;                                             % surface tension of liquid [N/m] 
 % Ideal gas law: PV = nRT
 % Densities:
 rhoa = sfcpress*kgmolwt/(RRR*sfctemp);                                     % air density [kg/m3]
-rhow = rho_liquid;                                                         % liquid density [kg/m3] (550 kg/m^3 for 75% methane)
+rhow = planet.rho_liquid;                                                  % liquid density [kg/m3]
 rhorat=rhoa/rhow;                                                          % air-water density ratio.
-g = planet_gravity;                                                                  % gravity [m/s2]
+g = planet.gravity;                                                        % gravity [m/s2]
 % Viscocities:
-nu = nu_liquid;                                                            % liquid viscocity [m2/s]
+nu = planet.nu_liquid;                                                     % liquid viscocity [m2/s]
 nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s]
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities (Donelan 2012, pg. 3)
@@ -112,7 +123,7 @@ kcgn = 1.0*kcg;                                                            % n p
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % frequency limits:
 f1 = 0.05;                                                                 % minimum frequency
-f2 = 35;                                                                   % maximum frequency
+f2 = 35;                                                                   % maximum frequency 
 % create frequency limits for spectrum
 dlnf=(log(f2)-log(f1))/(o-1);                                              % frequency step size for log normal distribution
 f = exp(log(f1)+[0:o-1]*dlnf);                                             % frequencies for spectrum
@@ -168,7 +179,7 @@ cth2 = repmat(cth2,[o 1 m n]);
 cth2=shiftdim(cth2,2);
 %% -- Lake Geometry ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-D = bathy_map;                                                             % depth of liquid [m]
+D = model.bathy_map;                                                       % depth of liquid [m]
 
 j12 = find(D<=0);                                                          % turn all negative depths to zero
 D(j12) = 0;
@@ -322,7 +333,7 @@ for iii=1:numel(UUvec)                                                     % loo
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
            Sin = zeros(size(Ul));
-           Sin(D>0)=rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(g+sfcT.*wn(D>0).*wn(D>0)./rhow));          % eqn. 4, Donelan 2012
+           Sin(D>0)=rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(g+sfcT.*wn(D>0).*wn(D>0)./rhow));         % eqn. 4, Donelan 2012
            % limits energy going into spectrum once waves outrun wind
            Heavyside = ones(size(E));
            Heavyside(Sin < 0 & E < 1e-320) = 0;
@@ -342,10 +353,10 @@ for iii=1:numel(UUvec)                                                     % loo
            % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
            Sdt(:,:,:,:) = repmat(Ustar,[1 1 o p]);
            clear Ustar
-           Sdt = Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                % eqn 20, Donelan 2012
+           Sdt = Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                 % eqn 20, Donelan 2012
 %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sbf = zeros(m,n,o,p);
-           Sbf(D>0) = Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                % eqn. 22, Donelan 2012
+           Sbf(D>0) = Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                                 % eqn. 22, Donelan 2012
 % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sds = zeros(size(Sin));
            Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                                    % LH p 712. vol 1 [eqn. 17, Donelan 2012]
@@ -552,11 +563,11 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn)                                                                            % spectral moment
+            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
             ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
-            ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)                                                                       % sig wave height = 4*sqrt(spectral moment) for narrow-banded wave spectrum
+            ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)    
             [sigH(iii,t),~] = max(max(ht));                                 % return the largest signifigant wave height along the grid
-            
+            htgrid{iii} = ht;
       
 
             if showplots && rem(tplot,10) == 0    
@@ -623,7 +634,7 @@ for iii=1:numel(UUvec)                                                     % loo
        %fprintf('Hours remaining: %.2f\n',hours_to_complete);
     
       
-      
+      E_each{iii,t} = E;
        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
        
        
