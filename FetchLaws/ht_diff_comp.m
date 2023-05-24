@@ -16,7 +16,7 @@ bathy_map = 100.*ones(m,n);
 gridX = m;
 gridY = n;
 time_step_size = 100; 
-num_time_steps = 200; %usually is 200
+num_time_steps = 10; %usually is 200
 
 %% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
 
@@ -129,13 +129,13 @@ sigH_ontario = makeWaves(windspeeds,wind_dir,rho_ontario,nu_ontario, ...
 figure
 plot(1:length(sigH_ontario),sigH_ontario(3,:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ontario')
 saveas(gcf,'Ontari_timevSigH.png')
 figure
 plot(windspeeds,sigH_ontario(:,length(sigH_ontario)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ontario')
 saveas(gcf,'Ontario_windvSigH.png')
 
@@ -149,13 +149,13 @@ sigH_punga = makeWaves(windspeeds,wind_dir,rho_punga,nu_punga, ...
 figure
 plot(1:length(sigH_punga),sigH_punga(3,:), 'Color', [62/255 66/255 137/255]);
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Punga')
 saveas(gcf,'Punga_timevSigH.png')
 figure
 plot(windspeeds,sigH_punga(:,length(sigH_punga)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Punga')
 saveas(gcf,'Punga_windvSigH.png')
 
@@ -170,13 +170,13 @@ sigH_ligiamax = makeWaves(windspeeds,wind_dir,rho_ligiamax,nu_ligiamax, ...
 figure
 plot(1:length(sigH_ligiamax),sigH_ligiamax(3,:), 'Color', [38/255 120/255 144/255]);
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ligia (max methane)')
 saveas(gcf,'LigiaMax_timevSigH.png')
 figure
 plot(windspeeds,sigH_ligiamax(:,length(sigH_ligiamax)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ligia (max methane)')
 saveas(gcf,'LigiaMax_windvSigH.png')
 
@@ -189,22 +189,24 @@ sigH_ligiamin = makeWaves(windspeeds,wind_dir,rho_ligiamin,nu_ligiamin, ...
     planet_gravity,planet_temp,planet_press,sfct_ligiamin,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_ligiamin),sigH_ligiamin(3,:), 2, 'Color', [66/255 192/255 114/255]);
+%% 
+figure
+plot(1:length(sigH_ligiamin),sigH_ligiamin(3,:), 'Color', [66/255 192/255 114/255]);
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ligia (min methane)')
 saveas(gcf,'LigiaMin_timevSigH.png')
 figure
-plot(windspeeds,sigH_ligiamin(:,length(sigH_ligiamin)), [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamin(:,length(sigH_ligiamin)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ligia (min methane)')
 saveas(gcf,'LigiaMin_windvSigH.png')
 
 % % Kraken methane composition of 70:16:14 percent
 % methane:ethane:nitrogen from Poggiali et al., 2020
 rho_kraken = 527.625;
-sfct_krakn = 2.07E-2;
+sfct_kraken = 2.07E-2;
 nu_kraken = 3.81E-4/rho_kraken;
 sigH_kraken = makeWaves(windspeeds,wind_dir,rho_kraken,nu_kraken, ...
     planet_gravity,planet_temp,planet_press,sfct_kraken,bathy_map, ...
@@ -212,13 +214,14 @@ sigH_kraken = makeWaves(windspeeds,wind_dir,rho_kraken,nu_kraken, ...
 figure
 plot(1:length(sigH_kraken),sigH_kraken(3,:), 'Color', [253/255 232/255 33/255]);
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Kraken')
 saveas(gcf,'Kraken_timevSigH.png')
+%% 
 figure
-plot(windspeeds,sigH_Kraken(:,length(sigH_kraken)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_kraken(:,length(sigH_kraken)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Kraken')
 saveas(gcf,'Kraken_windvSigH.png')
 
@@ -233,7 +236,7 @@ saveas(gcf,'Kraken_windvSigH.png')
 % plot(windspeeds,sigH_ethane(:,2),'-o')
 % legend('Methane-N2','Ethane-N2')
 % xlabel('# time steps (delt = .1 s)')
-% ylabel('sig H [cm]')
+% ylabel('sig H [m]')
 % hold off
 
 % %% Plotting for varying methane:ethane:nitrogen compositions
@@ -252,7 +255,7 @@ saveas(gcf,'Kraken_windvSigH.png')
 % plot(windspeeds,sigH_75_0_25(:,2),'-o', 'Color', [253/255 232/255 33/255])
 % legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25');
 % xlabel('# time steps (delt = .1 s)')
-% ylabel('sig H [cm]')
+% ylabel('sig H [m]')
 % title('windspeed vs sig H at 92K for varying methane:ehtane:nitrogencompositions')
 % hold off
 % saveas(gcf,'VaryingComps.png')
@@ -267,7 +270,7 @@ plot(1:length(sigH_ligiamin),sigH_ligiamin(3,:),'-o', 'Color', [66/255 192/255 1
 plot(1:length(sigH_kraken),sigH_kraken(3,:),'-o', 'Color', [253/255 232/255 33/255]);
 legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken');
 xlabel('# time steps (delt = .1 s)')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('timestep vs sig H at 92K for varying lake compositions')
 hold off
 saveas(gcf,'TitanLakes_timevSigH.png')
@@ -281,7 +284,7 @@ plot(windspeeds,sigH_ligiamin(:,length(sigH_ligiamin)),'-o', 'Color', [66/255 19
 plot(windspeeds,sigH_kraken(:,length(sigH_kraken)),'-o', 'Color', [253/255 232/255 33/255]);
 legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken');
 xlabel('windspeed [m/s]')
-ylabel('sig H [cm]')
+ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for varying lakes')
 hold off
 saveas(gcf,'TitanLakes_windvSigH.png')

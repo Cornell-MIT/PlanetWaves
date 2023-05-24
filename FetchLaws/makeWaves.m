@@ -281,6 +281,7 @@ for iii=1:numel(UUvec)                                                     % loo
        Newdelt = [];  
        sumt = 0;                                                                                                                                                    % intitalize total time within timestep t
        tplot = - 1; 
+
        while ((Time - sumt) > 0)                                                                                                                                    % each time step is determined as min[max(0.1/(Sin-Sds) 0.0001) 2000 UserDefinedTime CourantGrid], iterate until the user-defined time is larger than the time passed within timestep t
           
            if gust > 0
@@ -626,7 +627,7 @@ for iii=1:numel(UUvec)                                                     % loo
        eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
        
        
-       if t > 10 && sigH(iii,t-1)/sigH(iii,t) < tolH
+       if t > 10 && 1-(sigH(iii,t-1)/sigH(iii,t)) < tolH
            disp('Waves have reached 99% of maturity.')
            break
        elseif t > 1
