@@ -278,7 +278,6 @@ for iii=1:numel(UUvec)                                                     % loo
   
 %% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    for t = 1:Tsteps                                                                                                                                                 % loop through time
-      
        Newdelt = [];  
        sumt = 0;                                                                                                                                                    % intitalize total time within timestep t
        tplot = - 1; 
