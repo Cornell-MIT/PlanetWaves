@@ -42,8 +42,13 @@ Model.bathy_map = bathy_map;                                               % Bat
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 Wind.speed = [1 5];                                                        % magnitude of incoming wind [m/s]
 
+% (4) HOUSEKEEPING
+Etc.showplots = 0;
+Etc.savedata = 1;
+Etc.showlog = 1;
+
 % RUN MODEL
-[sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,0); % [m]
+[sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Etc); % [m]
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------%
 % older runs:

@@ -1,12 +1,12 @@
-function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,showplots)
+function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
-% This code calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
+% MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
 %
 % The equation to solve is:
 %   E_{n+1} = E_{n} + del*(-Cg*cos(theta)*dE/dx - Cg*sin(theta)*dE/dy] + Sin + Snl - Sds
 %
-
+%
 % Dimensions of x,y,k,th are m,n,o,p
 %
 %   Arguments:
@@ -28,14 +28,15 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,showplots)
 %       wind
 %           dir             : direction of incoming near-surface wind (CCW from East) [radians]
 %           speed           : magnitude of incoming near-surface wind [m/s]
-%       showplots           : 0 = no plots made, 1 = plots every tenth loops
-%
+%       Etc.
+%           showplots       : 0 = no plots made, 1 = plots every tenth loops (will slow down model run)
+%           savedata        : 1  = save data for time steps (will slow down model run), 0 = skip saving
+%           showlog         : 1 = print progress to command line (will slow down model run), 0 = no progress printed to command line
 %   Returns:
 %       sigH           : largest signifigant wave height over the entire spatial array [m]
 %       htgrid         : signifigant wave height for each grid cell [m]
 %       E_each         : wave energy spectrum (x,y) in space and in (frequency,direction) space
-%   
-%       
+%     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % External function requirements:
 %   (1) none
@@ -50,13 +51,13 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,showplots)
 %
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
+
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
-% diary on;
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-parentFolder = fileparts(pwd);
+%parentFolder = fileparts(pwd);
 TitanResults = sprintf('%s\\Titan%s', pwd);
 if ~exist(TitanResults, 'dir')                                             % make output directory 'Titan' if doesn't already exist
     mkdir(TitanResults);
@@ -69,13 +70,15 @@ else
        fprintf(1,'Deleting previous .mat files %s\n',fullmat);
        delete(fullmat);
    end
-   disp('================================================================')
-   disp('Starting new model run:')
-   disp('================================================================')
 end
+disp('================================================================')
+disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
+disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
+disp('Starting new model run:')
+disp('================================================================')
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
-filec = 1;
+%filec = 1;
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
 %numdays = 1;
@@ -202,7 +205,7 @@ D(jj) = 0;                                                                 % lim
 D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:m,1:n);
-if showplots
+if Etc.showplots
     figure;
     surf(xplot,yplot,D','EdgeColor','k')
     myc = colorbar;
@@ -267,7 +270,9 @@ mindelx = min(squeeze(delx(1,:,1,1)));                                          
 delt = 0.7 * mindelx / cgmax;                                                                                                             % advection limited Courant condition.
 waveang = repmat(waveang,[o 1 m n]);
 waveang=shiftdim(waveang,2);
-eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
+if Etc.savedata
+    eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
+end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 tic
@@ -544,7 +549,7 @@ for iii=1:numel(UUvec)                                                     % loo
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan 2012)
           
            
-           if showplots && rem(tplot,10) == 0                                                                                                   % plot every 10th time step if showplots = 1
+           if Etc.showplots && rem(tplot,10) == 0                                                                                                   % plot every 10th time step if showplots = 1
               
                close all;
 
@@ -583,7 +588,7 @@ for iii=1:numel(UUvec)                                                     % loo
             htgrid{iii} = ht;
       
 
-            if showplots && rem(tplot,10) == 0    
+            if Etc.showplots && rem(tplot,10) == 0    
                % Plot Signifigant Height
                [xplot,yplot] = meshgrid(1:m,1:n);
                figure;
@@ -601,7 +606,7 @@ for iii=1:numel(UUvec)                                                     % loo
            ms = sum(ms,3);
            ms = sqrt(ms);                                                                                                                                   % standard deviation of water surface = sqrt(variance of water surface)
 
-           if showplots && rem(tplot,10) == 0 
+           if Etc.showplots && rem(tplot,10) == 0 
                figure(202);hold on;subplot(326);plot([1:m],ht(:,lati),'.-',[1:m],ms(:,lati),'--r');
                title('Sig. Ht. & mean slope');
                grid on
@@ -619,7 +624,7 @@ for iii=1:numel(UUvec)                                                     % loo
            Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % y-component of wave at 10th frequency bin
            mdir = atan2(Dir_sin,Dir_cos);                                                                                                                   % average wave direction [-pi to pi]
 
-           if showplots && rem(tplot,10) == 0
+           if Etc.showplots && rem(tplot,10) == 0
                figure(20);
                hold on;
                quiver(Wavel'.*cos(mdir'),Wavel'.*sin(mdir'),0.8,'c');
@@ -648,7 +653,10 @@ for iii=1:numel(UUvec)                                                     % loo
     
       
       E_each{iii,t} = E;
-       eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
+       %eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
+      if Etc.savedata
+        save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
+      end
        
        
        if t > 10 && sigH(iii,t-1)/sigH(iii,t) < tolH
@@ -665,18 +673,22 @@ for iii=1:numel(UUvec)                                                     % loo
   
 end % end of wind speed loop.
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% Make gif of results:
-idx_end = idx;
-filename = 'SigH.gif';                                                     % Specify the output file name
-for idx = 1:idx_end-1
-   [A,map] = rgb2ind(im{idx},256);
-   if idx == 1
-       imwrite(A,map,filename,'gif','LoopCount',Inf,'DelayTime',1);
-   else
-       imwrite(A,map,filename,'gif','WriteMode','append','DelayTime',1);
-   end
+if Etc.savedata
+    % Make gif of results:
+    idx_end = idx;
+    filename = 'SigH.gif';                                                 % Specify the output file name
+    for idx = 1:idx_end-1
+       [A,map] = rgb2ind(im{idx},256);
+       if idx == 1
+           imwrite(A,map,filename,'gif','LoopCount',Inf,'DelayTime',1);
+       else
+           imwrite(A,map,filename,'gif','WriteMode','append','DelayTime',1);
+       end
+    end
 end
-%diary off; % close logging function
+disp('================================================================')
+disp('Model Run Complete')
+disp('================================================================')
 end
 % ==============================================================================================================================================================================================================================================================================================================================================================================================================================
 % User-Defined Functions:   
