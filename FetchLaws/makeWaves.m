@@ -59,7 +59,7 @@ RAII.diary = onCleanup(@() diary('off'));                                  % aut
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 %parentFolder = fileparts(pwd);
 TitanResults = sprintf('%s\\Titan%s', pwd);
-if ~exist(TitanResults, 'dir')                                             % make output directory 'Titan' if doesn't already exist
+if ~exist(TitanResults, 'dir')  && Etc.savedata                            % make output directory 'Titan' if doesn't already exist
     mkdir(TitanResults);
 else
    oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
@@ -74,7 +74,6 @@ end
 disp('================================================================')
 disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
 disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
-disp('Starting new model run:')
 disp('================================================================')
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
@@ -142,14 +141,14 @@ f1 = 0.05;                                                                 % min
 f2 = 35;                                                                   % maximum frequency 
 % create frequency limits for spectrum
 dlnf=(log(f2)-log(f1))/(o-1);                                              % frequency step size for log normal distribution
-f = exp(log(f1)+[0:o-1]*dlnf);                                             % frequencies for spectrum
+f = exp(log(f1)+(0:o-1)*dlnf);                                             % frequencies for spectrum
 dom = 2*pi*dlnf.*f;                                                        % angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
 o = length(f);                                                             % set o to maximum frequency
 oa = 7;                                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
-ol = [1:oa];                                                               % bins for long frequencies
-os = [oa+1:o];                                                             % bins for short frequencies
+ol = 1:oa;                                                               % bins for long frequencies
+os = oa+1:o;                                                             % bins for short frequencies
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
 bf1 = exp(-15.73*dlnf*dlnf);                                               % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
@@ -163,15 +162,15 @@ B = A.*A;
 fac = bf1.*(1-1/B) + bf2.*(1-1./B.^2);                                     % eqn. 21, Donelan 2012
 Snl_fac = ((1.0942/A)^1.9757)/fac;                                         % eqn. 21, Donelan 2012
 
-waveang = ([0:p-1]-p/2+0.5)*dthd*dr;                                       % wave angle [radians]
-op = [p/2+1:p 1:p/2];                                                      % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
-orm = [p:-1:1];                                                            % reflected directions for 100% reflection from y-boundaries.
-th = ([0:p-1]-p/2+0.5)*dthd*dr;                                            % angle of wave propogation (phi in Donelan 2012) 
+waveang = ((0:p-1)-p/2+0.5)*dthd*dr;                                       % wave angle [radians]
+%op = [p/2+1:p 1:p/2];                                                      % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
+%orm = [p:-1:1];                                                            % reflected directions for 100% reflection from y-boundaries.
+th = ((0:p-1)-p/2+0.5)*dthd*dr;                                            % angle of wave propogation (phi in Donelan 2012) 
 cth=cos(th);                                                               % cosine of angle in wave propogation direction 
 sth=sin(th);                                                               % sine of angle in wave propogation direction
 dth=dthd*dr;                                                               % 2pi/p (small angle for integration [radians])
 % compute cos^2 for calculation of mss vs direction.
-tth = ([0:p-1])*dthd*dr;                                                   % angular difference between short waves and longer waves
+tth = (0:p-1)*dthd*dr;                                                   % angular difference between short waves and longer waves
 cth2 = cos(tth).^2;                                                        % cosine square of angular difference between short waves and longer waves
 % indices for refraction rotation:
 cw = ([p 1:p-1]);                                                          % clockwise indices
@@ -197,11 +196,11 @@ cth2=shiftdim(cth2,2);
 
 D = model.bathy_map;                                                       % depth of liquid [m]
 
-j12 = find(D<=0);                                                          % turn all negative depths to zero
-D(j12) = 0;
+%j12 = find(D<=0);                                                          % turn all negative depths to zero
+D(D<=0) = 0;
 % Impose depth limits
-jj = find (D < 0);
-D(jj) = 0;                                                                 % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
+%jj = find (D < 0);
+D(D < 0) = 0;                                                                 % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
 D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:m,1:n);
@@ -217,7 +216,7 @@ end
 mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
 % Snl_fac = 3.5;                                                           % fraction of Sdiss that goes to longer wavenumbers
 % Snl_fac = 4.3;                                                           % fraction of Sdiss that goes to longer wavenumbers
-Sds_fac = 1.0;                                                             % fraction with variable power nnn in Sds that goes into spectrum
+%Sds_fac = 1.0;                                                             % fraction with variable power nnn in Sds that goes into spectrum
 Sdt_fac = 0.001;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
 Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -242,7 +241,7 @@ ann = repmat(ann,[1 1 1 p]);
 nnn = (2.53/2.5).*nnn;
 nnninv = 1./nnn;
 % reshape the matrix 
-Depth = D; D = repmat(D,[1 1 o p]);
+D = repmat(D,[1 1 o p]);
 f=repmat(f',[1 p m n]);
 f=shiftdim(f,2);
 dom=repmat(dom',[1 p m n]);
@@ -264,10 +263,10 @@ lz=abs(c)./f/2/pi;                                                              
 l2(l2 > zref) = zref;
 lz(lz > zref) = zref;
 E = zeros(m,n,o,p);                                                                                                                       % initializing the energy term in x,y,k,theta with zeros
-Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                                           % total wave group velocity = wave group velocity + currents
+%Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                                          % total wave group velocity = wave group velocity + currents
 cgmax = max(max(max(max(Cg))));                                                                                                           % fastest group velocity
 mindelx = min(squeeze(delx(1,:,1,1)));                                                                                                    % smallest spatial grid spacing
-delt = 0.7 * mindelx / cgmax;                                                                                                             % advection limited Courant condition.
+%delt = 0.7 * mindelx / cgmax;                                                                                                            % advection limited Courant condition.
 waveang = repmat(waveang,[o 1 m n]);
 waveang=shiftdim(waveang,2);
 if Etc.savedata
@@ -277,10 +276,12 @@ end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 tic
-sumt = 0;                                                                  % initialize total model time passed
-tplot = -1;
+%sumt = 0;                                                                  % initialize total model time passed
+%tplot = -1;
 idx = 1;                                                                   % for frame for gif
-sigH = NaN(numel(UUvec),length(1:Tsteps));                                 % initialize sigH for returning 
+sigH = zeros(numel(UUvec),length(1:Tsteps));                               % initialize sigH for returning 
+htgrid = cell(1,numel(UUvec));                                             % initialize htgrid for returning
+E_each =  cell(numel(UUvec),length(1:Tsteps));                             % initialize E-spectrum for returning
 
 for iii=1:numel(UUvec)                                                     % loop through wind velocities
    UU = UUvec(iii);                                                        % UU = wind speed for loop
@@ -295,8 +296,8 @@ for iii=1:numel(UUvec)                                                     % loo
   
    % drag coefficient 
    Cd = 1.2*ones(size(U));                                                 % drag coefficient for weak/moderate winds
-   uj = find(U > 11);
-   Cd(uj) = 0.49 +0.065*U(uj);                                             % drag coefficient for strong winds
+   %uj = find(U > 11);
+   Cd(U > 11) = 0.49 +0.065*U(U > 11);                                             % drag coefficient for strong winds
    Cd=Cd/1000;
   
    modt = 0;                                                               % model time initializiation
@@ -309,7 +310,7 @@ for iii=1:numel(UUvec)                                                     % loo
 %% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    for t = 1:Tsteps                                                                                                                                                 % loop through time
       
-       Newdelt = [];  
+       %Newdelt = [];  
        sumt = 0;                                                                                                                                                    % intitalize total time within timestep t
        tplot = - 1; 
        while ((Time - sumt) > 0)                                                                                                                                    % each time step is determined as min[max(0.1/(Sin-Sds) 0.0001) 2000 UserDefinedTime CourantGrid], iterate until the user-defined time is larger than the time passed within timestep t
@@ -364,7 +365,7 @@ for iii=1:numel(UUvec)                                                     % loo
            Sin(D<=0) = 0;
          
            for tj = 1:p
-               short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem([1:p]-tj+p,p)+1),4)*dth;                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
+               short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
            end
            short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                  % sqrt of mean square slope (eqn. 16, Donelan 2012)
           
@@ -443,8 +444,8 @@ for iii=1:numel(UUvec)                                                     % loo
            % max_mss = max(max(max(max(short))))                                                                             % max(mss) should be < 0.01
 
            E1=real(E1);
-           ji=find(E1 < 0);
-           E1(ji)=0;
+           %ji=find(E1 < 0);
+           E1(E1 < 0)=0;
            E1(D <= 0)=0;
            E(D <= 0)=0;
           
@@ -479,8 +480,8 @@ for iii=1:numel(UUvec)                                                     % loo
            % clean up
            E1(D <= 0) = 0;                                                                                                      % energy on land is set to zero
            E1=real(E1);                                                                                                      
-           ji=find(E1 < 0);
-           E1(ji)=0;
+           %ji=find(E1 < 0);
+           E1(E1 < 0)=0;
           
 % -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           
@@ -491,10 +492,10 @@ for iii=1:numel(UUvec)                                                     % loo
            % Determine if rotation is clockwise or counter clockwise
            Crotcw = zeros(size(Crot));Crotccw = zeros(size(Crot));                  
            Crotccw(Crot>0) = Crot(Crot>0); Crotcw(Crot<0) = Crot(Crot<0);
-           jj = find (Crotccw > dth/newdelt);
-           Crotccw(jj) = dth/newdelt;
-           jj = find (Crotcw < -1*dth/newdelt);
-           Crotcw(jj) = -1*dth/newdelt;
+           %jj = find (Crotccw > dth/newdelt);
+           Crotccw(Crotccw > dth/newdelt) = dth/newdelt;
+           %jj = find (Crotcw < -1*dth/newdelt);
+           Crotcw(Crotcw < -1*dth/newdelt) = -1*dth/newdelt;
 
            E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                          % eqn. A1, Donelan 2012 (clockwise rotation)
            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                            % not sure
@@ -502,12 +503,12 @@ for iii=1:numel(UUvec)                                                     % loo
            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                           % not sure
            clear Crotccw Crotcw Crot
                     
-           ji=find(E1 < 0);
-           E1(ji)=0;
+           %ji=find(E1 < 0);
+           E1(E1 < 0)=0;
            E1(D <= 0)=0;
            E=real(E1);
            E(isnan(E))=0;
-           E1 = E;
+           %E1 = E;
           
           
            % Make all land points = 0 and upstream values equal to coarse grid
@@ -555,7 +556,7 @@ for iii=1:numel(UUvec)                                                     % loo
                close all;
 
                % diagnostic plot
-               figure(16);clf;semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn([2:4:m],lati,:,:).*E([2:4:m],lati,:,:),4)*dthd*dr)','*-');grid on
+               figure(16);clf;semilogx(squeeze(wn(2,lati,:,p/2)),squeeze(sum(wn(2:4:m,lati,:,:).*E(2:4:m,lati,:,:),4)*dthd*dr)','*-');grid on
                title(['Omni directional wavenumber spectra along latitude ',num2str(lati),'. Time = ',num2str(modt/3600),' Hours'])
                pause(2)
               
@@ -608,7 +609,7 @@ for iii=1:numel(UUvec)                                                     % loo
            ms = sqrt(ms);                                                                                                                                   % standard deviation of water surface = sqrt(variance of water surface)
 
            if Etc.showplots && rem(tplot,10) == 0 
-               figure(202);hold on;subplot(326);plot([1:m],ht(:,lati),'.-',[1:m],ms(:,lati),'--r');
+               figure(202);hold on;subplot(326);plot(1:m,ht(:,lati),'.-',1:m,ms(:,lati),'--r');
                title('Sig. Ht. & mean slope');
                grid on
                pause(3)
@@ -645,22 +646,21 @@ for iii=1:numel(UUvec)                                                     % loo
        end % end while loop for sub-time steps
       
        fraction_time_completed = t/Tsteps;
-       ttime=toc;
-       seconds_so_far = toc;
-       hours_to_complete = Tsteps/t*ttime/3600;
+       %ttime=toc;
+       %seconds_so_far = toc;
+       %hours_to_complete = Tsteps/t*ttime/3600;
        fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
        %fprintf('Seconds so far: %i\n',ttime);
        %fprintf('Hours remaining: %.2f\n',hours_to_complete);
     
       
       E_each{iii,t} = E;
-       %eval(['save Titan/Titan_',int2str(file),'_',int2str(t),' E ht freqs oa Cd Cdf Cds Sds Sds_wc Sin Snl Sdt Sbf ms'])
       if Etc.savedata
         save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
       end
        
        
-       if t > 10 && sigH(iii,t-1)/sigH(iii,t) < tolH
+       if t > 100 && sigH(iii,t-1)/sigH(iii,t) < tolH
            disp('Waves have reached 99% of maturity.')
            break
        elseif t > 1
@@ -669,7 +669,7 @@ for iii=1:numel(UUvec)                                                     % loo
 
    end % end of loop for Tsteps
   
-   [minval,minind] = min(abs(UUvec-UU));
+   [~,minind] = min(abs(UUvec-UU));
    disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(UUvec)) ' )']);
   
 end % end of wind speed loop.
@@ -704,37 +704,37 @@ function k = wavekgt( f, H, g, T, R, tol )
 %    R = water density in Kgm/m^3: default is
 %    Note: [f] > 0 must increase monotonically from small to large.  This
 %    routine is optimized for speed and works best when length(f) is large.
-                            % some initial housekeeping
-if nargin<6,  tol = 1e-4;  end         % default tolerance
-% g = 9.80171;
-c = 2*pi*sqrt(H/g);   
-f = c * f(:);  Nf = length(f);         % non-dimensionalize f
-B = T/(R*g*H*H);                       % non-dimensionalize T
-k = zeros(Nf,1);
-   k(1) = f(1)^2;                     % use deep water limit as initial guess
-   for n=1:Nf
-   dk = 1;
-   if n>1
-   k(n) = k(n-1);
-   end
-   while ( abs(dk) ) > tol         % Newton-Raphson iteration loop
-       t = 1;
-       if k(n) < 20
-       t = tanh( k(n) ) ;
-       end
-       dk = -(f(n).^2 - k(n).*(1+B.*k(n).^2)*t)...
+                    % some initial housekeeping
+    if nargin<6,  tol = 1e-4;  end         % default tolerance
+    % g = 9.80171;
+    c = 2*pi*sqrt(H/g);   
+    f = c * f(:);  Nf = length(f);         % non-dimensionalize f
+    B = T/(R*g*H*H);                       % non-dimensionalize T
+    k = zeros(Nf,1);
+    k(1) = f(1)^2;                     % use deep water limit as initial guess
+    for n=1:Nf
+        dk = 1;
+        if n>1
+            k(n) = k(n-1);
+        end
+        while ( abs(dk) ) > tol         % Newton-Raphson iteration loop
+            t = 1;
+        if k(n) < 20
+            t = tanh( k(n) ) ;
+        end
+        dk = -(f(n).^2 - k(n).*(1+B.*k(n).^2)*t)...
             ./ ( 3*B.*k(n).^2*t+t  + k(n)*(1+B.*k(n).^2)*( 1 - t.^2 ) ) ;
-       k(n) = k(n) - dk ;
-   end
-   k(n) = abs( k(n) ) ;               % f(k) = f(-k), so k>0 == k<0 roots
-end
-N = min( find( k>50 ) ) ;              % inform user if err > tol
-if isempty(N)  
-    N = Nf;
-end
-err = abs( f(2:N) - sqrt( k(2:N).*tanh(k(2:N)) ) )./f(2:N) ;
-%if max( err ) > tol,  fprintf('\n WAVEK: error exceeds %g \n', tol),  end
-k = k / H ;                            % give k dimensions of 1/meter
+        k(n) = k(n) - dk ;
+        end
+        k(n) = abs( k(n) ) ;               % f(k) = f(-k), so k>0 == k<0 roots
+    end
+%   N = min( find( k>50 ) ) ;              % inform user if err > tol
+%   if isempty(N)  
+%       N = Nf;
+%   end
+%   err = abs( f(2:N) - sqrt( k(2:N).*tanh(k(2:N)) ) )./f(2:N) ;
+%   if max( err ) > tol,  fprintf('\n WAVEK: error exceeds %g \n', tol),  end
+    k = k / H ;                            % give k dimensions of 1/meter
 end
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function ustar = smooth_nu(U,z,nu)
