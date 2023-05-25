@@ -271,7 +271,8 @@ delt = 0.7 * mindelx / cgmax;                                                   
 waveang = repmat(waveang,[o 1 m n]);
 waveang=shiftdim(waveang,2);
 if Etc.savedata
-    eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
+    %eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
+    save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang')
 end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
