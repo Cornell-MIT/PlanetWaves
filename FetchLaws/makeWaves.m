@@ -53,12 +53,25 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,showplots)
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
-diary on;
+RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
+% diary on;
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 parentFolder = fileparts(pwd);
 TitanResults = sprintf('%s\\Titan%s', pwd);
-if ~exist(TitanResults, 'dir')
- mkdir(TitanResults);
+if ~exist(TitanResults, 'dir')                                             % make output directory 'Titan' if doesn't already exist
+    mkdir(TitanResults);
+else
+   oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
+   oldmatloc = dir(oldmatfiles);
+   for kk = 1:length(oldmatloc)
+       basemat = oldmatloc(kk).name;
+       fullmat = fullfile(TitanResults,basemat);
+       fprintf(1,'Deleting previous .mat files %s\n',fullmat);
+       delete(fullmat);
+   end
+   disp('================================================================')
+   disp('Starting new model run:')
+   disp('================================================================')
 end
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
@@ -663,7 +676,7 @@ for idx = 1:idx_end-1
        imwrite(A,map,filename,'gif','WriteMode','append','DelayTime',1);
    end
 end
-diary off; % close logging function
+%diary off; % close logging function
 end
 % ==============================================================================================================================================================================================================================================================================================================================================================================================================================
 % User-Defined Functions:   

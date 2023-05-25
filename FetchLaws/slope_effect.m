@@ -13,6 +13,7 @@ Titan.gravity = 1.352;                                                     % Tit
 Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
 Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
 Titan.surface_tension = 0.018;                                             % Hydrocarbon Liquid Surface Tension [N/m]
+
 %   (b) EARTH
 Earth.rho_liquid = 997;                                                    % Water Liqid Density [kg/m3]         
 Earth.nu_liquid = 1e-6;                                                    % Water Liquid Viscocity [m2/s]
