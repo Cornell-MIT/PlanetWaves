@@ -325,7 +325,7 @@ load('New_1_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 1_1: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 1_1: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,7 +335,7 @@ load('New_1_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 1_2: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 1_2: FAIL')
 
 
 clearvars ofreqs nfreqs
@@ -346,7 +346,7 @@ load('New_2_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 2_1: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 2_1: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ load('New_2_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 2_2: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 2_2: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ load('New_3_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 3_1: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 3_1: FAIL')
 
 
 clearvars ofreqs nfreqs
@@ -377,7 +377,7 @@ load('New_3_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(nfreqs == ofreqs,'freqs test 3_2: FAIL')
+assert(isequal(nfreqs,ofreqs),'freqs test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
