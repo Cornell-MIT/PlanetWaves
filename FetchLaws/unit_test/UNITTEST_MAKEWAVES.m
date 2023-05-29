@@ -48,5 +48,7 @@ Etc.showlog = 1;
 % RUN MODEL
 [sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Uniflow,Etc); % [m]
 
-ref = runtests('refTest.m')
-res = runtests('resultsTest.m')
+ref = runtests('refTest.m');
+res = runtests('resultsTest.m');
+rtref = table(ref)
+rtres = table(res)
