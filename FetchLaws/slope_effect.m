@@ -44,7 +44,7 @@ Wind.speed = [1 5];                                                        % mag
 
 % (4) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 0;
+Etc.savedata = 1;
 Etc.showlog = 1;
 
 % RUN MODEL

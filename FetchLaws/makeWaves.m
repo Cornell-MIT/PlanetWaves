@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,Etc)
+function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -20,15 +20,23 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,Etc)
 %       model
 %           m               : number of grid cells in x-dimension
 %           n               : number of grid cells in y-dimension
+%           o               : number of frequency bins
+%           p               : number of angular (theta) bins. Must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 %           gridX           : size of grid cell in x-dimension [m]
 %           gridY           : size of grid cell in y-dimension [m]
+%           mindelt         : minimum time step to minimize oscillations of delt to very small values [s]
+%           maxdelt         : maximum time step to prevent large values as wind ramps up at startup [s]
+%           tolH            : minimum change in SigH to stop model at (otherwise runs to full Tsteps) 
 %           bathy_map       : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
 %           time_step       : maximum size of time step [s]
 %           num_time_steps  : length of model run in terms of # of time steps
 %       wind
 %           dir             : direction of incoming near-surface wind (CCW from East) [radians]
 %           speed           : magnitude of incoming near-surface wind [m/s]
-%       Etc.
+%       uniflow
+%           East            : Eastward unidirectional current [m/s]
+%           North           : Northward unidirectional current [m/s]
+%       Etc
 %           showplots       : 0 = no plots made, 1 = plots every tenth loops (will slow down model run)
 %           savedata        : 1  = save data for time steps (will slow down model run), 0 = skip saving
 %           showlog         : 1 = print progress to command line (will slow down model run), 0 = no progress printed to command line
@@ -51,7 +59,7 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,Etc)
 %
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
-
+assert(rem(model.p,8)==0,'Model input parameter p must be factorable by 8.')
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
@@ -83,9 +91,9 @@ file = 1;
 %numdays = 1;
 Time = model.time_step;                                                    % Total size of time step (maximum size of dynamic sub time step)
 Tsteps = model.num_time_steps;                                             % maximum number of time steps
-mindelt = 0.01;                                                            % Minimum time step to minimize oscillations of delt to very small values.
-maxdelt = 5000.0;                                                          % Maximum time step to prevent large values as wind ramps up at startup
-tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
+%mindelt = Model.mindelt;                                                           % Minimum time step to minimize oscillations of delt to very small values.
+%maxdelt = Model.maxdelt;                                                          % Maximum time step to prevent large values as wind ramps up at startup
+%tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
 i = sqrt(-1);                                                              % imaginary number i
@@ -94,8 +102,8 @@ RRR = 8.314;                                                               % Uni
 % spatial grid
 [m,n] = size(model.bathy_map);                                             % [number of gridpoints in x-direction,number of gridpoints in y-direction]
 % frequency and direction bins
-o = 25;                                                                    % number of frequency bins
-p = 64;                                                                    % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+o = model.o;                                                               % number of frequency bins
+p = model.p;                                                               % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(p);                                                            % step size for angular direction [degrees]
 %dth = 360/p;                                                              % small angle for integration [degrees]
@@ -112,11 +120,11 @@ wfac = 0.035;                                                              % win
 UUvec = wind.speed;                                                        % wind speeds to model [m/s]
 wind_angle = wind.dir;                                                     % wind approach angle 
 % currents:
-uec = 0;                                                                   % Eastward current [m/s]
-unc = 0;                                                                   % Northward current [m/s]
+uec = uniflow.East;                                                        % Eastward current [m/s]
+unc = uniflow.North;                                                       % Northward current [m/s]
 % location of interest within grid
-long = 10;                                                                 % longitude within grid for Punga Mare
-lati = 10;                                                                 % latitude within grid for Punga Mare
+long = model.long;                                                         % longitude within grid for Punga Mare
+lati = model.lat;                                                          % latitude within grid for Punga Mare
 % Surface Conditions:
 sfcpress = planet.surface_press;                                           % surface pressure [Pa]
 sfctemp = planet.surface_temp;                                             % surface temperature [K]
@@ -129,7 +137,7 @@ rhorat=rhoa/rhow;                                                          % air
 g = planet.gravity;                                                        % gravity [m/s2]
 % Viscocities:
 nu = planet.nu_liquid;                                                     % liquid viscocity [m2/s]
-nua = 0.0126/1e4;                                                          % atmospheric gas viscosity [m2/s]
+nua = planet.nua;                                                          % atmospheric gas viscosity [m2/s]
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities (Donelan 2012, pg. 3)
 kcg = sqrt(g*rhow/sfcT);                                                   % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
@@ -147,8 +155,8 @@ freqs = f;                                                                 % sav
 % Frequency bins:
 o = length(f);                                                             % set o to maximum frequency
 oa = 7;                                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
-ol = 1:oa;                                                               % bins for long frequencies
-os = oa+1:o;                                                             % bins for short frequencies
+ol = 1:oa;                                                                 % bins for long frequencies
+os = oa+1:o;                                                               % bins for short frequencies
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
 bf1 = exp(-15.73*dlnf*dlnf);                                               % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
@@ -163,14 +171,14 @@ fac = bf1.*(1-1/B) + bf2.*(1-1./B.^2);                                     % eqn
 Snl_fac = ((1.0942/A)^1.9757)/fac;                                         % eqn. 21, Donelan 2012
 
 waveang = ((0:p-1)-p/2+0.5)*dthd*dr;                                       % wave angle [radians]
-%op = [p/2+1:p 1:p/2];                                                      % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
-%orm = [p:-1:1];                                                            % reflected directions for 100% reflection from y-boundaries.
-th = ((0:p-1)-p/2+0.5)*dthd*dr;                                            % angle of wave propogation (phi in Donelan 2012) 
+%op = [p/2+1:p 1:p/2];                                                     % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
+%orm = [p:-1:1];                                                           % reflected directions for 100% reflection from y-boundaries.
+th = ((0:p-1)-p/2+0.5)*dthd*dr;                                            % angle of wave propogation (phi in Donelan 2012)  (0.5 added to avoid division by zero in rotation term)
 cth=cos(th);                                                               % cosine of angle in wave propogation direction 
 sth=sin(th);                                                               % sine of angle in wave propogation direction
 dth=dthd*dr;                                                               % 2pi/p (small angle for integration [radians])
 % compute cos^2 for calculation of mss vs direction.
-tth = (0:p-1)*dthd*dr;                                                   % angular difference between short waves and longer waves
+tth = (0:p-1)*dthd*dr;                                                     % angular difference between short waves and longer waves
 cth2 = cos(tth).^2;                                                        % cosine square of angular difference between short waves and longer waves
 % indices for refraction rotation:
 cw = ([p 1:p-1]);                                                          % clockwise indices
@@ -196,11 +204,11 @@ cth2=shiftdim(cth2,2);
 
 D = model.bathy_map;                                                       % depth of liquid [m]
 
-%j12 = find(D<=0);                                                          % turn all negative depths to zero
+%j12 = find(D<=0);                                                         % turn all negative depths to zero
 D(D<=0) = 0;
 % Impose depth limits
 %jj = find (D < 0);
-D(D < 0) = 0;                                                                 % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
+D(D < 0) = 0;                                                              % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
 D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:m,1:n);
@@ -216,7 +224,7 @@ end
 mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
 % Snl_fac = 3.5;                                                           % fraction of Sdiss that goes to longer wavenumbers
 % Snl_fac = 4.3;                                                           % fraction of Sdiss that goes to longer wavenumbers
-%Sds_fac = 1.0;                                                             % fraction with variable power nnn in Sds that goes into spectrum
+%Sds_fac = 1.0;                                                            % fraction with variable power nnn in Sds that goes into spectrum
 Sdt_fac = 0.001;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
 Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -297,7 +305,7 @@ for iii=1:numel(UUvec)                                                     % loo
    % drag coefficient 
    Cd = 1.2*ones(size(U));                                                 % drag coefficient for weak/moderate winds
    %uj = find(U > 11);
-   Cd(U > 11) = 0.49 +0.065*U(U > 11);                                             % drag coefficient for strong winds
+   Cd(U > 11) = 0.49 +0.065*U(U > 11);                                     % drag coefficient for strong winds
    Cd=Cd/1000;
   
    modt = 0;                                                               % model time initializiation
@@ -344,12 +352,12 @@ for iii=1:numel(UUvec)                                                     % loo
            % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
            Ula = Ul;
            Ul = 0.11*Ul;
-           fij=find(Ul<0);
-           Ul(fij) = Ula(fij)*0.03;                                                                                                                                 % Field scale (Donelan et al, 2012). 0.135 in Lab
-           clear fij;                                                     
-           fij = find(cos(windir-waveang)<0);                            
-           Ul(fij) = Ula(fij)*0.015;                                                                                                                                % Waves against wind
-           clear fij;
+           %fij=find(Ul<0);
+           Ul(Ul<0) = Ula(Ul<0)*0.03;                                                                                                                                 % Field scale (Donelan et al, 2012). 0.135 in Lab
+           %clear fij;                                                     
+           %fij = find(cos(windir-waveang)<0);                            
+           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;                                                                                                                                % Waves against wind
+           %clear fij;
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
            Sin = zeros(size(Ul));
@@ -407,10 +415,10 @@ for iii=1:numel(UUvec)                                                     % loo
            aaa = explim;
           
            if isnan(aa)                                                                                                          % if source = dissipation then denominator for new possible time step is 5e-5
-               aa = aaa/maxdelt;
+               aa = aaa/model.maxdelt;
            end
-           newdelt = max([aaa/aa mindelt]);                                                                                      % newdelt = delt to give max of 50% growth or decay
-           newdelt = min([newdelt maxdelt (Time-sumt) delt]);                                                                    % min[max(0.1/(Sin-Sds) 0.0001) 2000 TotalModelTime CourantGrid]
+           newdelt = max([aaa/aa model.mindelt]);                                                                                      % newdelt = delt to give max of 50% growth or decay
+           newdelt = min([newdelt model.maxdelt (Time-sumt) delt]);                                                                    % min[max(0.1/(Sin-Sds) 0.0001) 2000 TotalModelTime CourantGrid]
            fprintf('newdelt: %.2f\n',newdelt);
           
            % add to model time
@@ -660,7 +668,7 @@ for iii=1:numel(UUvec)                                                     % loo
       end
        
        
-       if t > 100 && sigH(iii,t-1)/sigH(iii,t) < tolH
+       if t > 100 && sigH(iii,t-1)/sigH(iii,t) < model.tolH
            disp('Waves have reached 99% of maturity.')
            break
        elseif t > 1
