@@ -57,19 +57,7 @@ load('Old_1_1.mat','E'); oE = E;
 load('New_1_1.mat','E'); nE = E;
 clearvars E
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-    end
-end
-
-assert(problem==0,'E Test 1_1: FAIL')
+assert(isequal(oE,nE),'E Test 1_1: FAIL')
 
 clearvars oE nE
 
@@ -80,24 +68,7 @@ load('New_1_2.mat','E'); nE = E;
 
 clearvars E
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
-
-
-assert(problem==0,'E Test 1_2: FAIL')
+assert(isequal(oE,nE),'E Test 1_2: FAIL')
 
 clearvars oE nE
 
@@ -108,24 +79,9 @@ load('New_2_1.mat','E'); nE = E;
 
 clearvars E
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'E Test 2_1: FAIL')
+assert(isequal(oE,nE),'E Test 2_1: FAIL')
 
 clearvars oE nE
 
@@ -136,23 +92,9 @@ load('New_2_2.mat','E'); nE = E;
 
 clearvars E
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'E Test 2_2: FAIL')
+
+assert(isequal(oE,nE),'E Test 2_2: FAIL')
 
 clearvars oE nE
 
@@ -161,25 +103,11 @@ clearvars oE nE
 load('Old_3_1.mat','E'); oE = E;
 load('New_3_1.mat','E'); nE = E;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
 
-assert(problem==0,'E Test 3_1: FAIL')
+
+assert(isequal(oE,nE),'E Test 3_1: FAIL')
 
 
 clearvars oE nE
@@ -188,25 +116,11 @@ clearvars oE nE
 load('Old_3_2.mat','E'); oE = E;
 load('New_3_2.mat','E'); nE = E;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oE(:,:,o,p);
-        B = nE(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
 
-assert(problem==0,'E Test 3_2: FAIL')
+
+assert(isequal(oE,nE),'E Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -218,13 +132,9 @@ load('New_1_1.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ht test 1_1: FAIL')
+assert(isequal(oht,nht),'ht test 1_1: FAIL')
 
 clearvars oht nht problem
 
@@ -235,13 +145,8 @@ load('New_1_2.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
-
-assert(problem==0,'ht test 1_2: FAIL')
+assert(isequal(oht,nht),'ht test 1_2: FAIL')
 
 clearvars oht nht problem
 
@@ -253,13 +158,9 @@ load('New_2_1.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ht test 2_1: FAIL')
+assert(isequal(oht,nht),'ht test 2_1: FAIL')
 
 
 clearvars oht nht problem
@@ -272,13 +173,8 @@ load('New_2_2.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
-
-assert(problem==0,'ht test 2_2: FAIL')
+assert(isequal(oht,nht),'ht test 2_2: FAIL')
 
 
 clearvars oht nht problem
@@ -290,13 +186,9 @@ load('New_3_1.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ht test 3_1: FAIL')
+assert(isequal(oht,nht),'ht test 3_1: FAIL')
 
 clearvars oht nht problem
 
@@ -307,13 +199,9 @@ load('New_3_2.mat','ht'); nht = ht;
 
 clearvars ht
 
-problem = 0 ;
 
-if nansum(nansum(oht - nht)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ht test 3_2: FAIL')
+assert(isequal(oht,nht),'ht test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -388,13 +276,9 @@ load('New_1_1.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 1_1: FAIL')
+assert(isequal(oCd,nCd),'Cd test 1_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -405,13 +289,9 @@ load('New_1_2.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 1_2: FAIL')
+assert(isequal(oCd,nCd),'Cd test 1_2: FAIL')
 
 
 clearvars oCd nCd problem
@@ -424,13 +304,9 @@ load('New_2_1.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 2_1: FAIL')
+assert(isequal(oCd,nCd),'Cd test 2_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -442,13 +318,9 @@ load('New_2_2.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 2_2: FAIL')
+assert(isequal(oCd,nCd),'Cd test 2_2: FAIL')
 
 clearvars oCd nCd problem
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -458,13 +330,9 @@ load('New_3_1.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 3_1: FAIL')
+assert(isequal(oCd,nCd),'Cd test 3_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -476,13 +344,9 @@ load('New_3_2.mat','Cd'); nCd = Cd;
 
 clearvars Cd
 
-problem = 0 ;
 
-if nansum(nansum(oCd - nCd)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cd test 3_2: FAIL')
+assert(isequal(oCd,nCd),'Cd test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -494,13 +358,9 @@ load('New_1_1.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 1_1: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 1_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -511,13 +371,9 @@ load('New_1_2.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 1_2: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 1_2: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -528,13 +384,9 @@ load('New_2_1.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 2_1: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 2_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -545,13 +397,9 @@ load('New_2_2.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 2_2: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 2_2: FAIL')
 
 
 clearvars oCdf nCdf problem
@@ -563,13 +411,9 @@ load('New_3_1.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 3_1: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 3_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -580,13 +424,9 @@ load('New_3_2.mat','Cdf'); nCdf = Cdf;
 
 clearvars Cdf
 
-problem = 0 ;
 
-if nansum(nansum(oCdf - nCdf)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cdf test 1_2: FAIL')
+assert(isequal(oCdf,nCdf),'Cdf test 1_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Cds is the same 
@@ -597,13 +437,9 @@ load('New_1_1.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 1_1: FAIL')
+assert(isequal(oCds,nCds),'Cds test 1_1: FAIL')
 
 clearvars oCds nCds problem
 
@@ -614,13 +450,9 @@ load('New_1_2.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 1_2: FAIL')
+assert(isequal(oCds,nCds),'Cds test 1_2: FAIL')
 
 
 clearvars oCds nCds problem
@@ -632,13 +464,9 @@ load('New_2_1.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 2_1: FAIL')
+assert(isequal(oCds,nCds),'Cds test 2_1: FAIL')
 
 
 clearvars oCds nCds problem
@@ -650,13 +478,9 @@ load('New_2_2.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 2_2: FAIL')
+assert(isequal(oCds,nCds),'Cds test 2_2: FAIL')
 
 
 clearvars oCds nCds problem
@@ -668,13 +492,9 @@ load('New_3_1.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 3_1: FAIL')
+assert(isequal(oCds,nCds),'Cds test 3_1: FAIL')
 
 
 clearvars oCds nCds problem
@@ -686,13 +506,9 @@ load('New_3_2.mat','Cds'); nCds = Cds;
 
 clearvars Cds
 
-problem = 0 ;
 
-if nansum(nansum(oCds - nCds)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'Cds test 3_2: FAIL')
+assert(isequal(oCds,nCds),'Cds test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Sin is the same 
@@ -701,25 +517,10 @@ assert(problem==0,'Cds test 3_2: FAIL')
 load('Old_1_1.mat','Sin'); oSin = Sin;
 load('New_1_1.mat','Sin'); nSin = Sin;
 
-problem = 0;
-
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 1_1: FAI')
+
+assert(isequal(oSin,nSin),'Sin Test 1_1: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -727,24 +528,10 @@ clearvars oSin nSin
 load('Old_1_2.mat','Sin'); oSin = Sin;
 load('New_1_2.mat','Sin'); nSin = Sin;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 1_2: FAI')
+
+assert(isequal(oSin,nSin),'Sin Test 1_2: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -752,24 +539,10 @@ clearvars oSin nSin
 load('Old_2_1.mat','Sin'); oSin = Sin;
 load('New_2_1.mat','Sin'); nSin = Sin;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 2_1: FAI')
+
+assert(isequal(oSin,nSin),'Sin Test 2_1: FAI')
 
 
 clearvars oSin nSin
@@ -778,24 +551,10 @@ clearvars oSin nSin
 load('Old_2_2.mat','Sin'); oSin = Sin;
 load('New_2_2.mat','Sin'); nSin = Sin;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 2_2: FAI')
+
+assert(isequal(oSin,nSin),'Sin Test 2_2: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -803,24 +562,9 @@ clearvars oSin nSin
 load('Old_3_1.mat','Sin'); oSin = Sin;
 load('New_3_1.mat','Sin'); nSin = Sin;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 3_1: FAI')
+assert(isequal(oSin,nSin),'Sin Test 3_1: FAI')
 
 
 
@@ -830,24 +574,9 @@ clearvars oSin nSin
 load('Old_3_2.mat','Sin'); oSin = Sin;
 load('New_3_2.mat','Sin'); nSin = Sin;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSin(:,:,o,p);
-        B = nSin(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sin Test 3_2: FAI')
+assert(isequal(oSin,nSin),'Sin Test 3_2: FAI')
 
 
 
@@ -860,25 +589,10 @@ assert(problem==0,'Sin Test 3_2: FAI')
 load('Old_1_1.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_1_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds_wc Test 1_1: FAIL')
+
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 1_1: FAIL')
 
 
 clearvars oSds_wc nSds_wc
@@ -887,24 +601,10 @@ clearvars oSds_wc nSds_wc
 load('Old_1_2.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_1_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds_wc Test 1_2: FAIL')
+
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 1_2: FAIL')
 
 
 clearvars oSds_wc nSds_wc
@@ -913,24 +613,10 @@ clearvars oSds_wc nSds_wc
 load('Old_2_1.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_2_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds_wc Test 2_1: FAIL')
+
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 2_1: FAIL')
 
 
 
@@ -940,24 +626,9 @@ clearvars oSds_wc nSds_wc
 load('Old_2_2.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_2_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds_wc Test 2_2: FAIL')
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 2_2: FAIL')
 
 
 
@@ -967,23 +638,9 @@ clearvars oSds_wc nSds_wc
 load('Old_3_1.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_3_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sds_wc Test 3_1: FAIL')
+
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 3_1: FAIL')
 
 
 
@@ -993,24 +650,9 @@ clearvars oSds_wc nSds_wc
 load('Old_3_2.mat','Sds_wc'); oSds_wc = Sds_wc;
 load('New_3_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds_wc(:,:,o,p);
-        B = nSds_wc(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds_wc Test 3_2: FAIL')
+assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -1021,23 +663,9 @@ assert(problem==0,'Sds_wc Test 3_2: FAIL')
 load('Old_1_1.mat','Sds'); oSds = Sds;
 load('New_1_1.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sds Test 1_1: FAIL')
+
+assert(isequal(oSds,nSds),'Sds Test 1_1: FAIL')
 
 
 clearvars oSds nSds
@@ -1046,24 +674,9 @@ clearvars oSds nSds
 load('Old_1_2.mat','Sds'); oSds = Sds;
 load('New_1_2.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds Test 1_2: FAIL')
+assert(isequal(oSds,nSds),'Sds Test 1_2: FAIL')
 
 
 clearvars oSds nSds
@@ -1072,24 +685,9 @@ clearvars oSds nSds
 load('Old_2_1.mat','Sds'); oSds = Sds;
 load('New_2_1.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds Test 2_1: FAIL')
+assert(isequal(oSds,nSds),'Sds Test 2_1: FAIL')
 
 
 clearvars oSds nSds
@@ -1098,24 +696,11 @@ clearvars oSds nSds
 load('Old_2_2.mat','Sds'); oSds = Sds;
 load('New_2_2.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds Test 2_2: FAIL')
+
+
+assert(isequal(oSds,nSds),'Sds Test 2_2: FAIL')
 
 clearvars oSds nSds
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1123,24 +708,9 @@ clearvars oSds nSds
 load('Old_3_1.mat','Sds'); oSds = Sds;
 load('New_3_1.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds Test 3_1: FAIL')
+assert(isequal(oSds,nSds),'Sds Test 3_1: FAIL')
 
 
 clearvars oSds nSds
@@ -1149,24 +719,10 @@ clearvars oSds nSds
 load('Old_3_2.mat','Sds'); oSds = Sds;
 load('New_3_2.mat','Sds'); nSds = Sds;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSds(:,:,o,p);
-        B = nSds(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sds Test 3_2: FAIL')
+
+assert(isequal(oSds,nSds),'Sds Test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Snl is the same 
@@ -1175,24 +731,10 @@ assert(problem==0,'Sds Test 3_2: FAIL')
 load('Old_1_1.mat','Snl'); oSnl = Snl;
 load('New_1_1.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Snl Test 1_1: FAIL')
+
+assert(isequal(oSnl,nSnl),'Snl Test 1_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -1201,24 +743,9 @@ clearvars oSnl nSnl
 load('Old_1_2.mat','Snl'); oSnl = Snl;
 load('New_1_2.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Snl Test 1_2: FAIL')
+assert(isequal(oSnl,nSnl),'Snl Test 1_2: FAIL')
 
 
 clearvars oSnl nSnl
@@ -1227,24 +754,9 @@ clearvars oSnl nSnl
 load('Old_2_1.mat','Snl'); oSnl = Snl;
 load('New_2_1.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Snl Test 2_1: FAIL')
+assert(isequal(oSnl,nSnl),'Snl Test 2_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -1253,23 +765,9 @@ clearvars oSnl nSnl
 load('Old_2_2.mat','Snl'); oSnl = Snl;
 load('New_2_2.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Snl Test 2_2: FAIL')
+
+assert(isequal(oSnl,nSnl),'Snl Test 2_2: FAIL')
 
 
 clearvars oSnl nSnl
@@ -1278,23 +776,8 @@ clearvars oSnl nSnl
 load('Old_3_1.mat','Snl'); oSnl = Snl;
 load('New_3_1.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Snl Test 3_1: FAIL')
+assert(isequal(oSnl,nSnl),'Snl Test 3_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -1303,24 +786,9 @@ clearvars oSnl nSnl
 load('Old_3_2.mat','Snl'); oSnl = Snl;
 load('New_3_2.mat','Snl'); nSnl = Snl;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSnl(:,:,o,p);
-        B = nSnl(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Snl Test 3_2: FAIL')
+assert(isequal(oSnl,nSnl),'Snl Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -1330,23 +798,10 @@ assert(problem==0,'Snl Test 3_2: FAIL')
 load('Old_1_1.mat','Sdt'); oSdt = Sdt;
 load('New_1_1.mat','Sdt'); nSdt = Sdt;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sdt Test 1_1: FAIL')
+
+assert(isequal(oSdt,nSdt),'Sdt Test 1_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -1355,23 +810,11 @@ clearvars oSdt nSdt
 load('Old_1_2.mat','Sdt'); oSdt = Sdt;
 load('New_1_2.mat','Sdt'); nSdt = Sdt;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sdt Test 1_2: FAIL')
+
+
+assert(isequal(oSdt,nSdt),'Sdt Test 1_2: FAIL')
 
 
 clearvars oSdt nSdt
@@ -1381,23 +824,9 @@ load('Old_2_1.mat','Sdt'); oSdt = Sdt;
 load('New_2_1.mat','Sdt'); nSdt = Sdt;
 
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sdt Test 2_1: FAIL')
+assert(isequal(oSdt,nSdt),'Sdt Test 2_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -1407,23 +836,10 @@ load('Old_2_2.mat','Sdt'); oSdt = Sdt;
 load('New_2_2.mat','Sdt'); nSdt = Sdt;
 
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sdt Test 2_2: FAIL')
+
+assert(isequal(oSdt,nSdt),'Sdt Test 2_2: FAIL')
 
 
 clearvars oSdt nSdt
@@ -1433,22 +849,9 @@ load('Old_3_1.mat','Sdt'); oSdt = Sdt;
 load('New_3_1.mat','Sdt'); nSdt = Sdt;
 
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sdt Test 3_1: FAIL')
+
+assert(isequal(oSdt,nSdt),'Sdt Test 3_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -1458,23 +861,10 @@ load('Old_3_2.mat','Sdt'); oSdt = Sdt;
 load('New_3_2.mat','Sdt'); nSdt = Sdt;
 
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSdt(:,:,o,p);
-        B = nSdt(:,:,o,p);
-        if ~isequaln(A,B)
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sdt Test 3_2: FAIL')
+
+assert(isequal(oSdt,nSdt),'Sdt Test 3_2: FAIL')
 
 
 
@@ -1485,24 +875,10 @@ assert(problem==0,'Sdt Test 3_2: FAIL')
 load('Old_1_1.mat','Sbf'); oSbf = Sbf;
 load('New_1_1.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sbf Test 1_1: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 1_1: FAIL')
 
 
 clearvars oSbf nSbf
@@ -1511,23 +887,9 @@ clearvars oSbf nSbf
 load('Old_1_2.mat','Sbf'); oSbf = Sbf;
 load('New_1_2.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sbf Test 1_2: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 1_2: FAIL')
 
 clearvars oSbf nSbf
 
@@ -1536,23 +898,9 @@ clearvars oSbf nSbf
 load('Old_2_1.mat','Sbf'); oSbf = Sbf;
 load('New_2_1.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sbf Test 2_1: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 2_1: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1560,23 +908,9 @@ clearvars oSbf nSbf
 load('Old_2_2.mat','Sbf'); oSbf = Sbf;
 load('New_2_2.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sbf Test 2_2: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 2_2: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1584,23 +918,9 @@ clearvars oSbf nSbf
 load('Old_3_1.mat','Sbf'); oSbf = Sbf;
 load('New_3_1.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
-assert(problem==0,'Sbf Test 3_1: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 3_1: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1608,24 +928,10 @@ clearvars oSbf nSbf
 load('Old_3_2.mat','Sbf'); oSbf = Sbf;
 load('New_3_2.mat','Sbf'); nSbf = Sbf;
 
-problem = 0;
-for o = 1:25
-    for p = 1:287
-        A = oSbf(:,:,o,p);
-        B = nSbf(:,:,o,p);
-        Index{o,p} = find(A~=B);
-        if ~isempty(Index{o,p})
-            problem = problem + 1;
-        end
-        %surf(xplot',yplot',abs(nD(:,:,o,p)-oD(:,:,o,p)))
-        %title("o "+o+"p "+p)
-        %drawnow;
-        %pause(0.1)
-    end
-end
 
 
-assert(problem==0,'Sbf Test 3_2: FAIL')
+
+assert(isequal(oSbf,nSbf),'Sbf Test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that ms is the same 
@@ -1636,13 +942,8 @@ load('New_1_1.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;SigH
-end
-
-assert(problem==0,'ms test 1_1: FAIL')
+assert(isequal(oms,nms),'ms test 1_1: FAIL')
 
 
 
@@ -1655,13 +956,8 @@ load('New_1_2.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;
-end
-
-assert(problem==0,'ms test 1_2: FAIL')
+assert(isequal(oms,nms),'ms test 1_2: FAIL')
 
 
 clearvars oms nms problem
@@ -1674,13 +970,9 @@ load('New_2_1.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ms test 2_1: FAIL')
+assert(isequal(oms,nms),'ms test 2_1: FAIL')
 
 
 clearvars oms nms problem
@@ -1693,13 +985,9 @@ load('New_2_2.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ms test 2_2: FAIL')
+assert(isequal(oms,nms),'ms test 2_2: FAIL')
 
 
 clearvars oms nms problem
@@ -1711,13 +999,9 @@ load('New_3_1.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ms test 3_1: FAIL')
+assert(isequal(oms,nms),'ms test 3_1: FAIL')
 
 clearvars oms nms problem
 
@@ -1729,13 +1013,9 @@ load('New_3_2.mat','ms'); nms = ms;
 
 clearvars ms
 
-problem = 0 ;
 
-if nansum(nansum(oms - nms)) ~= 0 
-    problem = problem + 1;
-end
 
-assert(problem==0,'ms test 3_2: FAIL')
+assert(isequal(oms,nms),'ms test 3_2: FAIL')
 
 disp('ms tests done')
 

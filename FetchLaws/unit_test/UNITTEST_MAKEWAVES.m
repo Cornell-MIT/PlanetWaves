@@ -28,7 +28,7 @@ Model.gridY = 1000.0;                                                      % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
-Model.time_step = 10000;                                                   % Maximum Size of time step [s]
+Model.time_step = 1000;                                                   % Maximum Size of time step [s]
 Model.num_time_steps = 2;                                                  % Length of model run (in terms of # of time steps)
 Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bathymetry of model basin [m]
 
@@ -48,7 +48,8 @@ Etc.showlog = 1;
 % RUN MODEL
 [sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Uniflow,Etc); % [m]
 
-ref = runtests('refTest.m');
-res = runtests('resultsTest.m');
-rtref = table(ref)
-rtres = table(res)
+% need to move newly run data to unit testing (make this automatic)
+% ref = runtests('refTest.m');
+% res = runtests('resultsTest.m');
+% rtref = table(ref)
+% rtres = table(res)

@@ -591,11 +591,18 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
-            ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
-            ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)    
-            [sigH(iii,t),~] = max(max(ht));                                 % return the largest signifigant wave height along the grid
-            htgrid{iii} = ht;
+                ht = sum(dwn.*wn.*E,4)*dthd*dr;
+                ht = sum(ht,3);
+                ht = 4*sqrt(abs(ht));
+                ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;
+                ms = sum(ms,3);
+                ms = sqrt(ms);
+
+%             ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
+%             ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
+%             ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)    
+%             [sigH(iii,t),~] = max(max(ht));                                 % return the largest signifigant wave height along the grid
+%             htgrid{iii} = ht;
       
 
             if Etc.showplots && rem(tplot,10) == 0    
@@ -612,9 +619,9 @@ for iii=1:numel(UUvec)                                                     % loo
             end
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % integrate spectrum to find mean slope
-           ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;                                                                                                               % slope = angle water surface makes with flat surface
-           ms = sum(ms,3);
-           ms = sqrt(ms);                                                                                                                                   % standard deviation of water surface = sqrt(variance of water surface)
+%            ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;                                                                                                               % slope = angle water surface makes with flat surface
+%            ms = sum(ms,3);
+%            ms = sqrt(ms);                                                                                                                                   % standard deviation of water surface = sqrt(variance of water surface)
 
            if Etc.showplots && rem(tplot,10) == 0 
                figure(202);hold on;subplot(326);plot(1:m,ht(:,lati),'.-',1:m,ms(:,lati),'--r');
