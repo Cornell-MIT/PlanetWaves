@@ -7,7 +7,7 @@ close all
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
 
-windspeeds = [.5 1 1.5 2 2.5 3];
+windspeeds = [0 .1 .2 .3 .4 .5 .75 1 1.25 1.5 1.75 2 2.25 2.5 2.75 3 3.25 3.5];
 wind_dir = 0;
 planet_gravity = 1.35;
 planet_temp = 92;
@@ -15,8 +15,8 @@ planet_press = 1.5*101300;
 bathy_map = 100.*ones(m,n);
 gridX = m;
 gridY = n;
-time_step_size = 1; 
-num_time_steps = 100; %usually is 200
+time_step_size = 100; %usually is 100
+num_time_steps = 200; %usually is 200
 
 %% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
 
@@ -37,13 +37,13 @@ sigH_0_96_4 = makeWaves(windspeeds,wind_dir,rho_0_96_4,nu_0_96_4, ...
     planet_gravity,planet_temp,planet_press,sfct_0_96_4,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_0_96_4),sigH_0_96_4(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 0:96:4.27 (methane:ethane:nitrogen)')
 saveas(gcf,'0_96_4_timevSigH.png')
 figure
-plot(windspeeds,sigH_0_96_4(:,length(sigH_0_96_4)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_0_96_4(:,size(sigH_0_96_4,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 0:96:4.27 (methane:ethane:nitrogen)')
@@ -57,13 +57,13 @@ sigH_10_86_4 = makeWaves(windspeeds,wind_dir,rho_10_86_4,nu_10_86_4, ...
     planet_gravity,planet_temp,planet_press,sfct_10_86_4,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_10_86_4),sigH_10_86_4(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 10:86:4.96 (methane:ethane:nitrogen)')
 saveas(gcf,'0_96_4_timevSigH.png')
 figure
-plot(windspeeds,sigH_10_86_4(:,length(sigH_10_86_4)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_10_86_4(:,size(sigH_10_86_4,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 10:86:4.96 (methane:ethane:nitrogen)')
@@ -77,13 +77,13 @@ sigH_19_76_5 = makeWaves(windspeeds,wind_dir,rho_19_76_5,nu_19_76_5, ...
     planet_gravity,planet_temp,planet_press,sfct_19_76_5,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_19_76_5),sigH_19_76_5(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 19:76:5.53 (methane:ethane:nitrogen)')
 saveas(gcf,'19_76_5_timevSigH.png')
 figure
-plot(windspeeds,sigH_19_76_5(:,length(sigH_19_76_5)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_19_76_5(:,size(sigH_19_76_5,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 19:76:5.53 (methane:ethane:nitrogen)')
@@ -98,13 +98,13 @@ sigH_28_66_6 = makeWaves(windspeeds,wind_dir,rho_28_66_6,nu_28_66_6, ...
     planet_gravity,planet_temp,planet_press,sfct_28_66_6,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_28_66_6),sigH_28_66_6(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 28:66:6.35 (methane:ethane:nitrogen)')
 saveas(gcf,'28_66_6_timevSigH.png')
 figure
-plot(windspeeds,sigH_28_66_6(:,length(sigH_28_66_6)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_28_66_6(:,size(sigH_28_66_6,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 28:66:6.35 (methane:ethane:nitrogen)')
@@ -118,13 +118,13 @@ sigH_37_55_8 = makeWaves(windspeeds,wind_dir,rho_37_55_8,nu_37_55_8, ...
     planet_gravity,planet_temp,planet_press,sfct_37_55_8,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_37_55_8),sigH_37_55_8(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 37:55:7.61 (methane:ethane:nitrogen)')
 saveas(gcf,'37_55_8_timevSigH.png')
 figure
-plot(windspeeds,sigH_37_55_8(:,length(sigH_37_55_8)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_37_55_8(:,size(sigH_37_55_8,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 37:55:7.61 (methane:ethane:nitrogen)')
@@ -138,13 +138,13 @@ sigH_45_45_10 = makeWaves(windspeeds,wind_dir,rho_45_45_10,nu_45_45_10, ...
     planet_gravity,planet_temp,planet_press,sfct_45_45_10,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_45_45_10),sigH_45_45_10(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 45:45:9.42 (methane:ethane:nitrogen)')
 saveas(gcf,'45_45_10_timevSigH.png')
 figure
-plot(windspeeds,sigH_45_45_10(:,length(sigH_45_45_10)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_45_45_10(:,size(sigH_45_45_10,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 45:45:9.42 (methane:ethane:nitrogen)')
@@ -158,13 +158,13 @@ sigH_53_35_12 = makeWaves(windspeeds,wind_dir,rho_53_35_12,nu_53_35_12, ...
     planet_gravity,planet_temp,planet_press,sfct_53_35_12,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_53_35_12),sigH_53_35_12(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 53:35:11.52 (methane:ethane:nitrogen)')
 saveas(gcf,'53_35_12_timevSigH.png')
 figure
-plot(windspeeds,sigH_53_35_12(:,length(sigH_53_35_12)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_53_35_12(:,size(sigH_53_35_12,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 53:35:11.52 (methane:ethane:nitrogen)')
@@ -178,13 +178,13 @@ sigH_60_26_14 = makeWaves(windspeeds,wind_dir,rho_60_26_14,nu_60_26_14, ...
     planet_gravity,planet_temp,planet_press,sfct_60_26_14,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_60_26_14),sigH_60_26_14(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 60:26:14.27 (methane:ethane:nitrogen)')
 saveas(gcf,'60_26_14_timevSigH.png')
 figure
-plot(windspeeds,sigH_60_26_14(:,length(sigH_60_26_14)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_60_26_14(:,size(sigH_60_26_14,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 60:26:14.27 (methane:ethane:nitrogen)')
@@ -198,13 +198,13 @@ sigH_66_16_18 = makeWaves(windspeeds,wind_dir,rho_66_16_18,nu_66_16_18, ...
     planet_gravity,planet_temp,planet_press,sfct_66_16_18,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_66_16_18),sigH_66_16_18(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 66:16:17.70 (methane:ethane:nitrogen)')
 saveas(gcf,'66_16_18_timevSigH.png')
 figure
-plot(windspeeds,sigH_66_16_18(:,length(sigH_66_16_18)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_66_16_18(:,size(sigH_66_16_18,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 66:16:17.70 (methane:ethane:nitrogen)')
@@ -218,13 +218,13 @@ sigH_71_8_21 = makeWaves(windspeeds,wind_dir,rho_71_8_21,nu_71_8_21, ...
     planet_gravity,planet_temp,planet_press,sfct_71_8_21,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_71_8_21),sigH_71_8_21(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 71_8_21 (methane:ethane:nitrogen)')
 saveas(gcf,'71_8_21_timevSigH.png')
 figure
-plot(windspeeds,sigH_71_8_21(:,length(sigH_71_8_21)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_71_8_21(:,size(sigH_71_8_21,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 71:8:21 (methane:ethane:nitrogen)')
@@ -238,13 +238,13 @@ sigH_75_0_25 = makeWaves(windspeeds,wind_dir,rho_75_0_25,nu_75_0_25, ...
     planet_gravity,planet_temp,planet_press,sfct_75_0_25,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_75_0_25),sigH_75_0_25(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for 75:0:25.24 (methane:ethane:nitrogen)')
 saveas(gcf,'75_0_25_timevSigH.png')
 figure
-plot(windspeeds,sigH_75_0_25(:,length(sigH_75_0_25)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_75_0_25(:,size(sigH_75_0_25,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for 75:0:25.24 (methane:ethane:nitrogen)')
@@ -259,13 +259,13 @@ sigH_ontario = makeWaves(windspeeds,wind_dir,rho_ontario,nu_ontario, ...
     planet_gravity,planet_temp,planet_press,sfct_ontario,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps); 
 figure
-plot(1:length(sigH_ontario),sigH_ontario(3,:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ontario')
 saveas(gcf,'Ontari_timevSigH.png')
 figure
-plot(windspeeds,sigH_ontario(:,length(sigH_ontario)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ontario(:,size(sigH_ontario,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ontario')
@@ -279,13 +279,13 @@ sigH_punga = makeWaves(windspeeds,wind_dir,rho_punga,nu_punga, ...
     planet_gravity,planet_temp,planet_press,sfct_punga,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_punga),sigH_punga(3,:), 'Color', [62/255 66/255 137/255]);
+plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Punga')
 saveas(gcf,'Punga_timevSigH.png')
 figure
-plot(windspeeds,sigH_punga(:,length(sigH_punga)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_punga(:,size(sigH_punga,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Punga')
@@ -300,13 +300,13 @@ sigH_ligiamax = makeWaves(windspeeds,wind_dir,rho_ligiamax,nu_ligiamax, ...
     planet_gravity,planet_temp,planet_press,sfct_ligiamax,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_ligiamax),sigH_ligiamax(3,:), 'Color', [38/255 120/255 144/255]);
+plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ligia (max methane)')
 saveas(gcf,'LigiaMax_timevSigH.png')
 figure
-plot(windspeeds,sigH_ligiamax(:,length(sigH_ligiamax)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamax(:,size(sigH_ligiamax,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ligia (max methane)')
@@ -321,13 +321,13 @@ sigH_ligiamin = makeWaves(windspeeds,wind_dir,rho_ligiamin,nu_ligiamin, ...
     planet_gravity,planet_temp,planet_press,sfct_ligiamin,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps); 
 figure
-plot(1:length(sigH_ligiamin),sigH_ligiamin(3,:), 'Color', [66/255 192/255 114/255]);
+plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Ligia (min methane)')
 saveas(gcf,'LigiaMin_timevSigH.png')
 figure
-plot(windspeeds,sigH_ligiamin(:,length(sigH_ligiamin)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamin(:,size(sigH_ligiamin,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Ligia (min methane)')
@@ -342,13 +342,13 @@ sigH_kraken = makeWaves(windspeeds,wind_dir,rho_kraken,nu_kraken, ...
     planet_gravity,planet_temp,planet_press,sfct_kraken,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:length(sigH_kraken),sigH_kraken(3,:), 'Color', [253/255 232/255 33/255]);
+plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:), 'Color', [66/255 0/255 83/255] );
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
 title('timestep vs sig H at 92K for Kraken')
 saveas(gcf,'Kraken_timevSigH.png') 
 figure
-plot(windspeeds,sigH_kraken(:,length(sigH_kraken)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_kraken(:,size(sigH_kraken,2)), 'Color', [62/255 66/255 137/255]);
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
 title('windspeed vs sig H at 92K for Kraken')
@@ -356,18 +356,18 @@ saveas(gcf,'Kraken_windvSigH.png')
 
 %% Plotting for varying lake compositions
 figure
-plot(1:length(sigH_0_96_4),sigH_0_96_4(:,3),'-o', 'Color', [66/255 0/255 83/255] )
+plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:),'-o', 'Color', [66/255 0/255 83/255] )
 hold on
-plot(1:length(sigH_10_86_4),sigH_10_86_4(:,2),'-o', 'Color', [69/255 32/255 118/255])
-plot(1:length(sigH_19_76_5),sigH_19_76_5(:,3),'-o', 'Color', [62/255 66/255 137/255])
-plot(1:length(sigH_28_66_6),sigH_28_66_6(:,3),'-o', 'Color', [49/255 96/255 143/255])
-plot(1:length(sigH_37_55_8),sigH_37_55_8(:,3),'-o', 'Color', [38/255 120/255 144/255])
-plot(1:length(sigH_45_45_10),sigH_45_45_10(:,3),'-o', 'Color', [26/255 145/255 141/255])
-plot(1:length(sigH_53_35_12),sigH_53_35_12(:,3),'-o', 'Color', [30/255 169/255 133/255])
-plot(1:length(sigH_60_26_14),sigH_60_26_14(:,3),'-o', 'Color', [66/255 192/255 114/255])
-plot(1:length(sigH_66_16_18),sigH_66_16_18(:,3),'-o', 'Color', [123/255 210/255 79/255])
-plot(1:length(sigH_71_8_21),sigH_71_8_21(:,3),'-o', 'Color', [187/255 224/255 35/255])
-plot(1:length(sigH_75_0_25),sigH_75_0_25(:,3),'-o', 'Color', [253/255 232/255 33/255])
+plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:),'-o', 'Color', [69/255 32/255 118/255])
+plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:),'-o', 'Color', [62/255 66/255 137/255])
+plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:),'-o', 'Color', [49/255 96/255 143/255])
+plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:),'-o', 'Color', [38/255 120/255 144/255])
+plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:),'-o', 'Color', [26/255 145/255 141/255])
+plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:),'-o', 'Color', [30/255 169/255 133/255])
+plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14),:),'-o', 'Color', [66/255 192/255 114/255])
+plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:),'-o', 'Color', [123/255 210/255 79/255])
+plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:),'-o', 'Color', [187/255 224/255 35/255])
+plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25),:),'-o', 'Color', [253/255 232/255 33/255])
 legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25');
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
@@ -376,18 +376,18 @@ hold off
 saveas(gcf,'VaryingComps_timevSigH.png')
 
 figure
-plot(windspeeds,sigH_0_96_4(:,length(sigH_0_96_4)),'-o', 'Color', [66/255 0/255 83/255] )
+plot(windspeeds,sigH_0_96_4(:,size(sigH_0_96_4,2)),'-o', 'Color', [66/255 0/255 83/255] )
 hold on
-plot(windspeeds,sigH_10_86_4(:,length(sigH_10_86_4)),'-o', 'Color', [69/255 32/255 118/255])
-plot(windspeeds,sigH_19_76_5(:,length(sigH_19_76_5)),'-o', 'Color', [62/255 66/255 137/255])
-plot(windspeeds,sigH_28_66_6(:,length(sigH_28_66_6)),'-o', 'Color', [49/255 96/255 143/255])
-plot(windspeeds,sigH_37_55_8(:,length(sigH_37_55_8)),'-o', 'Color', [38/255 120/255 144/255])
-plot(windspeeds,sigH_45_45_10(:,length(sigH_45_45_10)),'-o', 'Color', [26/255 145/255 141/255])
-plot(windspeeds,sigH_53_35_12(:,length(sigH_53_35_12)),'-o', 'Color', [30/255 169/255 133/255])
-plot(windspeeds,sigH_60_26_14(:,length(sigH_60_26_14)),'-o', 'Color', [66/255 192/255 114/255])
-plot(windspeeds,sigH_66_16_18(:,length(sigH_66_16_18)),'-o', 'Color', [123/255 210/255 79/255])
-plot(windspeeds,sigH_71_8_21(:,length(sigH_71_8_21)),'-o', 'Color', [187/255 224/255 35/255])
-plot(windspeeds,sigH_75_0_25(:,length(sigH_75_0_25)),'-o', 'Color', [253/255 232/255 33/255])
+plot(windspeeds,sigH_10_86_4(:,size(sigH_10_86_4,2)),'-o', 'Color', [69/255 32/255 118/255])
+plot(windspeeds,sigH_19_76_5(:,size(sigH_19_76_5,2)),'-o', 'Color', [62/255 66/255 137/255])
+plot(windspeeds,sigH_28_66_6(:,size(sigH_28_66_6,2)),'-o', 'Color', [49/255 96/255 143/255])
+plot(windspeeds,sigH_37_55_8(:,size(sigH_37_55_8,2)),'-o', 'Color', [38/255 120/255 144/255])
+plot(windspeeds,sigH_45_45_10(:,size(sigH_45_45_10,2)),'-o', 'Color', [26/255 145/255 141/255])
+plot(windspeeds,sigH_53_35_12(:,size(sigH_53_35_12,2)),'-o', 'Color', [30/255 169/255 133/255])
+plot(windspeeds,sigH_60_26_14(:,size(sigH_60_26_14,2)),'-o', 'Color', [66/255 192/255 114/255])
+plot(windspeeds,sigH_66_16_18(:,size(sigH_66_16_18,2)),'-o', 'Color', [123/255 210/255 79/255])
+plot(windspeeds,sigH_71_8_21(:,size(sigH_71_8_21,2)),'-o', 'Color', [187/255 224/255 35/255])
+plot(windspeeds,sigH_75_0_25(:,size(sigH_75_0_25,2)),'-o', 'Color', [253/255 232/255 33/255])
 legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25');
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
@@ -397,12 +397,12 @@ saveas(gcf,'VaryingComps_windvSigH.png')
 
 %% Plotting for different lakes
 figure
-plot(1:length(sigH_ontario),sigH_ontario(3,:),'-o', 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:),'-o', 'Color', [66/255 0/255 83/255] )
 hold on
-plot(1:length(sigH_punga),sigH_punga(3,:),'-o', 'Color', [62/255 66/255 137/255]);
-plot(1:length(sigH_ligiamax),sigH_ligiamax(3,:),'-o', 'Color', [38/255 120/255 144/255]);
-plot(1:length(sigH_ligiamin),sigH_ligiamin(3,:),'-o', 'Color', [66/255 192/255 114/255]);
-plot(1:length(sigH_kraken),sigH_kraken(3,:),'-o', 'Color', [253/255 232/255 33/255]);
+plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:),'-o', 'Color', [62/255 66/255 137/255]);
+plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:),'-o', 'Color', [38/255 120/255 144/255]);
+plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:),'-o', 'Color', [66/255 192/255 114/255]);
+plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:),'-o', 'Color', [253/255 232/255 33/255]);
 legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken');
 xlabel('# time steps (delt = .1 s)')
 ylabel('sig H [m]')
@@ -411,12 +411,12 @@ hold off
 saveas(gcf,'TitanLakes_timevSigH.png')
 
 figure
-plot(windspeeds,sigH_ontario(:,length(sigH_ontario)),'-o', 'Color', [66/255 0/255 83/255] );
+plot(windspeeds,sigH_ontario(:,size(sigH_ontario,2)),'-o', 'Color', [66/255 0/255 83/255] )
 hold on
-plot(windspeeds,sigH_punga(:,length(sigH_punga)),'-o', 'Color', [62/255 66/255 137/255]);
-plot(windspeeds,sigH_ligiamax(:,length(sigH_ligiamax)),'-o', 'Color', [38/255 120/255 144/255]);
-plot(windspeeds,sigH_ligiamin(:,length(sigH_ligiamin)),'-o', 'Color', [66/255 192/255 114/255]);
-plot(windspeeds,sigH_kraken(:,length(sigH_kraken)),'-o', 'Color', [253/255 232/255 33/255]);
+plot(windspeeds,sigH_punga(:,size(sigH_punga,2)),'-o', 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamax(:,size(sigH_ligiamax,2)),'-o', 'Color', [38/255 120/255 144/255]);
+plot(windspeeds,sigH_ligiamin(:,size(sigH_ligiamin,2)),'-o', 'Color', [66/255 192/255 114/255]);
+plot(windspeeds,sigH_kraken(:,size(sigH_kraken,2)),'-o', 'Color', [253/255 232/255 33/255]);
 legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken');
 xlabel('windspeed [m/s]')
 ylabel('sig H [m]')
