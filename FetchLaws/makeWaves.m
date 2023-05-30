@@ -279,7 +279,7 @@ waveang = repmat(waveang,[o 1 m n]);
 waveang=shiftdim(waveang,2);
 if Etc.savedata
     %eval(['save Titan/Titan_',int2str(file),'_ref m n o p freqs f wn dwn D Uei Uer Cg c delx dely dthd waveang'])
-    save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang')
+    save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
 end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -303,9 +303,9 @@ for iii=1:numel(UUvec)                                                     % loo
    U_z = U + 0.005;                                                        % wind at modelled height (plus small number to wind speed to avoid division by zero)
   
    % drag coefficient 
-   Cd = 1.2*ones(size(U));                                                 % drag coefficient for weak/moderate winds
-   %uj = find(U > 11);
-   Cd(U > 11) = 0.49 +0.065*U(U > 11);                                     % drag coefficient for strong winds
+   Cd=1.2*ones(size(U));                                                % drag coefficient for weak/moderate winds
+   uj = find(U > 11);
+   Cd(uj)=.49 +.065*U(uj);                                     % drag coefficient for strong winds
    Cd=Cd/1000;
   
    modt = 0;                                                               % model time initializiation
@@ -591,12 +591,12 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-                ht = sum(dwn.*wn.*E,4)*dthd*dr;
-                ht = sum(ht,3);
-                ht = 4*sqrt(abs(ht));
-                ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;
-                ms = sum(ms,3);
-                ms = sqrt(ms);
+                ht_1 = sum(dwn.*wn.*E,4)*dthd*dr
+                ht_2 = sum(ht_1,3)
+                ht = 4*sqrt(abs(ht_2))
+                ms_1 = sum(dwn.*wn.^3.*E,4)*dthd*dr
+                ms_2 = sum(ms_1,3)
+                ms = sqrt(ms_2)
 
 %             ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
 %             ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               

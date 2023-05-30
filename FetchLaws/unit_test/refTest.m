@@ -366,6 +366,25 @@ end
 assert(problem==0,'waveang Test: FAIL')
 
 
+% ==============
+% -- check if dthd is same
+% ===========
+%% Test: dthd
+load('Old_1_ref.mat','dthd'); odthd = dthd;
+load('New_Reference.mat','dthd'); ndthd = dthd; 
+
+assert(isequaln(odthd,ndthd),'dthd test: FAIL')
+
+% ==============
+% -- check if dthd is same
+% ===========
+%% Test: dr
+load('Old_1_ref.mat','dr'); odr = dr;
+load('New_Reference.mat','dr'); ndr = dr; 
+
+assert(isequaln(odr,ndr),'dr test: FAIL')
+
+
 clearvars -except xplot yplot m n passTest numTest
 % % ===========================================================================================================================================================================================================================
 % % ===========================================================================================================================================================================================================================

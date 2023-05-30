@@ -40,14 +40,14 @@ addpath('C:\Users\schne\OneDrive\Desktop\Main\Work\MIT\Github_Repos\umwm_titan\F
 load('Old_1_ref.mat','m'); om = m;
 load('New_Reference.mat','m'); nm = m;
 clearvars m
-assert(isequal(om,nm),'m-dimension for original model has changed. Need to re-run original model for unit testing')
+assert(isequaln(om,nm),'m-dimension for original model has changed. Need to re-run original model for unit testing')
 
 %% Test 2: y dimension of grid
 % n: number of gridpoints in y-direction
 load('Old_1_ref.mat','n'); on = n;
 load('New_Reference.mat','n'); nn = n;
 clearvars n
-assert(isequal(on,nn),'n-dimension for original model has changed. Need to re-run original model for unit testing')
+assert(isequaln(on,nn),'n-dimension for original model has changed. Need to re-run original model for unit testing')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that E is the same
@@ -57,7 +57,7 @@ load('Old_1_1.mat','E'); oE = E;
 load('New_1_1.mat','E'); nE = E;
 clearvars E
 
-assert(isequal(oE,nE),'E Test 1_1: FAIL')
+assert(isequaln(oE,nE),'E Test 1_1: FAIL')
 
 clearvars oE nE
 
@@ -68,7 +68,7 @@ load('New_1_2.mat','E'); nE = E;
 
 clearvars E
 
-assert(isequal(oE,nE),'E Test 1_2: FAIL')
+assert(isequaln(oE,nE),'E Test 1_2: FAIL')
 
 clearvars oE nE
 
@@ -81,7 +81,7 @@ clearvars E
 
 
 
-assert(isequal(oE,nE),'E Test 2_1: FAIL')
+assert(isequaln(oE,nE),'E Test 2_1: FAIL')
 
 clearvars oE nE
 
@@ -94,7 +94,7 @@ clearvars E
 
 
 
-assert(isequal(oE,nE),'E Test 2_2: FAIL')
+assert(isequaln(oE,nE),'E Test 2_2: FAIL')
 
 clearvars oE nE
 
@@ -107,7 +107,7 @@ load('New_3_1.mat','E'); nE = E;
 
 
 
-assert(isequal(oE,nE),'E Test 3_1: FAIL')
+assert(isequaln(oE,nE),'E Test 3_1: FAIL')
 
 
 clearvars oE nE
@@ -120,7 +120,7 @@ load('New_3_2.mat','E'); nE = E;
 
 
 
-assert(isequal(oE,nE),'E Test 3_2: FAIL')
+assert(isequaln(oE,nE),'E Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -134,7 +134,7 @@ clearvars ht
 
 
 
-assert(isequal(oht,nht),'ht test 1_1: FAIL')
+assert(isequaln(oht,nht),'ht test 1_1: FAIL')
 
 clearvars oht nht problem
 
@@ -146,7 +146,7 @@ load('New_1_2.mat','ht'); nht = ht;
 clearvars ht
 
 
-assert(isequal(oht,nht),'ht test 1_2: FAIL')
+assert(isequaln(oht,nht),'ht test 1_2: FAIL')
 
 clearvars oht nht problem
 
@@ -160,7 +160,7 @@ clearvars ht
 
 
 
-assert(isequal(oht,nht),'ht test 2_1: FAIL')
+assert(isequaln(oht,nht),'ht test 2_1: FAIL')
 
 
 clearvars oht nht problem
@@ -174,7 +174,7 @@ load('New_2_2.mat','ht'); nht = ht;
 clearvars ht
 
 
-assert(isequal(oht,nht),'ht test 2_2: FAIL')
+assert(isequaln(oht,nht),'ht test 2_2: FAIL')
 
 
 clearvars oht nht problem
@@ -188,7 +188,7 @@ clearvars ht
 
 
 
-assert(isequal(oht,nht),'ht test 3_1: FAIL')
+assert(isequaln(oht,nht),'ht test 3_1: FAIL')
 
 clearvars oht nht problem
 
@@ -201,7 +201,7 @@ clearvars ht
 
 
 
-assert(isequal(oht,nht),'ht test 3_2: FAIL')
+assert(isequaln(oht,nht),'ht test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -213,7 +213,7 @@ load('New_1_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 1_1: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 1_1: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ load('New_1_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 1_2: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 1_2: FAIL')
 
 
 clearvars ofreqs nfreqs
@@ -234,7 +234,7 @@ load('New_2_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 2_1: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 2_1: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -244,7 +244,7 @@ load('New_2_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 2_2: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 2_2: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ load('New_3_1.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 3_1: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 3_1: FAIL')
 
 clearvars ofreqs nfreqs
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ load('New_3_2.mat','freqs'); nfreqs = freqs;
 
 clearvars freqs
 
-assert(isequal(nfreqs,ofreqs),'freqs test 3_2: FAIL')
+assert(isequaln(nfreqs,ofreqs),'freqs test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -278,7 +278,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 1_1: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 1_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -291,7 +291,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 1_2: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 1_2: FAIL')
 
 
 clearvars oCd nCd problem
@@ -306,7 +306,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 2_1: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 2_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -320,7 +320,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 2_2: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 2_2: FAIL')
 
 clearvars oCd nCd problem
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -332,7 +332,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 3_1: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 3_1: FAIL')
 
 clearvars oCd nCd problem
 
@@ -346,7 +346,7 @@ clearvars Cd
 
 
 
-assert(isequal(oCd,nCd),'Cd test 3_2: FAIL')
+assert(isequaln(oCd,nCd),'Cd test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -360,7 +360,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 1_1: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 1_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -373,7 +373,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 1_2: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 1_2: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -386,7 +386,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 2_1: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 2_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -399,7 +399,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 2_2: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 2_2: FAIL')
 
 
 clearvars oCdf nCdf problem
@@ -413,7 +413,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 3_1: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 3_1: FAIL')
 
 clearvars oCdf nCdf problem
 
@@ -426,7 +426,7 @@ clearvars Cdf
 
 
 
-assert(isequal(oCdf,nCdf),'Cdf test 1_2: FAIL')
+assert(isequaln(oCdf,nCdf),'Cdf test 1_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Cds is the same 
@@ -439,7 +439,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 1_1: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 1_1: FAIL')
 
 clearvars oCds nCds problem
 
@@ -452,7 +452,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 1_2: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 1_2: FAIL')
 
 
 clearvars oCds nCds problem
@@ -466,7 +466,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 2_1: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 2_1: FAIL')
 
 
 clearvars oCds nCds problem
@@ -480,7 +480,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 2_2: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 2_2: FAIL')
 
 
 clearvars oCds nCds problem
@@ -494,7 +494,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 3_1: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 3_1: FAIL')
 
 
 clearvars oCds nCds problem
@@ -508,7 +508,7 @@ clearvars Cds
 
 
 
-assert(isequal(oCds,nCds),'Cds test 3_2: FAIL')
+assert(isequaln(oCds,nCds),'Cds test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Sin is the same 
@@ -520,7 +520,7 @@ load('New_1_1.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 1_1: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 1_1: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -531,7 +531,7 @@ load('New_1_2.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 1_2: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 1_2: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -542,7 +542,7 @@ load('New_2_1.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 2_1: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 2_1: FAI')
 
 
 clearvars oSin nSin
@@ -554,7 +554,7 @@ load('New_2_2.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 2_2: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 2_2: FAI')
 
 clearvars oSin nSin
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -564,7 +564,7 @@ load('New_3_1.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 3_1: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 3_1: FAI')
 
 
 
@@ -576,7 +576,7 @@ load('New_3_2.mat','Sin'); nSin = Sin;
 
 
 
-assert(isequal(oSin,nSin),'Sin Test 3_2: FAI')
+assert(isequaln(oSin,nSin),'Sin Test 3_2: FAI')
 
 
 
@@ -592,7 +592,7 @@ load('New_1_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 1_1: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 1_1: FAIL')
 
 
 clearvars oSds_wc nSds_wc
@@ -604,7 +604,7 @@ load('New_1_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 1_2: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 1_2: FAIL')
 
 
 clearvars oSds_wc nSds_wc
@@ -616,7 +616,7 @@ load('New_2_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 2_1: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 2_1: FAIL')
 
 
 
@@ -628,7 +628,7 @@ load('New_2_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 2_2: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 2_2: FAIL')
 
 
 
@@ -640,7 +640,7 @@ load('New_3_1.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 3_1: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 3_1: FAIL')
 
 
 
@@ -652,7 +652,7 @@ load('New_3_2.mat','Sds_wc'); nSds_wc = Sds_wc;
 
 
 
-assert(isequal(oSds_wc,nSds_wc),'Sds_wc Test 3_2: FAIL')
+assert(isequaln(oSds_wc,nSds_wc),'Sds_wc Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -665,7 +665,7 @@ load('New_1_1.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 1_1: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 1_1: FAIL')
 
 
 clearvars oSds nSds
@@ -676,7 +676,7 @@ load('New_1_2.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 1_2: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 1_2: FAIL')
 
 
 clearvars oSds nSds
@@ -687,7 +687,7 @@ load('New_2_1.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 2_1: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 2_1: FAIL')
 
 
 clearvars oSds nSds
@@ -700,7 +700,7 @@ load('New_2_2.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 2_2: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 2_2: FAIL')
 
 clearvars oSds nSds
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -710,7 +710,7 @@ load('New_3_1.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 3_1: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 3_1: FAIL')
 
 
 clearvars oSds nSds
@@ -722,7 +722,7 @@ load('New_3_2.mat','Sds'); nSds = Sds;
 
 
 
-assert(isequal(oSds,nSds),'Sds Test 3_2: FAIL')
+assert(isequaln(oSds,nSds),'Sds Test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that Snl is the same 
@@ -734,7 +734,7 @@ load('New_1_1.mat','Snl'); nSnl = Snl;
 
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 1_1: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 1_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -745,7 +745,7 @@ load('New_1_2.mat','Snl'); nSnl = Snl;
 
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 1_2: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 1_2: FAIL')
 
 
 clearvars oSnl nSnl
@@ -756,7 +756,7 @@ load('New_2_1.mat','Snl'); nSnl = Snl;
 
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 2_1: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 2_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -767,7 +767,7 @@ load('New_2_2.mat','Snl'); nSnl = Snl;
 
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 2_2: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 2_2: FAIL')
 
 
 clearvars oSnl nSnl
@@ -777,7 +777,7 @@ load('Old_3_1.mat','Snl'); oSnl = Snl;
 load('New_3_1.mat','Snl'); nSnl = Snl;
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 3_1: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 3_1: FAIL')
 
 
 clearvars oSnl nSnl
@@ -788,7 +788,7 @@ load('New_3_2.mat','Snl'); nSnl = Snl;
 
 
 
-assert(isequal(oSnl,nSnl),'Snl Test 3_2: FAIL')
+assert(isequaln(oSnl,nSnl),'Snl Test 3_2: FAIL')
 
 
 % ===========================================================================================================================================================================================================================
@@ -801,7 +801,7 @@ load('New_1_1.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 1_1: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 1_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -814,7 +814,7 @@ load('New_1_2.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 1_2: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 1_2: FAIL')
 
 
 clearvars oSdt nSdt
@@ -826,7 +826,7 @@ load('New_2_1.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 2_1: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 2_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -839,7 +839,7 @@ load('New_2_2.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 2_2: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 2_2: FAIL')
 
 
 clearvars oSdt nSdt
@@ -851,7 +851,7 @@ load('New_3_1.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 3_1: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 3_1: FAIL')
 
 
 clearvars oSdt nSdt
@@ -864,7 +864,7 @@ load('New_3_2.mat','Sdt'); nSdt = Sdt;
 
 
 
-assert(isequal(oSdt,nSdt),'Sdt Test 3_2: FAIL')
+assert(isequaln(oSdt,nSdt),'Sdt Test 3_2: FAIL')
 
 
 
@@ -878,7 +878,7 @@ load('New_1_1.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 1_1: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 1_1: FAIL')
 
 
 clearvars oSbf nSbf
@@ -889,7 +889,7 @@ load('New_1_2.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 1_2: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 1_2: FAIL')
 
 clearvars oSbf nSbf
 
@@ -900,7 +900,7 @@ load('New_2_1.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 2_1: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 2_1: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -910,7 +910,7 @@ load('New_2_2.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 2_2: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 2_2: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -920,7 +920,7 @@ load('New_3_1.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 3_1: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 3_1: FAIL')
 
 clearvars oSbf nSbf
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -931,7 +931,7 @@ load('New_3_2.mat','Sbf'); nSbf = Sbf;
 
 
 
-assert(isequal(oSbf,nSbf),'Sbf Test 3_2: FAIL')
+assert(isequaln(oSbf,nSbf),'Sbf Test 3_2: FAIL')
 
 % ===========================================================================================================================================================================================================================
 % -- checking that ms is the same 
@@ -943,7 +943,7 @@ load('New_1_1.mat','ms'); nms = ms;
 clearvars ms
 
 
-assert(isequal(oms,nms),'ms test 1_1: FAIL')
+assert(isequaln(oms,nms),'ms test 1_1: FAIL')
 
 
 
@@ -957,7 +957,7 @@ load('New_1_2.mat','ms'); nms = ms;
 clearvars ms
 
 
-assert(isequal(oms,nms),'ms test 1_2: FAIL')
+assert(isequaln(oms,nms),'ms test 1_2: FAIL')
 
 
 clearvars oms nms problem
@@ -972,7 +972,7 @@ clearvars ms
 
 
 
-assert(isequal(oms,nms),'ms test 2_1: FAIL')
+assert(isequaln(oms,nms),'ms test 2_1: FAIL')
 
 
 clearvars oms nms problem
@@ -987,7 +987,7 @@ clearvars ms
 
 
 
-assert(isequal(oms,nms),'ms test 2_2: FAIL')
+assert(isequaln(oms,nms),'ms test 2_2: FAIL')
 
 
 clearvars oms nms problem
@@ -1001,7 +1001,7 @@ clearvars ms
 
 
 
-assert(isequal(oms,nms),'ms test 3_1: FAIL')
+assert(isequaln(oms,nms),'ms test 3_1: FAIL')
 
 clearvars oms nms problem
 
@@ -1015,7 +1015,7 @@ clearvars ms
 
 
 
-assert(isequal(oms,nms),'ms test 3_2: FAIL')
+assert(isequaln(oms,nms),'ms test 3_2: FAIL')
 
 disp('ms tests done')
 
