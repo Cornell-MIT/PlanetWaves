@@ -10,11 +10,6 @@ n = 15;                                                                    % num
 windspeeds = [0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1 1.25 1.5 1.75 2 2.25 2.5 2.75 3 3.25 3.5]; %for time_step_size = 100 and num_time_steps = 200, time per run = 50 min, total time = 14 hr 30 min
 %windspeeds = [1 2 3]; %for time_step_size = 100 and num_time_steps = 200, time per run = 5 min, total time = 1 hr 20 min
 wind_dir = 0;
-% 0 m/s = 
-% .1 m/s = 
-% .2 m/s =
-% .3 m/s
-% .4
 planet_gravity = 1.35;
 planet_temp = 92;
 planet_press = 1.5*101300;
@@ -24,17 +19,8 @@ gridY = n;
 time_step_size = 100; %usually is 100
 num_time_steps = 200; %usually is 200
 
-%% from titanpool at 90K (220 min for 2 windspeeds; 440 min for 4 windspeeds)
 
-% rho_methane = 540;
-% nu_methane = 3e-7; % m2/s
-% 
-% rho_ethane = 660; % Titanpool and Hayes 2012
-% nu_ethane = (0.0011)/rho_ethane; % kinematic viscocity (titanpool Hayes 2012)
-
-% %% methane:ethane:nitrogen from titanpool at 92K (steckloff et al., 2020) and
-% %NIST
-% 
+%% methane:ethane:nitrogen from titanpool at 92K (steckloff et al., 2020) and NIST
 % 0:96:4.27
 rho_0_96_4 = 652.735;
 sfct_0_96_4 = 1.209E-3;
@@ -43,7 +29,7 @@ sigH_0_96_4 = makeWaves(windspeeds,wind_dir,rho_0_96_4,nu_0_96_4, ...
     planet_gravity,planet_temp,planet_press,sfct_0_96_4,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:), 'Color', [66/255 0/255 83/255] ) ;
+plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:), 'LineWidth',2 ) ;
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -52,7 +38,7 @@ title('timestep vs sig H at 92K for 0:96:4.27 (methane:ethane:nitrogen)','FontSi
 saveas(gcf,'0_96_4_timevSigH.png')
 figure
 sigH_0_96_4_wind = sigH_0_96_4(:,~any(isnan(sigH_0_96_4)));
-plot(windspeeds,sigH_0_96_4_wind(:,size(sigH_0_96_4_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_0_96_4_wind(:,size(sigH_0_96_4_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -68,7 +54,7 @@ sigH_10_86_4 = makeWaves(windspeeds,wind_dir,rho_10_86_4,nu_10_86_4, ...
     planet_gravity,planet_temp,planet_press,sfct_10_86_4,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -77,7 +63,7 @@ title('timestep vs sig H at 92K for 10:86:4.96 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'0_96_4_timevSigH.png')
 figure
 sigH_10_86_4_wind = sigH_10_86_4(:,~any(isnan(sigH_10_86_4)));
-plot(windspeeds,sigH_10_86_4_wind(:,size(sigH_10_86_4_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_10_86_4_wind(:,size(sigH_10_86_4_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -93,7 +79,7 @@ sigH_19_76_5 = makeWaves(windspeeds,wind_dir,rho_19_76_5,nu_19_76_5, ...
     planet_gravity,planet_temp,planet_press,sfct_19_76_5,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -102,7 +88,7 @@ title('timestep vs sig H at 92K for 19:76:5.53 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'19_76_5_timevSigH.png')
 figure
 sigH_19_76_5_wind = sigH_19_76_5(:,~any(isnan(sigH_19_76_5)));
-plot(windspeeds,sigH_19_76_5_wind(:,size(sigH_19_76_5_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_19_76_5_wind(:,size(sigH_19_76_5_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -119,7 +105,7 @@ sigH_28_66_6 = makeWaves(windspeeds,wind_dir,rho_28_66_6,nu_28_66_6, ...
     planet_gravity,planet_temp,planet_press,sfct_28_66_6,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -128,7 +114,7 @@ title('timestep vs sig H at 92K for 28:66:6.35 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'28_66_6_timevSigH.png')
 figure
 sigH_28_66_6_wind = sigH_28_66_6(:,~any(isnan(sigH_28_66_6)));
-plot(windspeeds,sigH_28_66_6_wind(:,size(sigH_28_66_6_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_28_66_6_wind(:,size(sigH_28_66_6_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -144,7 +130,7 @@ sigH_37_55_8 = makeWaves(windspeeds,wind_dir,rho_37_55_8,nu_37_55_8, ...
     planet_gravity,planet_temp,planet_press,sfct_37_55_8,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -153,7 +139,7 @@ title('timestep vs sig H at 92K for 37:55:7.61 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'37_55_8_timevSigH.png')
 figure
 sigH_37_55_8_wind = sigH_37_55_8(:,~any(isnan(sigH_37_55_8)));
-plot(windspeeds,sigH_37_55_8_wind(:,size(sigH_37_55_8_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_37_55_8_wind(:,size(sigH_37_55_8_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -169,7 +155,7 @@ sigH_45_45_10 = makeWaves(windspeeds,wind_dir,rho_45_45_10,nu_45_45_10, ...
     planet_gravity,planet_temp,planet_press,sfct_45_45_10,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -178,7 +164,7 @@ title('timestep vs sig H at 92K for 45:45:9.42 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'45_45_10_timevSigH.png')
 figure
 sigH_45_45_10_wind = sigH_45_45_10(:,~any(isnan(sigH_45_45_10)));
-plot(windspeeds,sigH_45_45_10_wind(:,size(sigH_45_45_10_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_45_45_10_wind(:,size(sigH_45_45_10_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -194,7 +180,7 @@ sigH_53_35_12 = makeWaves(windspeeds,wind_dir,rho_53_35_12,nu_53_35_12, ...
     planet_gravity,planet_temp,planet_press,sfct_53_35_12,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -203,7 +189,7 @@ title('timestep vs sig H at 92K for 53:35:11.52 (methane:ethane:nitrogen)','Font
 saveas(gcf,'53_35_12_timevSigH.png')
 figure
 sigH_53_35_12_wind = sigH_53_35_12(:,~any(isnan(sigH_53_35_12)));
-plot(windspeeds,sigH_53_35_12_wind(:,size(sigH_53_35_12_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_53_35_12_wind(:,size(sigH_53_35_12_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -219,7 +205,7 @@ sigH_60_26_14 = makeWaves(windspeeds,wind_dir,rho_60_26_14,nu_60_26_14, ...
     planet_gravity,planet_temp,planet_press,sfct_60_26_14,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -228,7 +214,7 @@ title('timestep vs sig H at 92K for 60:26:14.27 (methane:ethane:nitrogen)','Font
 saveas(gcf,'60_26_14_timevSigH.png')
 figure
 sigH_60_26_14_wind = sigH_60_26_14(:,~any(isnan(sigH_60_26_14)));
-plot(windspeeds,sigH_60_26_14_wind(:,size(sigH_60_26_14_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_60_26_14_wind(:,size(sigH_60_26_14_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -236,8 +222,7 @@ ylim([0 1]);
 title('windspeed vs sig H at 92K for 60:26:14.27 (methane:ethane:nitrogen)','FontSize',25,'FontWeight','bold')
 saveas(gcf,'60_26_14_windvSigH.png')
 
-% 66:16:17.70
-%% 
+% 66:16:17.70 
 rho_66_16_18 = 538.596;
 sfct_66_16_18 = 2.098E-2;
 nu_66_16_18 = 3.910E-4/rho_66_16_18;
@@ -245,7 +230,7 @@ sigH_66_16_18 = makeWaves(windspeeds,wind_dir,rho_66_16_18,nu_66_16_18, ...
     planet_gravity,planet_temp,planet_press,sfct_66_16_18,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -254,7 +239,7 @@ title('timestep vs sig H at 92K for 66:16:17.70 (methane:ethane:nitrogen)','Font
 saveas(gcf,'66_16_18_timevSigH.png')
 figure
 sigH_66_16_18_wind = sigH_66_16_18(:,~any(isnan(sigH_66_16_18)));
-plot(windspeeds,sigH_66_16_18_wind(:,size(sigH_66_16_18_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_66_16_18_wind(:,size(sigH_66_16_18_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -270,7 +255,7 @@ sigH_71_8_21 = makeWaves(windspeeds,wind_dir,rho_71_8_21,nu_71_8_21, ...
     planet_gravity,planet_temp,planet_press,sfct_71_8_21,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -279,7 +264,7 @@ title('timestep vs sig H at 92K for 71_8_21 (methane:ethane:nitrogen)','FontSize
 saveas(gcf,'71_8_21_timevSigH.png')
 figure
 sigH_71_8_21_wind = sigH_71_8_21(:,~any(isnan(sigH_71_8_21)));
-plot(windspeeds,sigH_71_8_21_wind(:,size(sigH_71_8_21_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_71_8_21_wind(:,size(sigH_71_8_21_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -295,7 +280,7 @@ sigH_75_0_25 = makeWaves(windspeeds,wind_dir,rho_75_0_25,nu_75_0_25, ...
     planet_gravity,planet_temp,planet_press,sfct_75_0_25,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -304,7 +289,7 @@ title('timestep vs sig H at 92K for 75:0:25.24 (methane:ethane:nitrogen)','FontS
 saveas(gcf,'75_0_25_timevSigH.png')
 figure
 sigH_75_0_25_wind = sigH_75_0_25(:,~any(isnan(sigH_75_0_25)));
-plot(windspeeds,sigH_75_0_25_wind(:,size(sigH_75_0_25_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_75_0_25_wind(:,size(sigH_75_0_25_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -321,7 +306,7 @@ sigH_ontario = makeWaves(windspeeds,wind_dir,rho_ontario,nu_ontario, ...
     planet_gravity,planet_temp,planet_press,sfct_ontario,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps); 
 figure
-plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:), 'LineWidth',2  );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -330,7 +315,7 @@ title('timestep vs sig H at 92K for Ontario','FontSize',25,'FontWeight','bold')
 saveas(gcf,'Ontari_timevSigH.png')
 figure
 sigH_ontario_wind = sigH_ontario(:,~any(isnan(sigH_ontario)));
-plot(windspeeds,sigH_ontario_wind(:,size(sigH_ontario_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ontario_wind(:,size(sigH_ontario_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -346,7 +331,7 @@ sigH_punga = makeWaves(windspeeds,wind_dir,rho_punga,nu_punga, ...
     planet_gravity,planet_temp,planet_press,sfct_punga,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -355,7 +340,7 @@ title('timestep vs sig H at 92K for Punga','FontSize',25,'FontWeight','bold')
 saveas(gcf,'Punga_timevSigH.png')
 figure
 sigH_punga_wind = sigH_punga(:,~any(isnan(sigH_punga)));
-plot(windspeeds,sigH_punga_wind(:,size(sigH_punga_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_punga_wind(:,size(sigH_punga_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -372,7 +357,7 @@ sigH_ligiamax = makeWaves(windspeeds,wind_dir,rho_ligiamax,nu_ligiamax, ...
     planet_gravity,planet_temp,planet_press,sfct_ligiamax,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -381,7 +366,7 @@ title('timestep vs sig H at 92K for Ligia (max methane)','FontSize',25,'FontWeig
 saveas(gcf,'LigiaMax_timevSigH.png')
 figure
 sigH_ligiamax_wind = sigH_ligiamax(:,~any(isnan(sigH_ligiamax)));
-plot(windspeeds,sigH_ligiamax_wind(:,size(sigH_ligiamax_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamax_wind(:,size(sigH_ligiamax_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -398,7 +383,7 @@ sigH_ligiamin = makeWaves(windspeeds,wind_dir,rho_ligiamin,nu_ligiamin, ...
     planet_gravity,planet_temp,planet_press,sfct_ligiamin,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps); 
 figure
-plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -407,7 +392,7 @@ title('timestep vs sig H at 92K for Ligia (min methane)','FontSize',25,'FontWeig
 saveas(gcf,'LigiaMin_timevSigH.png')
 figure
 sigH_ligiamin_wind = sigH_ligiamin(:,~any(isnan(sigH_ligiamin)));
-plot(windspeeds,sigH_ligiamin_wind(:,size(sigH_ligiamin_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_ligiamin_wind(:,size(sigH_ligiamin_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -424,7 +409,7 @@ sigH_kraken = makeWaves(windspeeds,wind_dir,rho_kraken,nu_kraken, ...
     planet_gravity,planet_temp,planet_press,sfct_kraken,bathy_map, ...
     gridX,gridY,time_step_size,num_time_steps);
 figure
-plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:), 'Color', [66/255 0/255 83/255] );
+plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:), 'LineWidth',2 );
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -433,7 +418,7 @@ title('timestep vs sig H at 92K for Kraken','FontSize',25,'FontWeight','bold')
 saveas(gcf,'Kraken_timevSigH.png') 
 figure
 sigH_kraken_wind = sigH_kraken(:,~any(isnan(sigH_kraken)));
-plot(windspeeds,sigH_kraken_wind(:,size(sigH_kraken_wind,2)), 'Color', [62/255 66/255 137/255]);
+plot(windspeeds,sigH_kraken_wind(:,size(sigH_kraken_wind,2)), 'LineWidth',2 );
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -443,19 +428,19 @@ saveas(gcf,'Kraken_windvSigH.png')
 
 %% Plotting for varying lake compositions
 figure
-plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:),'-o', 'Color', [66/255 0/255 83/255] )
+plot(1:num_time_steps,sigH_0_96_4(size(sigH_0_96_4,1),:),'-o', 'Color', [66/255 0/255 83/255],'LineWidth',2  )
 hold on
-plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:),'-o', 'Color', [69/255 32/255 118/255])
-plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:),'-o', 'Color', [62/255 66/255 137/255])
-plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:),'-o', 'Color', [49/255 96/255 143/255])
-plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:),'-o', 'Color', [38/255 120/255 144/255])
-plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:),'-o', 'Color', [26/255 145/255 141/255])
-plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:),'-o', 'Color', [30/255 169/255 133/255])
-plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14,1),:),'-o', 'Color', [66/255 192/255 114/255])
-plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:),'-o', 'Color', [123/255 210/255 79/255])
-plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:),'-o', 'Color', [187/255 224/255 35/255])
-plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25,1),:),'-o', 'Color', [253/255 232/255 33/255])
-legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25','Location','Best');
+plot(1:num_time_steps,sigH_10_86_4(size(sigH_10_86_4,1),:),'-o', 'Color', [69/255 32/255 118/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_19_76_5(size(sigH_19_76_5,1),:),'-o', 'Color', [62/255 66/255 137/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_28_66_6(size(sigH_28_66_6,1),:),'-o', 'Color', [49/255 96/255 143/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_37_55_8(size(sigH_37_55_8,1),:),'-o', 'Color', [38/255 120/255 144/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_45_45_10(size(sigH_45_45_10,1),:),'-o', 'Color', [26/255 145/255 141/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_53_35_12(size(sigH_53_35_12,1),:),'-o', 'Color', [30/255 169/255 133/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_60_26_14(size(sigH_60_26_14,1),:),'-o', 'Color', [66/255 192/255 114/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_66_16_18(size(sigH_66_16_18,1),:),'-o', 'Color', [123/255 210/255 79/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_71_8_21(size(sigH_71_8_21,1),:),'-o', 'Color', [187/255 224/255 35/255],'LineWidth',2 )
+plot(1:num_time_steps,sigH_75_0_25(size(sigH_75_0_25,1),:),'-o', 'Color', [253/255 232/255 33/255],'LineWidth',2 )
+legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25','Location','northwest','FontSize',12);
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -467,17 +452,17 @@ saveas(gcf,'VaryingComps_timevSigH.png')
 figure
 plot(windspeeds,sigH_0_96_4_wind(:,size(sigH_0_96_4_wind,2)),'-o', 'Color', [66/255 0/255 83/255] )
 hold on
-plot(windspeeds,sigH_10_86_4_wind(:,size(sigH_10_86_4_wind,2)),'-o', 'Color', [69/255 32/255 118/255])
-plot(windspeeds,sigH_19_76_5_wind(:,size(sigH_19_76_5_wind,2)),'-o', 'Color', [62/255 66/255 137/255])
-plot(windspeeds,sigH_28_66_6_wind(:,size(sigH_28_66_6_wind,2)),'-o', 'Color', [49/255 96/255 143/255])
-plot(windspeeds,sigH_37_55_8_wind(:,size(sigH_37_55_8_wind,2)),'-o', 'Color', [38/255 120/255 144/255])
-plot(windspeeds,sigH_45_45_10_wind(:,size(sigH_45_45_10_wind,2)),'-o', 'Color', [26/255 145/255 141/255])
-plot(windspeeds,sigH_53_35_12_wind(:,size(sigH_53_35_12_wind,2)),'-o', 'Color', [30/255 169/255 133/255])
-plot(windspeeds,sigH_60_26_14_wind(:,size(sigH_60_26_14_wind,2)),'-o', 'Color', [66/255 192/255 114/255])
-plot(windspeeds,sigH_66_16_18_wind(:,size(sigH_66_16_18_wind,2)),'-o', 'Color', [123/255 210/255 79/255])
-plot(windspeeds,sigH_71_8_21_wind(:,size(sigH_71_8_21_wind,2)),'-o', 'Color', [187/255 224/255 35/255])
-plot(windspeeds,sigH_75_0_25_wind(:,size(sigH_75_0_25_wind,2)),'-o', 'Color', [253/255 232/255 33/255])
-legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25','Location','Best');
+plot(windspeeds,sigH_10_86_4_wind(:,size(sigH_10_86_4_wind,2)),'-o', 'Color', [69/255 32/255 118/255],'LineWidth',2 )
+plot(windspeeds,sigH_19_76_5_wind(:,size(sigH_19_76_5_wind,2)),'-o', 'Color', [62/255 66/255 137/255],'LineWidth',2 )
+plot(windspeeds,sigH_28_66_6_wind(:,size(sigH_28_66_6_wind,2)),'-o', 'Color', [49/255 96/255 143/255],'LineWidth',2 )
+plot(windspeeds,sigH_37_55_8_wind(:,size(sigH_37_55_8_wind,2)),'-o', 'Color', [38/255 120/255 144/255],'LineWidth',2 )
+plot(windspeeds,sigH_45_45_10_wind(:,size(sigH_45_45_10_wind,2)),'-o', 'Color', [26/255 145/255 141/255],'LineWidth',2 )
+plot(windspeeds,sigH_53_35_12_wind(:,size(sigH_53_35_12_wind,2)),'-o', 'Color', [30/255 169/255 133/255],'LineWidth',2 )
+plot(windspeeds,sigH_60_26_14_wind(:,size(sigH_60_26_14_wind,2)),'-o', 'Color', [66/255 192/255 114/255],'LineWidth',2 )
+plot(windspeeds,sigH_66_16_18_wind(:,size(sigH_66_16_18_wind,2)),'-o', 'Color', [123/255 210/255 79/255],'LineWidth',2 )
+plot(windspeeds,sigH_71_8_21_wind(:,size(sigH_71_8_21_wind,2)),'-o', 'Color', [187/255 224/255 35/255],'LineWidth',2 )
+plot(windspeeds,sigH_75_0_25_wind(:,size(sigH_75_0_25_wind,2)),'-o', 'Color', [253/255 232/255 33/255],'LineWidth',2 )
+legend('0:96:4','10:86:4','19:76:5','28:66:6','37:55:8','45:45:10','53:35:12','60:26:14','66:16:28','71:8:21','75:0:25','Location','northwest','FontSize',12);
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -488,29 +473,29 @@ saveas(gcf,'VaryingComps_windvSigH.png')
 
 %% Plotting for different lakes
 figure
-plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:),'-o', 'Color', [66/255 0/255 83/255] )
+plot(1:num_time_steps,sigH_ontario(size(sigH_ontario,1),:),'-o', 'Color', [66/255 0/255 83/255],'LineWidth',2 )
 hold on
-plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:),'-o', 'Color', [62/255 66/255 137/255]);
-plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:),'-o', 'Color', [38/255 120/255 144/255]);
-plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:),'-o', 'Color', [66/255 192/255 114/255]);
-plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:),'-o', 'Color', [253/255 232/255 33/255]);
-legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken','Location','Best');
+plot(1:num_time_steps,sigH_punga(size(sigH_punga,1),:),'-o', 'Color', [62/255 66/255 137/255],'LineWidth',2 );
+plot(1:num_time_steps,sigH_ligiamax(size(sigH_ligiamax,1),:),'-o', 'Color', [38/255 120/255 144/255],'LineWidth',2 );
+plot(1:num_time_steps,sigH_ligiamin(size(sigH_ligiamin,1),:),'-o', 'Color', [66/255 192/255 114/255],'LineWidth',2 );
+plot(1:num_time_steps,sigH_kraken(size(sigH_kraken,1),:),'-o', 'Color', [253/255 232/255 33/255],'LineWidth',2 );
+legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken','Location','northwest','FontSize',12);
 xlabel('# time steps (delt = .1 s)','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
 ylim([0 1]);
-title('timestep vs sig H at 92K for varying lake compositions','FontSize',25,'FontWeight','bold')
+title('timestep vs sig H at 92K for varying lake compositions','FontSize',25,'FontWeight','northwest')
 hold off
 saveas(gcf,'TitanLakes_timevSigH.png')
 
 figure
-plot(windspeeds,sigH_ontario_wind(:,size(sigH_ontario_wind,2)),'-o', 'Color', [66/255 0/255 83/255] )
+plot(windspeeds,sigH_ontario_wind(:,size(sigH_ontario_wind,2)),'-o', 'Color', [66/255 0/255 83/255],'LineWidth',2 )
 hold on
-plot(windspeeds,sigH_punga_wind(:,size(sigH_punga_wind,2)),'-o', 'Color', [62/255 66/255 137/255]);
-plot(windspeeds,sigH_ligiamax_wind(:,size(sigH_ligiamax_wind,2)),'-o', 'Color', [38/255 120/255 144/255]);
-plot(windspeeds,sigH_ligiamin_wind(:,size(sigH_ligiamin_wind,2)),'-o', 'Color', [66/255 192/255 114/255]);
-plot(windspeeds,sigH_kraken_wind(:,size(sigH_kraken_wind,2)),'-o', 'Color', [253/255 232/255 33/255]);
-legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken','Location','Best');
+plot(windspeeds,sigH_punga_wind(:,size(sigH_punga_wind,2)),'-o', 'Color', [62/255 66/255 137/255],'LineWidth',2 );
+plot(windspeeds,sigH_ligiamax_wind(:,size(sigH_ligiamax_wind,2)),'-o', 'Color', [38/255 120/255 144/255],'LineWidth',2 );
+plot(windspeeds,sigH_ligiamin_wind(:,size(sigH_ligiamin_wind,2)),'-o', 'Color', [66/255 192/255 114/255],'LineWidth',2 );
+plot(windspeeds,sigH_kraken_wind(:,size(sigH_kraken_wind,2)),'-o', 'Color', [253/255 232/255 33/255],'LineWidth',2 );
+legend('Ontario','Punga','Ligia (max)','Ligia (min)','Kraken','Location','northwest','FontSize',12);
 xlabel('windspeed [m/s]','FontSize',16,'FontWeight','bold')
 ylabel('sig H [m]','FontSize',16,'FontWeight','bold')
 xlim([1 size(sigH_0_96_4,1)]);
@@ -518,13 +503,3 @@ ylim([0 1]);
 title('windspeed vs sig H at 92K for varying lakes','FontSize',25,'FontWeight','bold')
 hold off
 saveas(gcf,'TitanLakes_windvSigH.png')
-
-% figure;
-% plot(1:length(sigH_methane),sigH_methane(1,:),'-o')
-% hold on;
-% plot(1:length(sigH_methane),sigH_methane(2,:),'-o')
-% plot(1:length(sigH_methane),sigH_methane(3,:),'-o')
-% plot(1:length(sigH_methane),sigH_methane(4,:),'-o')
-% plot(1:length(sigH_methane),sigH_methane(5,:),'-o')
-% xlabel('# time steps (delt = .1 s)')
-% ylabel('sig H [m]')
