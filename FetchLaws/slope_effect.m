@@ -9,6 +9,7 @@ close all
 %   (a) TITAN
 Titan.rho_liquid = 540;                                                    % Hydrocarbon Liquid density [kg/m3]
 Titan.nu_liquid = 3e-7;                                                    % Hydrocarbon Liquid Viscocity [m2/s]
+Titan.nua = 0.0126/1e4;                                                    % Titan atmospheric gas viscocity [m2/s]
 Titan.gravity = 1.352;                                                     % Titan Gravity [m/s2]
 Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
 Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
@@ -25,10 +26,17 @@ Earth.surface_tension = 0.072;                                             % Wat
 % (2) MODEL GEOMETRY
 Model.m = 30;                                                              % Number of Grid Cells in X-Dimension
 Model.n = 30;                                                              % Number of Grid Cells in Y-Dimension
+Model.o = 25;                                                              % Number of Frequency bins
+Model.p = 288;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+Model.long = 15;                                                           % longitude grid point for sampling during plotting 
+Model.lat = 15;                                                             % latitude grid point for sampling during plotting
 Model.gridX = 1000.0;                                                      % Grid size in X-dimension [m]
 Model.gridY = 1000.0;                                                      % Grid size in Y-dimension [m]
-Model.time_step = 1;                                                       % Maximum Size of time step [s]
-Model.num_time_steps = 100;                                                % Length of model run (in terms of # of time steps)
+Model.mindelt = 0.0001;                                                    % minimum time step
+Model.maxdelt = 2000.0;                                                    % maximum time step
+Model.time_step = 1000;                                                       % Maximum Size of time step [s]
+Model.num_time_steps = 10;                                               % Length of model run (in terms of # of time steps)
+Model.tolH = NaN;                                                          % tolerance threshold for maturity 
 
 % define a bathymetry with a constant slope
 bathy_map = ones(Model.m,Model.n);
@@ -42,18 +50,30 @@ Model.bathy_map = bathy_map;                                               % Bat
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 Wind.speed = [1 5];                                                        % magnitude of incoming wind [m/s]
 
-% (4) HOUSEKEEPING
+% (4) Unidirectional currents
+Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
+Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
+
+% (5) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 1;
+Etc.savedata = 0;
 Etc.showlog = 1;
 
 % RUN MODEL
-[sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Etc); % [m]
+[sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Uniflow,Etc); % [m]
 
 figure;
 plot(sigH(1,:))
 hold on
 plot(sigH(2,:))
+plot(sigH(3,:))
+plot(sigH(4,:))
+plot(sigH(5,:))
+plot(sigH(6,:))
+plot(sigH(7,:))
+plot(sigH(8,:))
+plot(sigH(9,:))
+plot(sigH(10,:))
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------%
 % older runs:
 

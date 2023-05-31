@@ -4,6 +4,17 @@ close all
 
 % unit test
 addpath('..')
+
+TitanResults = sprintf('%s\\umwm_mat\\umwm_new%s', pwd);
+oldmatfiles = fullfile(TitanResults, '*.mat');                             % empties output directory from previous runs
+oldmatloc = dir(oldmatfiles);
+for kk = 1:length(oldmatloc)
+   basemat = oldmatloc(kk).name;
+   fullmat = fullfile(TitanResults,basemat);
+   fprintf(1,'Deleting previous .mat files %s\n',fullmat);
+   delete(fullmat);
+end
+
 % INPUT PARAMETERS:
 % (1) PLANET CONDITIONS
 %   (a) TITAN
@@ -28,7 +39,7 @@ Model.gridY = 1000.0;                                                      % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
-Model.time_step = 1000;                                                   % Maximum Size of time step [s]
+Model.time_step = 1000;                                                    % Maximum Size of time step [s]
 Model.num_time_steps = 2;                                                  % Length of model run (in terms of # of time steps)
 Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bathymetry of model basin [m]
 
@@ -40,7 +51,7 @@ Wind.speed = 0.4:1:3.3;                                                    % mag
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
 
-% (4) HOUSEKEEPING
+% (5) HOUSEKEEPING
 Etc.showplots = 0;
 Etc.savedata = 1;
 Etc.showlog = 1;
@@ -48,8 +59,10 @@ Etc.showlog = 1;
 % RUN MODEL
 [sigH,htgrid,E_each] = makeWaves(Titan,Model,Wind,Uniflow,Etc); % [m]
 
-% need to move newly run data to unit testing (make this automatic)
-% ref = runtests('refTest.m');
-% res = runtests('resultsTest.m');
-% rtref = table(ref)
-% rtres = table(res)
+% move files into unit testing folder
+movefile .\Titan\New* .\umwm_mat\umwm_new
+% report pass/fail for unit tests
+ref = runtests('refTest.m')
+res = runtests('resultsTest.m')
+rtref = table(ref);
+rtres = table(res);

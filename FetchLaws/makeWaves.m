@@ -85,15 +85,10 @@ disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}
 disp('================================================================')
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
-%filec = 1;
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % time inputs for model
-%numdays = 1;
 Time = model.time_step;                                                    % Total size of time step (maximum size of dynamic sub time step)
 Tsteps = model.num_time_steps;                                             % maximum number of time steps
-%mindelt = Model.mindelt;                                                           % Minimum time step to minimize oscillations of delt to very small values.
-%maxdelt = Model.maxdelt;                                                          % Maximum time step to prevent large values as wind ramps up at startup
-%tolH = 0.001;                                                              % minimum change in SigH to stop model at (otherwise runs to full Tsteps)
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
 i = sqrt(-1);                                                              % imaginary number i
@@ -106,7 +101,6 @@ o = model.o;                                                               % num
 p = model.p;                                                               % number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(p);                                                            % step size for angular direction [degrees]
-%dth = 360/p;                                                              % small angle for integration [degrees]
 % Set up geographic deltas
 Delx = model.gridX;                                                        % grid step size [m]
 Dely = model.gridY;                                                        % grid step size [m]
@@ -169,10 +163,8 @@ A = exp(dlnf);
 B = A.*A;
 fac = bf1.*(1-1/B) + bf2.*(1-1./B.^2);                                     % eqn. 21, Donelan 2012
 Snl_fac = ((1.0942/A)^1.9757)/fac;                                         % eqn. 21, Donelan 2012
-
+% waveangle [radians]
 waveang = ((0:p-1)-p/2+0.5)*dthd*dr;                                       % wave angle [radians]
-%op = [p/2+1:p 1:p/2];                                                     % opposite directions from the p array for the computation of MSS colinear (with and against) waves.
-%orm = [p:-1:1];                                                           % reflected directions for 100% reflection from y-boundaries.
 th = ((0:p-1)-p/2+0.5)*dthd*dr;                                            % angle of wave propogation (phi in Donelan 2012)  (0.5 added to avoid division by zero in rotation term)
 cth=cos(th);                                                               % cosine of angle in wave propogation direction 
 sth=sin(th);                                                               % sine of angle in wave propogation direction
@@ -201,13 +193,9 @@ sth=shiftdim(sth,2);
 cth2 = repmat(cth2,[o 1 m n]);
 cth2=shiftdim(cth2,2);
 %% -- Lake Geometry ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 D = model.bathy_map;                                                       % depth of liquid [m]
-
-%j12 = find(D<=0);                                                         % turn all negative depths to zero
 D(D<=0) = 0;
 % Impose depth limits
-%jj = find (D < 0);
 D(D < 0) = 0;                                                              % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
 D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
@@ -222,16 +210,12 @@ end
 %% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Fractions applied to terms from fitting with experiment/observations:
 mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
-% Snl_fac = 3.5;                                                           % fraction of Sdiss that goes to longer wavenumbers
-% Snl_fac = 4.3;                                                           % fraction of Sdiss that goes to longer wavenumbers
-%Sds_fac = 1.0;                                                            % fraction with variable power nnn in Sds that goes into spectrum
 Sdt_fac = 0.001;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
 Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 wn(:,:,:) = ones(m,n,o);
 nnn(:,:,:) = ones(m,n,o);
 ann(:,:,:) = ones(m,n,o);
-
 for jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
@@ -284,32 +268,29 @@ end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 tic
-%sumt = 0;                                                                  % initialize total model time passed
+%sumt = 0;                                                                 % initialize total model time passed
 %tplot = -1;
 idx = 1;                                                                   % for frame for gif
 sigH = zeros(numel(UUvec),length(1:Tsteps));                               % initialize sigH for returning 
 htgrid = cell(1,numel(UUvec));                                             % initialize htgrid for returning
 E_each =  cell(numel(UUvec),length(1:Tsteps));                             % initialize E-spectrum for returning
-
 for iii=1:numel(UUvec)                                                     % loop through wind velocities
    UU = UUvec(iii);                                                        % UU = wind speed for loop
    file = file + 1;                                                        % for naming files
-  
+ 
    U = UU*ones(m,n);                                                       % set wind velocity everywhere in x-y plane
    windir = wind_angle*ones(m,n);                                          % set wind direction everywhere in x-y plane
    windir = repmat(windir,[1 1 o p]);                                      % reshape wind direction matrix
-  
-  
+    
    U_z = U + 0.005;                                                        % wind at modelled height (plus small number to wind speed to avoid division by zero)
   
    % drag coefficient 
-   Cd=1.2*ones(size(U));                                                % drag coefficient for weak/moderate winds
+   Cd=1.2*ones(size(U));                                                   % drag coefficient for weak/moderate winds
    uj = find(U > 11);
-   Cd(uj)=.49 +.065*U(uj);                                     % drag coefficient for strong winds
+   Cd(uj)=.49 +.065*U(uj);                                                 % drag coefficient for strong winds
    Cd=Cd/1000;
   
    modt = 0;                                                               % model time initializiation
-  
   
    % Currents superimposed onto wave-driven flow
    Uer=0*D + 0.0;                                                          % Eastward current [m/s]
@@ -326,6 +307,7 @@ for iii=1:numel(UUvec)                                                     % loo
            if gust > 0
                 U = U.*(1+gust*randn(size(U)));                                                                                                                     % add random bursts of gusts to wind speed
            end
+
            tplot = tplot + 1;
            explim = 0.1;                                                                                                                                            % limit for making dynamic time step if the source = dissipation
            delt = 0.7 * mindelx / cgmax;                                                                                                                            % advection limited Courant condition.
@@ -343,7 +325,6 @@ for iii=1:numel(UUvec)                                                     % loo
            ustw = repmat(ustarw,[1 1 o p]);
            Ud = - ustw./kappa.*log(lz/z);                                                                                                                           % depth averaged air velocity (law of the wall)
           
-          
            % calculate wind input as a fraction of stress
            Ul(D>0) = abs(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0))...             % Sin = A1*Ul*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan 2012]
                .*(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0));
@@ -352,12 +333,9 @@ for iii=1:numel(UUvec)                                                     % loo
            % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
            Ula = Ul;
            Ul = 0.11*Ul;
-           %fij=find(Ul<0);
-           Ul(Ul<0) = Ula(Ul<0)*0.03;                                                                                                                                 % Field scale (Donelan et al, 2012). 0.135 in Lab
-           %clear fij;                                                     
-           %fij = find(cos(windir-waveang)<0);                            
-           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;                                                                                                                                % Waves against wind
-           %clear fij;
+           Ul(Ul<0) = Ula(Ul<0)*0.03;                                                                                                                                 % Field scale (Donelan et al, 2012). 0.135 in Lab                        
+           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;                                                                                              % Waves against wind
+
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
            Sin = zeros(size(Ul));
@@ -367,7 +345,6 @@ for iii=1:numel(UUvec)                                                     % loo
            Heavyside(Sin < 0 & E < 1e-320) = 0;
            Sin = Heavyside.*Sin;                                                                       % Heavyside function kills off Sin for negative Sin (energy and momentum transferring from waves to wind) and for negative/zero energy
            clear Ul Heavyside Ula
-          
           
            % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
            Sin(D<=0) = 0;
@@ -388,7 +365,6 @@ for iii=1:numel(UUvec)                                                     % loo
 % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sds = zeros(size(Sin));
            Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                                    % LH p 712. vol 1 [eqn. 17, Donelan 2012]
-          
           
            % Set Sds = 0 on land boundaries to avoid newdelt --> 0.
            Sds(D<=0) = 0;
@@ -447,23 +423,14 @@ for iii=1:numel(UUvec)                                                     % loo
            E1(:,:,os,:) = E2(:,:,os,:);                                                                                      % E1 = E2 at small wavelengths (os = short frequency)                                                                                      
           
            clear E2
-          
-          
-           % max_mss = max(max(max(max(short))))                                                                             % max(mss) should be < 0.01
 
-           E1=real(E1);
-           %ji=find(E1 < 0);
-           E1(E1 < 0)=0;
-           E1(D <= 0)=0;
-           E(D <= 0)=0;
-          
-           E(:,:,os,:) = E1(:,:,os,:);
+           E1=real(E1); E1(E1 < 0)=0;E1(D <= 0)=0;
+           E(D <= 0)=0; E(:,:,os,:) = E1(:,:,os,:);
            E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                      % E = (E+E1)/2 (time-splitting for stable integration) [eqn. B5, Donelan 2012]
           
 % -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            advect=zeros(m,n,o,p);
            Ccg = Cg + Uer.*cth + Uei.*sth;
-          
           
            % Upwave advection with account taken of varying delx and dely
            advect(:,:,ol,cp)=advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan 2012
@@ -488,21 +455,17 @@ for iii=1:numel(UUvec)                                                     % loo
            % clean up
            E1(D <= 0) = 0;                                                                                                      % energy on land is set to zero
            E1=real(E1);                                                                                                      
-           %ji=find(E1 < 0);
            E1(E1 < 0)=0;
           
 % -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           
-           
            Crot(:,:,ol,:)=(c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...                                      % eqn. A8, Donelan 2012
                -(c(:,ym,ol,:)-c(:,yp,ol,:)).*cth(:,:,ol,:)./(dely(:,ym,ol,:)+dely(:,yp,ol,:));
           
            % Determine if rotation is clockwise or counter clockwise
            Crotcw = zeros(size(Crot));Crotccw = zeros(size(Crot));                  
            Crotccw(Crot>0) = Crot(Crot>0); Crotcw(Crot<0) = Crot(Crot<0);
-           %jj = find (Crotccw > dth/newdelt);
            Crotccw(Crotccw > dth/newdelt) = dth/newdelt;
-           %jj = find (Crotcw < -1*dth/newdelt);
            Crotcw(Crotcw < -1*dth/newdelt) = -1*dth/newdelt;
 
            E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                          % eqn. A1, Donelan 2012 (clockwise rotation)
@@ -511,25 +474,12 @@ for iii=1:numel(UUvec)                                                     % loo
            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                           % not sure
            clear Crotccw Crotcw Crot
                     
-           %ji=find(E1 < 0);
-           E1(E1 < 0)=0;
-           E1(D <= 0)=0;
-           E=real(E1);
-           E(isnan(E))=0;
-           %E1 = E;
-          
-          
+           E1(E1 < 0)=0; E1(D <= 0)=0;
+           E=real(E1);E(isnan(E))=0;
+
            % Make all land points = 0 and upstream values equal to coarse grid
            E(D <= 0)=0;
-          
-           % Make boundaries reflective for tanks.
-           % E(:,1,:,:)= E(:,2,:,orm);
-           % E(:,n,:,:)= E(:,n-1,:,orm);
-           % E(1,:,:,:)= E(2,:,:,orm);
-           % E(m,:,:,:)= E(m-1,:,:,orm);
-           % E(1,:,:,:)=E(1,:,:,:)+paddle(1,:,:,:);
-           % E(D<=0)=0;% Land values.
-          
+                    
            % Compute form stress spectrum.
            tauE = sum(wn.*E.*Sin.*cth./c,4)*dthd*dr;                                                                                            % eastward wind stress (eqn. 5, Donelan 2012)
            tauN = sum(wn.*E.*Sin.*sth./c,4)*dthd*dr;                                                                                            % northward wind stress (eqn. 5, Donelan 2012)
@@ -541,8 +491,6 @@ for iii=1:numel(UUvec)                                                     % loo
                (g+sfcT.*squeeze(wn(:,:,o,1)).^2./rhow).*squeeze(tauE(:,:,o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
            tauN = rhow*(sum((g+sfcT.*squeeze(wn(:,:,:,1)).^2./rhow).*squeeze(dwn(:,:,:,1)).*tauN,3) + ...
                (g+sfcT.*squeeze(wn(:,:,o,1)).^2./rhow).*squeeze(tauN(:,:,o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
-           % tauE = rhow*(sum((g+sfcT.*squeeze(wn(:,:,:,1)).^2./rhow).*squeeze(dwn(:,:,:,1)).*tauE,3));
-           % tauN = rhow*(sum((g+sfcT.*squeeze(wn(:,:,:,1)).^2./rhow).*squeeze(dwn(:,:,:,1)).*tauN,3));
           
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % shear stress and law of the wall
            Cdf = Cd;
@@ -591,19 +539,12 @@ for iii=1:numel(UUvec)                                                     % loo
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
           % integrate spectrum to find significant height  
-                ht_1 = sum(dwn.*wn.*E,4)*dthd*dr
-                ht_2 = sum(ht_1,3)
-                ht = 4*sqrt(abs(ht_2))
-                ms_1 = sum(dwn.*wn.^3.*E,4)*dthd*dr
-                ms_2 = sum(ms_1,3)
-                ms = sqrt(ms_2)
-
-%             ht = sum(dwn.*wn.*E,4)*dthd*dr;                                 % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
-%             ht = sum(ht,3);                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))                                                                                                                               
-%             ht = 4*sqrt(abs(ht));                                           % signifigant wave height (from zeroth order moment of surface)    
-%             [sigH(iii,t),~] = max(max(ht));                                 % return the largest signifigant wave height along the grid
-%             htgrid{iii} = ht;
-      
+                ht = sum(dwn.*wn.*E,4)*dthd*dr;                            % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
+                ht = sum(ht,3);                                            % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
+                ht = 4*sqrt(abs(ht));                                      % signifigant wave height (from zeroth order moment of surface)
+                [sigH(iii,t),~] = max(max(ht));                            % return the largest signifigant wave height along the grid
+                htgrid{iii} = ht;
+              
 
             if Etc.showplots && rem(tplot,10) == 0    
                % Plot Signifigant Height
@@ -618,10 +559,10 @@ for iii=1:numel(UUvec)                                                     % loo
                idx = idx + 1;
             end
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-           % integrate spectrum to find mean slope
-%            ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;                                                                                                               % slope = angle water surface makes with flat surface
-%            ms = sum(ms,3);
-%            ms = sqrt(ms);                                                                                                                                   % standard deviation of water surface = sqrt(variance of water surface)
+           % integrate spectrum to find mean slope                                                                                                                         
+            ms = sum(dwn.*wn.^3.*E,4)*dthd*dr;                                                                                                              % slope = angle water surface makes with flat surface
+            ms = sum(ms,3);
+            ms = sqrt(ms);                                                                                                                                  % standard deviation of water surface = sqrt(variance of water surface)
 
            if Etc.showplots && rem(tplot,10) == 0 
                figure(202);hold on;subplot(326);plot(1:m,ht(:,lati),'.-',1:m,ms(:,lati),'--r');
@@ -661,13 +602,8 @@ for iii=1:numel(UUvec)                                                     % loo
        end % end while loop for sub-time steps
       
        fraction_time_completed = t/Tsteps;
-       %ttime=toc;
-       %seconds_so_far = toc;
-       %hours_to_complete = Tsteps/t*ttime/3600;
        fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
-       %fprintf('Seconds so far: %i\n',ttime);
-       %fprintf('Hours remaining: %.2f\n',hours_to_complete);
-    
+
       
       E_each{iii,t} = E;
       if Etc.savedata
