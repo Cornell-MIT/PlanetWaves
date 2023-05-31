@@ -7,7 +7,8 @@ close all
 m = 31;                                                                    % number of gridpoints in x-direction
 n = 15;                                                                    % number of gridpoints in y-direction
 
-windspeeds = [0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1 1.25 1.5 1.75 2 2.25 2.5 2.75 3 3.25 3.5]; %for time_step_size = 100 and num_time_steps = 200, time per run = 50 min, total time = 14 hr 30 min
+windspeeds = 0:.1:4.5; %for time_step_size = 100 and num_time_steps = 200, time per run = 50 min, total time = 14 hr 30 min
+%windspeeds = [0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1 1.25 1.5 1.75 2 2.25 2.5 2.75 3 3.25 3.5]; %for time_step_size = 100 and num_time_steps = 200, time per run = 50 min, total time = 14 hr 30 min
 %windspeeds = [1 2 3]; %for time_step_size = 100 and num_time_steps = 200, time per run = 5 min, total time = 1 hr 20 min
 wind_dir = 0;
 planet_gravity = 1.35;
@@ -16,7 +17,7 @@ planet_press = 1.5*101300;
 bathy_map = 100.*ones(m,n);
 gridX = m;
 gridY = n;
-time_step_size = 100; %usually is 100
+time_step_size = 10; %usually is 100
 num_time_steps = 200; %usually is 200
 
 
