@@ -216,7 +216,7 @@ Sbf_fac = 0.002;                                                           % fra
 wn(:,:,:) = ones(m,n,o);
 nnn(:,:,:) = ones(m,n,o);
 ann(:,:,:) = ones(m,n,o);
-for jm = 1:m
+parfor jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number (using linear wave dispersion)
@@ -320,8 +320,7 @@ for iii=1:numel(UUvec)                                                     % loo
            Ul = repmat(Ul,[1 1 o p]);
            U = repmat(U_z,[1 1 o p]);
            Ul = 2.5*Ul.*log(l2/z)+U;
-           clear Cd
-          
+
            ustw = repmat(ustarw,[1 1 o p]);
            Ud = - ustw./kappa.*log(lz/z);                                                                                                                           % depth averaged air velocity (law of the wall)
           
@@ -344,12 +343,11 @@ for iii=1:numel(UUvec)                                                     % loo
            Heavyside = ones(size(E));
            Heavyside(Sin < 0 & E < 1e-320) = 0;
            Sin = Heavyside.*Sin;                                                                       % Heavyside function kills off Sin for negative Sin (energy and momentum transferring from waves to wind) and for negative/zero energy
-           clear Ul Heavyside Ula
-          
+
            % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
            Sin(D<=0) = 0;
-         
-           for tj = 1:p
+           
+           parfor tj = 1:p
                short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
            end
            short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                  % sqrt of mean square slope (eqn. 16, Donelan 2012)
@@ -357,7 +355,6 @@ for iii=1:numel(UUvec)                                                     % loo
 % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
            Sdt(:,:,:,:) = repmat(Ustar,[1 1 o p]);
-           clear Ustar
            Sdt = Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                 % eqn 20, Donelan 2012
 %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sbf = zeros(m,n,o,p);
@@ -422,8 +419,6 @@ for iii=1:numel(UUvec)                                                     % loo
           
            E1(:,:,os,:) = E2(:,:,os,:);                                                                                      % E1 = E2 at small wavelengths (os = short frequency)                                                                                      
           
-           clear E2
-
            E1=real(E1); E1(E1 < 0)=0;E1(D <= 0)=0;
            E(D <= 0)=0; E(:,:,os,:) = E1(:,:,os,:);
            E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                      % E = (E+E1)/2 (time-splitting for stable integration) [eqn. B5, Donelan 2012]
@@ -472,8 +467,6 @@ for iii=1:numel(UUvec)                                                     % loo
            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                            % not sure
            E1(:,:,ol,ccw) = E1(:,:,ol,ccw) + newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                       % eqn. A1, Donelan 2012 (counterclockwise rotation)
            E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                           % not sure
-           clear Crotccw Crotcw Crot
-                    
            E1(E1 < 0)=0; E1(D <= 0)=0;
            E=real(E1);E(isnan(E))=0;
 
@@ -503,7 +496,7 @@ for iii=1:numel(UUvec)                                                     % loo
            Ustar_smooth = U_z.^2.*(0.3333*Ustar_smooth + 0.6667*(Ustar_smooth.^2)./(Ustar_smooth + Cd));
            tauE = tauE + rhoa*Ustar_smooth.*cos(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Eastward direction
            tauN = tauN + rhoa*Ustar_smooth.*sin(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Northward direction
-           clear Ustar_smooth;
+
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan 2012)
           
            
@@ -655,20 +648,19 @@ function k = wavekgt( f, H, g, T, R, tol )
 %    R = water density in Kgm/m^3: default is
 %    Note: [f] > 0 must increase monotonically from small to large.  This
 %    routine is optimized for speed and works best when length(f) is large.
-                    % some initial housekeeping
-    if nargin<6,  tol = 1e-4;  end         % default tolerance
-    % g = 9.80171;
+
+    if nargin<6,  tol = 1e-4;  end                                                  % default tolerance
     c = 2*pi*sqrt(H/g);   
-    f = c * f(:);  Nf = length(f);         % non-dimensionalize f
-    B = T/(R*g*H*H);                       % non-dimensionalize T
+    f = c * f(:);  Nf = length(f);                                                  % non-dimensionalize f
+    B = T/(R*g*H*H);                                                                % non-dimensionalize T
     k = zeros(Nf,1);
-    k(1) = f(1)^2;                     % use deep water limit as initial guess
+    k(1) = f(1)^2;                                                                  % use deep water limit as initial guess
     for n=1:Nf
         dk = 1;
         if n>1
             k(n) = k(n-1);
         end
-        while ( abs(dk) ) > tol         % Newton-Raphson iteration loop
+        while ( abs(dk) ) > tol                                                     % Newton-Raphson iteration loop
             t = 1;
         if k(n) < 20
             t = tanh( k(n) ) ;
@@ -677,49 +669,34 @@ function k = wavekgt( f, H, g, T, R, tol )
             ./ ( 3*B.*k(n).^2*t+t  + k(n)*(1+B.*k(n).^2)*( 1 - t.^2 ) ) ;
         k(n) = k(n) - dk ;
         end
-        k(n) = abs( k(n) ) ;               % f(k) = f(-k), so k>0 == k<0 roots
+        k(n) = abs( k(n) ) ;               
     end
-%   N = min( find( k>50 ) ) ;              % inform user if err > tol
-%   if isempty(N)  
-%       N = Nf;
-%   end
-%   err = abs( f(2:N) - sqrt( k(2:N).*tanh(k(2:N)) ) )./f(2:N) ;
-%   if max( err ) > tol,  fprintf('\n WAVEK: error exceeds %g \n', tol),  end
-    k = k / H ;                            % give k dimensions of 1/meter
+
+    k = k / H ;                                                                     % give k dimensions of 1/meter
 end
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function ustar = smooth_nu(U,z,nu)
-   % To calculate the friction velocity for smooth flow of any gas.
-   %
-   % function ustar = smooth(U,z)
-   %
-   % ustar = friction velocity [m/s]
-   % U     = wind speed [m/s] at height z
-   % z     = height of wind speed measurement [m]
-   % nu    = kinematic viscosity of gas [m^2/s]
-   %
-  
-  
-   len = length(U);
-   z0 = 0.001;
-   z1 = 0.002;
-   % nu=0.156/10000;
-   del = 0.00001;
-  
-   for j = 1:len
-       m = 0;
-       u = U(j);
-       z1 = z0+2*del;
-       %while abs(z0-z1) > del
-      
+% To calculate the friction velocity for smooth flow of any gas.
+%
+% function ustar = smooth(U,z)
+%
+% ustar = friction velocity [m/s]
+% U     = wind speed [m/s] at height z
+% z     = height of wind speed measurement [m]
+% nu    = kinematic viscosity of gas [m^2/s]
+
+    ustar = NaN(1,length(U));
+    z0 = 0.001;
+
+    for j = 1:length(U)
+       m = 0;    
        for k = 1:6
            m = m+1;
-           z1 = z0;
-           ust = 0.4*u/(log(z/z0));
+           ust = 0.4*U(j)/(log(z/z0));
            z0 = 0.132*nu/ust;
        end
        ustar(j) = ust;
-   end
+    end
 end
 
 

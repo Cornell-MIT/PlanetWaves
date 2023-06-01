@@ -18,6 +18,7 @@ Titan.surface_tension = 0.018;                                             % Hyd
 %   (b) EARTH
 Earth.rho_liquid = 997;                                                    % Water Liqid Density [kg/m3]         
 Earth.nu_liquid = 1e-6;                                                    % Water Liquid Viscocity [m2/s]
+Earth.nua = 1.48e-5;                                                       % Titan atmospheric gas viscocity [m2/s]
 Earth.gravity = 9.81;                                                      % Earth Gravity [m/s2]
 Earth.surface_temp = 273;                                                  % Earth Surface Temperature [K]
 Earth.surface_press = 1*101300;                                            % Earth Surface Pressure [Pa]
@@ -28,19 +29,19 @@ Model.m = 10;                                                              % Num
 Model.n = 10;                                                              % Number of Grid Cells in Y-Dimension
 Model.o = 25;                                                              % Number of Frequency bins
 Model.p = 288;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
-Model.long = 5;                                                           % longitude grid point for sampling during plotting 
-Model.lat = 5;                                                            % latitude grid point for sampling during plotting
-Model.gridX = 1000.0;                                                      % Grid size in X-dimension [m]
-Model.gridY = 1000.0;                                                      % Grid size in Y-dimension [m]
+Model.long = 5;                                                            % longitude grid point for sampling during plotting 
+Model.lat = 5;                                                             % latitude grid point for sampling during plotting
+Model.gridX = 1000;                                                        % Grid size in X-dimension [m]
+Model.gridY = 1000;                                                        % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 1000;                                                    % Maximum Size of time step [s]
-Model.num_time_steps = 10;                                                 % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 100;                                                 % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
 
 % define a bathymetry with a constant slope
 deep_bathy = 100.*ones(Model.m,Model.n);
-Model.bathy_map = deep_bathy;                                       % Bathymetry of model basin [m]
+Model.bathy_map = deep_bathy;                                              % Bathymetry of model basin [m]
 
 % (3) NEAR-SURFACE WIND CONDITIONS
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
@@ -56,16 +57,21 @@ Etc.savedata = 0;
 Etc.showlog = 1;
 
 % RUN MODEL
-[DsigH,Dhtgrid,DE_each] = makeWaves(Titan,Model,Wind,Uniflow,Etc); % [m]
+[DsigH,Dhtgrid,DE_each] = makeWaves(Earth,Model,Wind,Uniflow,Etc); 
+
+PM_H = 0.22.*(Wind.speed.^2)./Earth.gravity;                               % Pierson-Moskowitz Sig Wave Height
 
 figure;
 plot(Wind.speed,DsigH(:,end),'-k','LineWidth',5)
+hold on;
+plot(Wind.speed,PM_H,'--r','LineWidth',5)
 xlabel('Wind Speed [m/s]')
 ylabel('sig H [m]')
+legend('Titan-UMWM','Pierson-Moskowitz')
 
 
 figure;
-[~,c] = contourf(1:Model.num_time_steps,Wind.speed,DsigH,[0.01 0.2 0.4 0.6 0.8 1.0 1.2 1.4],'showtext',1);
+[~,c] = contourf(1:Model.num_time_steps,Wind.speed,DsigH,'showtext',1);
 colormap(autumn)
 c.LineWidth = 3;
 cb = colorbar;
