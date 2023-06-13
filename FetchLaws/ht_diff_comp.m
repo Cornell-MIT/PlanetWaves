@@ -20,6 +20,8 @@ gridY = n;
 time_step_size = 10; %usually is 100
 num_time_steps = 200; %usually is 200
 
+% load compositional data
+'
 
 %% methane:ethane:nitrogen from titanpool at 92K (steckloff et al., 2020) and NIST
 % 0:96:4.27
