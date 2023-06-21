@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,E_each] = makeWaves(planet,liquid,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -12,11 +12,13 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %
 %   Arguments:
 %       planet
-%           rho_liquid      : liquid density [kg/m3]
-%           nu_liquid       : liquid kinematic viscocity [m2/s]
+%           nua             : atmospheric gas viscosity [m2/s]
 %           gravity         : gravitational acceleration [m/s2]
 %           surface_temp    : surface temperature [K]
 %           surface_press   : surface pressure [Pa]
+%       liquid
+%           rho_liquid      : liquid density [kg/m3]
+%           nu_liquid       : liquid kinematic viscocity [m2/s]
 %           surface_tension : surface tension of liquid [N/m]
 %       model
 %           m               : number of grid cells in x-dimension
@@ -72,7 +74,7 @@ TitanResults = sprintf('%s\\Titan%s', pwd);
 if ~exist(TitanResults, 'dir')  && Etc.savedata                            % make output directory 'Titan' if doesn't already exist
     mkdir(TitanResults);
 else
-   oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
+   oldmatfiles = fullfile(TitanResults,Etc.name,'*.mat');                          % empties output directory from previous runs
    oldmatloc = dir(oldmatfiles);
    for kk = 1:length(oldmatloc)
        basemat = oldmatloc(kk).name;
@@ -107,10 +109,10 @@ wfac = 0.035;                                                              % win
 % Ideal gas law: PV = nRT
 % Densities:
 rhoa = planet.surface_press*kgmolwt/(RRR*planet.surface_temp);             % air density [kg/m3]
-rhorat=rhoa/planet.rho_liquid;                                             % air-water density ratio.
+rhorat=rhoa/liquid.rho_liquid;                                             % air-water density ratio.
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities (Donelan 2012, pg. 3)
-kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
+kcg = sqrt(planet.gravity*liquid.rho_liquid/liquid.surface_tension);       % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
 % modified wavenumbers
 kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
@@ -190,7 +192,7 @@ wn(:,:,:) = ones(model.m,model.n,model.o);
 nnn(:,:,:) = ones(model.m,model.n,model.o);
 ann(:,:,:) = ones(model.m,model.n,model.o);
 m = model.m; n = model.n; g = planet.gravity;
-sfcT = planet.surface_tension; rhow = planet.rho_liquid; 
+sfcT = liquid.surface_tension; rhow = liquid.rho_liquid; 
 parfor jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
@@ -220,7 +222,7 @@ Uei = uniflow.North*D + 0.0;                                                    
 c = (2*pi*f)./wn;                                                                                                                                                                                                    % phase speed
 c(D<=0) = 0;                                                                                                                                                                                                         % phase speed on land is set to zero
 Cg = zeros(size(c));                                                                                                                                                                                                 % initialize group speed
-Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*planet.surface_tension.*wn(D>0)./planet.rho_liquid./(planet.gravity./wn(D>0) + planet.surface_tension.*wn(D>0)./planet.rho_liquid));        % Group velocity for all waves (Kinsman "Wind Waves: Their Generation and Propogation on the Ocean Surface")
+Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*liquid.surface_tension.*wn(D>0)./liquid.rho_liquid./(planet.gravity./wn(D>0) + liquid.surface_tension.*wn(D>0)./liquid.rho_liquid));        % Group velocity for all waves (Kinsman "Wind Waves: Their Generation and Propogation on the Ocean Surface")
 dwn = ones(model.m,model.n,model.o,model.p);                                                                                                                                                                         % initalize dominant wavenumber (c = dw/dk)
 dwn(D>0) = dom(D>0)./abs(Cg(D>0));                                                                                                                                                                                   % remove any values on land for dominant wavenumber (c = dw/dk)
 Cg(D<=0) = 0;                                                                                                                                                                                                        % zero all the group velocities on land
@@ -236,7 +238,7 @@ waveang = repmat(waveang,[model.o 1 model.m model.n]);
 waveang=shiftdim(waveang,2);
 if Etc.savedata
     m = model.m; n = model.n; o = model.o; p = model.p;
-    save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
+    save([TitanResults,'/New_Reference_',Etc.name],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
 end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -306,7 +308,7 @@ for iii=1:numel(wind.speed)                                                % loo
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
            Sin = zeros(size(Ul));
-           Sin(D>0) = rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));         % eqn. 4, Donelan 2012
+           Sin(D>0) = rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+liquid.surface_tension.*wn(D>0).*wn(D>0)./liquid.rho_liquid));         % eqn. 4, Donelan 2012
            % limits energy going into spectrum once waves outrun wind
            Heavyside = ones(size(E));
            Heavyside(Sin < 0 & E < 1e-320) = 0;
@@ -349,7 +351,7 @@ for iii=1:numel(wind.speed)                                                % loo
 % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Integrate source functions
            Sds_wc = Sds;                                                                                                         % Keep whitecapping (wc) only dissipation for calculating snl growth.
-           Sds(D>0) = coth(0.2*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                % Add viscous, turbulent and plunging dissipation after calculation of Snl
+           Sds(D>0) = coth(0.2*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*liquid.nu_liquid *wn(D>0).^2;                % Add viscous, turbulent and plunging dissipation after calculation of Snl
            % aa = input - dissipation
            aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                   % ol = long wavelength waves
            aa = aa(D(:,:,ol,:)>0);                                                                                                    
@@ -380,8 +382,8 @@ for iii=1:numel(wind.speed)                                                % loo
            cath(D>0) = coth(0.2*wn(D>0).*D(D>0));                                                                             % limits the breaker height to depth of shoaling wave ratio [eqn. 17, Donelan 2012 (but A2 = 42 not 0.2?)  
            
            E2(:,:,:,:) = zeros(model.m,model.n,model.o,model.p);
-           fij = find((Sin(:,:,:,:) - 4*planet.nu_liquid*wn(:,:,:,:).^2 - Sdt(:,:,:,:) - Sbf(:,:,:,:)) > 0);                  % finds terms where input > dissipation
-           E2(fij) = wn(fij).^(-4).*((Sin(fij)-4*planet.nu_liquid*wn(fij).^2 - Sdt(fij) - Sbf(fij))./(cath(fij) ...
+           fij = find((Sin(:,:,:,:) - 4*liquid.nu_liquid*wn(:,:,:,:).^2 - Sdt(:,:,:,:) - Sbf(:,:,:,:)) > 0);                  % finds terms where input > dissipation
+           E2(fij) = wn(fij).^(-4).*((Sin(fij)-4*liquid.nu_liquid*wn(fij).^2 - Sdt(fij) - Sbf(fij))./(cath(fij) ...
                .*ann(fij)*2*pi.*f(fij).*(1+mss_fac*short(fij)).^2)).^(nnninv(fij));                                           % LH p.712, vol 1
            E2(D<=0) = 0; E1(D<=0) = 0; 
            E2(E2<0) = 0; E1(E1<0) = 0;
@@ -449,10 +451,10 @@ for iii=1:numel(wind.speed)                                                % loo
            mtail = 0.000112*U_10.*U_10 - 0.01451.*U_10 - 1.0186;
            wnh = squeeze(wn(:,:,model.o,1));                                                                                                    % largest wavenumber
           
-           tauE = planet.rho_liquid*(sum((planet.gravity+planet.surface_tension.*squeeze(wn(:,:,:,1)).^2./planet.rho_liquid).*squeeze(dwn(:,:,:,1)).*tauE,3) + ...
-               (planet.gravity+planet.surface_tension.*squeeze(wn(:,:,model.o,1)).^2./planet.rho_liquid).*squeeze(tauE(:,:,model.o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
-           tauN = planet.rho_liquid*(sum((planet.gravity+planet.surface_tension.*squeeze(wn(:,:,:,1)).^2./planet.rho_liquid).*squeeze(dwn(:,:,:,1)).*tauN,3) + ...
-               (planet.gravity+planet.surface_tension.*squeeze(wn(:,:,model.o,1)).^2./planet.rho_liquid).*squeeze(tauN(:,:,model.o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
+           tauE = liquid.rho_liquid*(sum((planet.gravity+liquid.surface_tension.*squeeze(wn(:,:,:,1)).^2./liquid.rho_liquid).*squeeze(dwn(:,:,:,1)).*tauE,3) + ...
+               (planet.gravity+liquid.surface_tension.*squeeze(wn(:,:,model.o,1)).^2./liquid.rho_liquid).*squeeze(tauE(:,:,model.o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
+           tauN = liquid.rho_liquid*(sum((planet.gravity+liquid.surface_tension.*squeeze(wn(:,:,:,1)).^2./liquid.rho_liquid).*squeeze(dwn(:,:,:,1)).*tauN,3) + ...
+               (planet.gravity+liquid.surface_tension.*squeeze(wn(:,:,model.o,1)).^2./liquid.rho_liquid).*squeeze(tauN(:,:,model.o)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan 2012
           
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % shear stress and law of the wall
            Cdf = Cd;
@@ -562,7 +564,7 @@ for iii=1:numel(wind.speed)                                                % loo
       E_each{iii,t} = E;                                                                                                                                    % return energy spectrum for each wind speed iii at each time step t
 
       if Etc.savedata
-        save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
+        save([TitanResults,'/New_u_',int2str(UU),'_t_',int2str(t),'_',Etc.name],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
       end
        
        
@@ -596,6 +598,7 @@ end
 disp('================================================================')
 disp('Model Run Complete')
 disp('================================================================')
+save([TitanResults,Etc.name],'sigH','htgrid','E_each')
 toc
 end
 % ==============================================================================================================================================================================================================================================================================================================================================================================================================================

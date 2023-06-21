@@ -8,7 +8,7 @@ format long
 density = load('../compositions/density.csv'); % [kg/m3]
 kinematic_visc = load('../compositions/kinematic_visc.csv'); % [cm2/s]
 dynamic_visc = load('../compositions/dynamic_visc.csv'); % [Pa*s]
-surface_tension = load('../compositions/surface_tension.csv'); % [N/m]
+surf_ten = load('../compositions/surface_tension.csv'); % [N/m]
 methane_frac = load('../compositions/CH4_molefraction.csv'); % methane
 ethane_frac = load('../compositions/C2H6_molefraction.csv'); % ethane
 nitrogen_frac = load('../compositions/N2_molefraction.csv'); % nitrogen
@@ -22,7 +22,7 @@ Titan.surface_temp = 92;                                                   % Tit
 Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
 Titan.liquid.Hydrocarbon.rho_liquid = 540;                                 % Hydrocarbon liquid density [kg/m3]
 Titan.liquid.Hydrocarbon.nu_liquid = 3e-7;                                 % Hydrocarbon liquid Viscocity [m2/s]
-Titan.liquid.Hydrocarbon.sfct_liquid = 0.018;                              % Hydrocarbon liquid Surface Tension [N/m]
+Titan.liquid.Hydrocarbon.surface_tension = 0.018;                              % Hydrocarbon liquid Surface Tension [N/m]
 
 %   (a.1) VARYING METHANE:ETHANE:NITROGEN COMPOSITIONS @92 K               % Source: steckloff et al., 2020
 temp_location = find(methane_frac(:,1)==Titan.surface_temp);               % Find row with temperature
@@ -37,8 +37,8 @@ for i = 1:length(methane)
         max(find(abs(density(1,:) - methane(i))<0.001))); 
     Titan.liquid.(name(i)).nu_liquid = kinematic_visc(temp_location,...    % Liquid viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - methane(i))<0.001)))/10000;      
-     Titan.liquid.(name(i)).sfct_liquid = surface_tension(temp_location,...% Liquid surface tension [N/m]
-        max(find(abs(surface_tension(1,:) - methane(i))<0.001))); 
+     Titan.liquid.(name(i)).surface_tension = surf_ten(temp_location,...   % Liquid surface tension [N/m]
+        max(find(abs(surf_ten(1,:) - methane(i))<0.001))); 
 end
                                                       
 
@@ -53,8 +53,8 @@ Titan.liquid.Ontario.rho_liquid = density(temp_location,...                % Ont
         max(find(abs(density(1,:) - Ontario_methane)<0.001))); 
 Titan.liquid.Ontario.nu_liquid = kinematic_visc(temp_location,...          % Ontario Lacus liquid Viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - Ontario_methane)<0.001)))/10000;      
-Titan.liquid.Ontario.sfct_liquid = surface_tension(temp_location,...       % Ontario Lacus liquid Surface Tension [N/m]
-        max(find(abs(surface_tension(1,:) - Ontario_methane)<0.001)));                                                       
+Titan.liquid.Ontario.surface_tension = surf_ten(temp_location,...          % Ontario Lacus liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Ontario_methane)<0.001)));                                                       
 
 %   (a.2.2) TITAN: PUNGA MARE
 %   80:0:20 percent methane:ethane:nitrogen from Mastrogiuseppe 2018
@@ -66,8 +66,8 @@ Titan.liquid.Punga.rho_liquid = density(temp_location,...                  % Pun
         max(find(abs(density(1,:) - Punga_methane)<0.001))); 
 Titan.liquid.Punga.nu_liquid = kinematic_visc(temp_location,...            % Punga Mare liquid Viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - Punga_methane)<0.001)))/10000;      
-Titan.liquid.Punga.sfct_liquid = surface_tension(temp_location,...         % Punga Mare liquid Surface Tension [N/m]
-        max(find(abs(surface_tension(1,:) - Punga_methane)<0.001)));                                                           
+Titan.liquid.Punga.surface_tension = surf_ten(temp_location,...            % Punga Mare liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Punga_methane)<0.001)));                                                           
 
 %   (a.2.3) TITAN: LIGIA MARE (MAX METHANE)
 %   100:0:0 percent methane:ethane:nitrogen from LeGall 2016
@@ -79,8 +79,8 @@ Titan.liquid.LigiaMax.rho_liquid = density(temp_location,...               % Lig
         max(find(abs(density(1,:) - LigiaMax_methane)<0.001))); 
 Titan.liquid.LigiaMax.nu_liquid = kinematic_visc(temp_location,...         % Ligia Mare (max) liquid Viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - LigiaMax_methane)<0.001)))/10000;      
-Titan.liquid.LigiaMax.sfct_liquid = surface_tension(temp_location,...      % Ligia Mare (max) liquid Surface Tension [N/m]
-        max(find(abs(surface_tension(1,:) - LigiaMax_methane)<0.001)));                                                            
+Titan.liquid.LigiaMax.surface_tension = surf_ten(temp_location,...         % Ligia Mare (max) liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - LigiaMax_methane)<0.001)));                                                            
 
 %   (a.2.4) TITAN: LIGIA MARE (MIN METHANE)
 %   50:39:10.73 percent methane:ethane:nitrogen from LeGall 2016
@@ -92,8 +92,8 @@ Titan.liquid.LigiaMin.rho_liquid = density(temp_location,...               % Lig
         max(find(abs(density(1,:) - LigiaMin_methane)<0.001))); 
 Titan.liquid.LigiaMin.nu_liquid = kinematic_visc(temp_location,...         % Ligia Mare (min) liquid Viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - LigiaMin_methane)<0.001)))/10000;      
-Titan.liquid.LigiaMin.sfct_liquid = surface_tension(temp_location,...      % Ligia Mare (min) liquid Surface Tension [N/m]
-        max(find(abs(surface_tension(1,:) - LigiaMin_methane)<0.001)));                                                            
+Titan.liquid.LigiaMin.surface_tension = surf_ten(temp_location,...         % Ligia Mare (min) liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - LigiaMin_methane)<0.001)));                                                            
                                                   
 
 %   (a.2.5) TITAN: KRAKEN MARE
@@ -106,13 +106,13 @@ Titan.liquid.Kraken.rho_liquid = density(temp_location,...                 % Kra
         max(find(abs(density(1,:) - Kraken_methane)<0.001))); 
 Titan.liquid.Kraken.nu_liquid = kinematic_visc(temp_location,...           % Kraken liquid Viscocity [m2/s]
         max(find(abs(kinematic_visc(1,:) - Kraken_methane)<0.001)))/10000;      
-Titan.liquid.Kraken.sfct_liquid = surface_tension(temp_location,...        % Kraken liquid Surface Tension [N/m]
-        max(find(abs(surface_tension(1,:) - Kraken_methane)<0.001)));                                             
+Titan.liquid.Kraken.surface_tension = surf_ten(temp_location,...           % Kraken liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Kraken_methane)<0.001)));                                             
 
 %   (b) EARTH
 Earth.liquid.Water.rho_liquid = 997;                                       % Water liqid density [kg/m3]         
 Earth.liquid.Water.nu_liquid = 1e-6;                                       % Water liquid viscocity [m2/s]
-Earth.liquid.Water.sfct_liquid = 0.072;                                    % Water liquid surface ension [N/m]
+Earth.liquid.Water.surface_tension = 0.072;                                    % Water liquid surface ension [N/m]
 Earth.gravity = 9.81;                                                      % Earth Gravity [m/s2]
 Earth.surface_temp = 273;                                                  % Earth Surface Temperature [K]
 Earth.surface_press = 1*101300;                                            % Earth Surface Pressure [Pa]
@@ -130,7 +130,7 @@ Model.gridY = 1000.0;                                                      % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 1000;                                                    % MAXIMUM SIZE OF TIME STEP [S]
-Model.num_time_steps = 100;                                                 % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
+Model.num_time_steps = 100;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
 Model.tolH = NaN;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
 
 % % define a bathymetry with a constant slope
@@ -169,7 +169,7 @@ Etc.showlog = 0;
         Etc.name = convertStringsToChars(Composition(liq));
         %makeWaves_batch(Titan,Titan.liquid.(Composition(liq)),Model,Wind,Uniflow,Etc);   
     
-        job{liq} = batch('makeWaves_batch',3,{Titan,Titan.liquid.(Composition(liq)),Model,Wind,Uniflow,Etc});% [m]
+        job{liq} = batch('makeWaves',3,{Titan,Titan.liquid.(Composition(liq)),Model,Wind,Uniflow,Etc});% [m]
             pause(.01)
     
     end
