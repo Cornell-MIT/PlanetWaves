@@ -38,8 +38,8 @@ Model.gridX = 1000;                                                        % Gri
 Model.gridY = 1000;                                                        % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 10;                                                      % Maximum Size of time step [s]
-Model.num_time_steps = 10;                                                 % Length of model run (in terms of # of time steps)
+Model.time_step = 100;                                                      % Maximum Size of time step [s]
+Model.num_time_steps = 100;                                                 % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
 
 % define a bathymetry with a constant slope
@@ -48,7 +48,7 @@ Model.bathy_map = deep_bathy;                                              % Bat
 
 % (3) NEAR-SURFACE WIND CONDITIONS
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
-Wind.speed = 0:0.1:2;                                                    % magnitude of incoming wind [m/s]
+Wind.speed = 0:0.1:3;                                                    % magnitude of incoming wind [m/s]
 
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
@@ -64,22 +64,27 @@ Etc.showlog = 1;
 planet_to_run = Titan;
 
 % RUN MODEL
-[DsigH,Dhtgrid,DE_each] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc); 
+[UMWM_H,~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc); 
 
 PM_H = 0.22.*(Wind.speed.^2)./(planet_to_run.gravity);                             % Pierson-Moskowitz Sig Wave Height
-
+SM_H = 0.025.*(Wind.speed.^2);                                                     % Sverdrup-Munk (overestimate at large wind speeds) (for comparison with Lorenz & Hayes 2012)
+small_H = 0.01.*(Wind.speed.^2);                                                   % smallest sig wave height proposed relationship in Lorenz & Hayes 2012
 figure;
-plot(Wind.speed,DsigH(:,end),'-k','LineWidth',5)
+plot(Wind.speed,UMWM_H(:,end),'-k','LineWidth',5)
 hold on;
 plot(Wind.speed,PM_H,'--r','LineWidth',5)
+plot(Wind.speed,SM_H,'--b','LineWidth',5)
+plot(Wind.speed,small_H,'--g','LineWidth',5)
 grid on;
+set(gca, 'YScale', 'log')
 xlabel('Wind Speed [m/s]')
 ylabel('sig H [m]')
-legend('Titan-UMWM','Pierson-Moskowitz')
+legend('Titan-UMWM','Pierson-Moskowitz','Sverdrup-Munk','0.01u^2')
 title(planet_to_run.name)
 
+
 figure;
-[~,c] = contourf(1:Model.num_time_steps,Wind.speed,DsigH,'showtext',1);
+[~,c] = contourf(1:Model.num_time_steps,Wind.speed,UMWM_H,'showtext',1);
 colormap(autumn)
 c.LineWidth = 3;
 cb = colorbar;

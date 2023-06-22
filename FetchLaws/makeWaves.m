@@ -40,7 +40,7 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %       Etc
 %           showplots       : 0 = no plots made, 1 = plots every tenth loops (will slow down model run)
 %           savedata        : 1  = save data for time steps (will slow down model run), 0 = skip saving
-%           showlog         : 1 = print progress to command line (will slow down model run), 0 = no progress printed to command line
+%           showlog         : 1 = print progress to command line, 0 = no progress printed to command line
 %
 %
 %   Returns:
@@ -53,7 +53,7 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %   (1) none
 %
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% Aprox time to run: 20 minutes (for 2 wind speeds, Time = 100, Tsteps = 200)
+% Aprox time to run: 2 minutes (for 5 wind speeds, Time = 100, Tsteps = 3)
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Cite:
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,10 +81,10 @@ else
        delete(fullmat);
    end
 end
-disp('================================================================')
+disp('================================================================================================================================')
 disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
 disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
-disp('================================================================')
+disp('================================================================================================================================')
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -185,6 +185,7 @@ end
 mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
 Sdt_fac = 0.001;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
 Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
+A1 = 0.11;                                                                 % Wind to waves source function (Sin) proportionality constant (eqn 4, Donelan 2012)
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 wn(:,:,:) = ones(model.m,model.n,model.o);
 nnn(:,:,:) = ones(model.m,model.n,model.o);
@@ -293,20 +294,19 @@ for iii=1:numel(wind.speed)                                                % loo
            Ud = - ustw./kappa.*log(lz/z);                                                                                                                            % depth averaged air velocity (law of the wall)
           
            % calculate wind input as a fraction of stress
-           Ul(D>0) = abs(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0))...              % Sin = A1*Ul*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan 2012]
+           Ul(D>0) = abs(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0))...              % Sin = A1*Ul*((k*wn)/g)*(rhoa/rhow)*E  [term in parantheses in eqn. 4, Donelan 2012]
                .*(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0));
-          
-          
+       
            % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
-           Ula = Ul;
-           Ul = 0.11*Ul;
+           Ula = Ul;                                                                                                                                                 % original form of Sin eqn. 4 in parantheses without proportionality constant A1
+           Ul = A1*Ul;                                                                                                                                               % Sin = A1*(), fit at North Sea test (Donelan 2012)
            Ul(Ul<0) = Ula(Ul<0)*0.03;                                                                                                                                % Field scale (Donelan et al, 2012). 0.135 in Lab                        
            Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;                                                                                             % Waves against wind
 
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
            Sin = zeros(size(Ul));
-           Sin(D>0) = rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));         % eqn. 4, Donelan 2012
+           Sin(D>0) = rhorat*(Ul(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));         % eqn. 4, Donelan 2012?
            % limits energy going into spectrum once waves outrun wind
            Heavyside = ones(size(E));
            Heavyside(Sin < 0 & E < 1e-320) = 0;
