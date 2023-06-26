@@ -1,4 +1,4 @@
-function [job] = slope_effect_batch(range)
+function [job] = slope_effect_batch
 % make plots of signifigant wave height for slopes
 
 %% LOAD DATA:
@@ -129,7 +129,7 @@ Model.gridX = 1000.0;                                                      % Gri
 Model.gridY = 1000.0;                                                      % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 1000;                                                    % MAXIMUM SIZE OF TIME STEP [S]
+Model.time_step = 100;                                                    % MAXIMUM SIZE OF TIME STEP [S]
 Model.num_time_steps = 100;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
 Model.tolH = NaN;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
 
@@ -147,8 +147,8 @@ Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bat
 
 %% (3) NEAR-SURFACE WIND CONDITIONS
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
-Wind.speed = log10(logspace(0,5,50));                                      % wind speed [m/s]
-
+%Wind.speed = log10(logspace(0,5,50));                                      % wind speed [m/s]
+Wind.speed = [0 1 2 3 4];
 %% (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
