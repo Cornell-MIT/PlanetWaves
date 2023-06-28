@@ -130,8 +130,8 @@ Model.gridY = 1000.0;                                                      % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                    % MAXIMUM SIZE OF TIME STEP [S]
-Model.num_time_steps = 100;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
-Model.tolH = NaN;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
+Model.num_time_steps = 50;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
+Model.tolH = 0.003;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
 
 % % define a bathymetry with a constant slope
 % bathy_map = ones(Model.m,Model.n);
@@ -147,8 +147,8 @@ Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bat
 
 %% (3) NEAR-SURFACE WIND CONDITIONS
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
-%Wind.speed = log10(logspace(0,5,50));                                      % wind speed [m/s]
-Wind.speed = [0 1 2 3 4];
+Wind.speed = unique([linspace(0,1,10) linspace(1,2,5) linspace(2,3,3) linspace(3,4,2) 5]);                                      % wind speed [m/s]
+
 %% (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]

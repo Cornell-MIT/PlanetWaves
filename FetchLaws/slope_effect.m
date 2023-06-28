@@ -133,7 +133,7 @@ Model.gridY = 1000.0;                                                      % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                       % MAXIMUM SIZE OF TIME STEP [S]
-Model.num_time_steps = 5;                                                 % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
+Model.num_time_steps = 100;                                                 % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
 Model.tolH = NaN;                                                         % TOLERANCE THRESHOLD FOR MATURITY 
 
 % % define a bathymetry with a constant slope
