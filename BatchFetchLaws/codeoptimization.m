@@ -1,4 +1,173 @@
-function [sigH,htgrid,E_each] = makeWaves_batch(planet,liquid,model,wind,uniflow,Etc)
+% make plots of signifigant wave height for slopes
+
+%% LOAD DATA:
+% top row = methane alkane fraction (molar fraction of the alkanes (CH4+C2H6) that is methane)
+% first column = temperature [K]
+format long
+density = load('../compositions/density.csv'); % [kg/m3]
+kinematic_visc = load('../compositions/kinematic_visc.csv'); % [cm2/s]
+dynamic_visc = load('../compositions/dynamic_visc.csv'); % [Pa*s]
+surf_ten = load('../compositions/surface_tension.csv'); % [N/m]
+methane_frac = load('../compositions/CH4_molefraction.csv'); % methane
+ethane_frac = load('../compositions/C2H6_molefraction.csv'); % ethane
+nitrogen_frac = load('../compositions/N2_molefraction.csv'); % nitrogen
+
+%% INPUT PARAMETERS:
+% (1) PLANET CONDITIONS
+%   (a) TITAN
+Titan.nua = 0.0126/1e4;                                                    % Titan atmospheric gas viscocity [m2/s]
+Titan.gravity = 1.352;                                                     % Titan Gravity [m/s2]
+Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
+Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
+Titan.liquid.Hydrocarbon.rho_liquid = 540;                                 % Hydrocarbon liquid density [kg/m3]
+Titan.liquid.Hydrocarbon.nu_liquid = 3e-7;                                 % Hydrocarbon liquid Viscocity [m2/s]
+Titan.liquid.Hydrocarbon.surface_tension = 0.018;                              % Hydrocarbon liquid Surface Tension [N/m]
+
+%   (a.1) VARYING METHANE:ETHANE:NITROGEN COMPOSITIONS @92 K               % Source: steckloff et al., 2020
+temp_location = find(methane_frac(:,1)==Titan.surface_temp);               % Find row with temperature
+methane = 0:0.1:1;                                                         % Fraction of methane
+ethane = 1:-0.1:0;                                                         % Fraction of ethane
+for i = 1:length(methane)
+    nitrogen(i)=nitrogen_frac(temp_location,...                            % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - methane(i))<0.001)));
+    name(i) = string(sprintf('m%03.0fe%03.0fn%03.0f',...                   % Creating structural array with names
+        100*methane(i),100*ethane(i),100*nitrogen(i)));
+    Titan.liquid.(name(i)).rho_liquid = density(temp_location,...          % Liquid density [kg/m3]
+        max(find(abs(density(1,:) - methane(i))<0.001))); 
+    Titan.liquid.(name(i)).nu_liquid = kinematic_visc(temp_location,...    % Liquid viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - methane(i))<0.001)))/10000;      
+     Titan.liquid.(name(i)).surface_tension = surf_ten(temp_location,...   % Liquid surface tension [N/m]
+        max(find(abs(surf_ten(1,:) - methane(i))<0.001))); 
+end
+                                                      
+
+%   (a.2) VARYING LAKE COMPOSITIONS @92 K
+%   (a.2.1) TITAN: ONTARIO LACUS
+%   51:38:11 percent methane:ethane:nitrogen from Mastrogiuseppe 2018
+Ontario_methane = 0.57;                                                    % Fraction of methane
+Ontario_ethane = 0.43 ;                                                    % Fraction of ethane
+Ontario_nitrogen = nitrogen_frac(temp_location,...                         % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - Ontario_methane)<0.001)));
+Titan.liquid.Ontario.rho_liquid = density(temp_location,...                % Ontario Lacus liquid density [kg/m3]
+        max(find(abs(density(1,:) - Ontario_methane)<0.001))); 
+Titan.liquid.Ontario.nu_liquid = kinematic_visc(temp_location,...          % Ontario Lacus liquid Viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - Ontario_methane)<0.001)))/10000;      
+Titan.liquid.Ontario.surface_tension = surf_ten(temp_location,...          % Ontario Lacus liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Ontario_methane)<0.001)));                                                       
+
+%   (a.2.2) TITAN: PUNGA MARE
+%   80:0:20 percent methane:ethane:nitrogen from Mastrogiuseppe 2018
+Punga_methane = 1;                                                         % Fraction of methane
+Punga_ethane = 0 ;                                                         % Fraction of ethane
+Punga_nitrogen = nitrogen_frac(temp_location,...                           % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - Punga_methane)<0.001)));
+Titan.liquid.Punga.rho_liquid = density(temp_location,...                  % Punga Mare liquid density [kg/m3]
+        max(find(abs(density(1,:) - Punga_methane)<0.001))); 
+Titan.liquid.Punga.nu_liquid = kinematic_visc(temp_location,...            % Punga Mare liquid Viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - Punga_methane)<0.001)))/10000;      
+Titan.liquid.Punga.surface_tension = surf_ten(temp_location,...            % Punga Mare liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Punga_methane)<0.001)));                                                           
+
+%   (a.2.3) TITAN: LIGIA MARE (MAX METHANE)
+%   100:0:0 percent methane:ethane:nitrogen from LeGall 2016
+LigiaMax_methane = 1;                                                      % Fraction of methane
+LigiaMax_ethane = 0 ;                                                      % Fraction of ethane
+LigiaMax_nitrogen = nitrogen_frac(temp_location,...                        % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - LigiaMax_methane)<0.001)));
+Titan.liquid.LigiaMax.rho_liquid = density(temp_location,...               % Ligia Mare (max) liquid density [kg/m3]
+        max(find(abs(density(1,:) - LigiaMax_methane)<0.001))); 
+Titan.liquid.LigiaMax.nu_liquid = kinematic_visc(temp_location,...         % Ligia Mare (max) liquid Viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - LigiaMax_methane)<0.001)))/10000;      
+Titan.liquid.LigiaMax.surface_tension = surf_ten(temp_location,...         % Ligia Mare (max) liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - LigiaMax_methane)<0.001)));                                                            
+
+%   (a.2.4) TITAN: LIGIA MARE (MIN METHANE)
+%   50:39:10.73 percent methane:ethane:nitrogen from LeGall 2016
+LigiaMin_methane = 0.56;                                                   % Fraction of methane
+LigiaMin_ethane = 0.44 ;                                                   % Fraction of ethane
+LigiaMin_nitrogen = nitrogen_frac(temp_location,...                        % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - LigiaMin_methane)<0.001)));
+Titan.liquid.LigiaMin.rho_liquid = density(temp_location,...               % Ligia Mare (min) liquid density [kg/m3]
+        max(find(abs(density(1,:) - LigiaMin_methane)<0.001))); 
+Titan.liquid.LigiaMin.nu_liquid = kinematic_visc(temp_location,...         % Ligia Mare (min) liquid Viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - LigiaMin_methane)<0.001)))/10000;      
+Titan.liquid.LigiaMin.surface_tension = surf_ten(temp_location,...         % Ligia Mare (min) liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - LigiaMin_methane)<0.001)));                                                            
+                                                  
+
+%   (a.2.5) TITAN: KRAKEN MARE
+%   70:16:14 percent methane:ethane:nitrogen from Poggiali et al., 2020
+Kraken_methane = 0.81;                                                     % Fraction of methane
+Kraken_ethane = 0.19 ;                                                     % Fraction of ethane
+Kraken_nitrogen = nitrogen_frac(temp_location,...                          % Fraction of nitrogen
+        max(find(abs(nitrogen_frac(1,:) - Kraken_methane)<0.001)));
+Titan.liquid.Kraken.rho_liquid = density(temp_location,...                 % Kraken liquid density [kg/m3]
+        max(find(abs(density(1,:) - Kraken_methane)<0.001))); 
+Titan.liquid.Kraken.nu_liquid = kinematic_visc(temp_location,...           % Kraken liquid Viscocity [m2/s]
+        max(find(abs(kinematic_visc(1,:) - Kraken_methane)<0.001)))/10000;      
+Titan.liquid.Kraken.surface_tension = surf_ten(temp_location,...           % Kraken liquid Surface Tension [N/m]
+        max(find(abs(surf_ten(1,:) - Kraken_methane)<0.001)));                                             
+
+%   (b) EARTH
+Earth.liquid.Water.rho_liquid = 997;                                       % Water liqid density [kg/m3]         
+Earth.liquid.Water.nu_liquid = 1e-6;                                       % Water liquid viscocity [m2/s]
+Earth.liquid.Water.surface_tension = 0.072;                                    % Water liquid surface ension [N/m]
+Earth.gravity = 9.81;                                                      % Earth Gravity [m/s2]
+Earth.surface_temp = 273;                                                  % Earth Surface Temperature [K]
+Earth.surface_press = 1*101300;                                            % Earth Surface Pressure [Pa]
+Earth.nua = 1.338/1e5;                                                     % Earth atmospheric gas viscocity [m2/s]
+
+%% (2) MODEL GEOMETRY
+Model.m = 30;                                                              % Number of Grid Cells in X-Dimension
+Model.n = 30;                                                              % Number of Grid Cells in Y-Dimension
+Model.o = 25;                                                              % Number of Frequency bins
+Model.p = 288;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+Model.long = 15;                                                           % longitude grid point for sampling during plotting 
+Model.lat = 15;                                                            % latitude grid point for sampling during plotting
+Model.gridX = 1000.0;                                                      % Grid size in X-dimension [m]
+Model.gridY = 1000.0;                                                      % Grid size in Y-dimension [m]
+Model.mindelt  = 0.0001;                                                   % minimum time step
+Model.maxdelt = 2000.0;                                                      % maximum time step
+Model.time_step = 500;                                                     % MAXIMUM SIZE OF TIME STEP [S]
+Model.num_time_steps = 35;                                                      % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
+Model.tolH = NaN;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
+
+% % define a bathymetry with a constant slope
+% bathy_map = ones(Model.m,Model.n);
+% for i = 1:Model.m
+%     bathy_map(i,:) = 50*(i/Model.m);
+% end
+% Model.bathy_map = bathy_map;                                             % Bathymetry of model basin [m]
+
+
+% define a bathymetery map that is constant and deep
+Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bathymetry of model basin [m]
+
+
+%% (3) NEAR-SURFACE WIND CONDITIONS
+Wind.dir = 0;                                                              % direction of incoming wind [radians]
+%Wind.speed = unique([linspace(0,1,10) linspace(1,2,5) linspace(2,3,3) linspace(3,4,2) 5]);                                      % wind speed [m/s]
+Wind.speed = 1;                                      % wind speed [m/s]
+
+%% (4) Unidirectional currents
+Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
+Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
+
+%% (5) HOUSEKEEPING
+Composition = string(fieldnames(Titan.liquid));
+range = 1:size(Composition,1);
+numcomps = size(range,1);
+job{numcomps} = [];
+
+Etc.showplots = 0;
+Etc.savedata = 0;
+Etc.showlog = 0;
+Etc.name = convertStringsToChars("Hydrocarbon");
+
+clear density dynamic_visc ethane_frac kinematic_visc methane_frac nitrogen_frac surf_ten
+planet=Titan;liquid=Titan.liquid.Hydrocarbon;model=Model;wind=Wind;uniflow=Uniflow;etc=Etc;
+
+%%
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind-input and multiple dissipation terms (see Donelan et al. 2012 Modeling Waves and Wind Stress).
@@ -39,7 +208,7 @@ function [sigH,htgrid,E_each] = makeWaves_batch(planet,liquid,model,wind,uniflow
 %       uniflow
 %           East            : Eastward unidirectional current [m/s]
 %           North           : Northward unidirectional current [m/s]
-%       Etc
+%       etc
 %           showplots       : 0 = no plots made, 1 = plots every tenth loops (will slow down model run)
 %           savedata        : 1  = save data for time steps (will slow down model run), 0 = skip saving
 %           showlog         : 1 = print progress to command line (will slow down model run), 0 = no progress printed to command line
@@ -48,7 +217,7 @@ function [sigH,htgrid,E_each] = makeWaves_batch(planet,liquid,model,wind,uniflow
 %   Returns:
 %       sigH                : largest signifigant wave height over the entire spatial array [m]
 %       htgrid              : signifigant wave height for each grid cell [m]
-%       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
+%       E             : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % External function requirements:
@@ -65,13 +234,14 @@ tic
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 assert(rem(model.p,8)==0,'Model input parameter p must be factorable by 8.')
+%mex short_array_2.cpp %add mex function to create short array
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TitanResults = sprintf('%s//Titan/%s', pwd, Etc.name);
-if ~exist(TitanResults, 'dir')  && Etc.savedata                            % make output directory 'Titan' if doesn't already exist
+TitanResults = sprintf('%s//Titan/%s', pwd, etc.name);
+if ~exist(TitanResults, 'dir')  && etc.savedata                            % make output directory 'Titan' if doesn't already exist
     mkdir(TitanResults);
 else
    oldmatfiles = fullfile(TitanResults,'*.mat');                          % empties output directory from previous runs
@@ -175,7 +345,7 @@ D(D<=0) = 0;                                                               % lim
 D(:,1) = 0; D(1,:) = 0; D(:,end) = 0; D(end,:) = 0;                        % Set array boundary depths to 0 (absorbtive boundaries)
 % plot the bathymetry
 [xplot,yplot] = meshgrid(1:model.m,1:model.n);
-if Etc.showplots
+if etc.showplots
     figure;
     surf(xplot,yplot,D','EdgeColor','k')
     myc = colorbar;
@@ -236,16 +406,15 @@ cgmax = max(max(max(max(Cg))));                                                 
 mindelx = min(squeeze(delx(1,:,1,1)));                                                                                                                                                                               % smallest spatial grid spacing for domain of influence
 waveang = repmat(waveang,[model.o 1 model.m model.n]);
 waveang=shiftdim(waveang,2);
-if Etc.savedata
+if etc.savedata
     m = model.m; n = model.n; o = model.o; p = model.p;
-    save([TitanResults,'/New_Reference_',Etc.name],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
+    save([TitanResults,'/New_Reference_',etc.name],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
 end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 idx = 1;                                                                   % for frame for gif
 sigH = zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
 htgrid = cell(1,numel(wind.speed));                                        % initialize htgrid for returning
-%E_each =  cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
 for iii=1:numel(wind.speed)                                                % loop through wind velocities
    UU = wind.speed(iii);                                                   % UU = wind speed for loop
    file = file + 1;                                                        % for naming files
@@ -317,13 +486,15 @@ for iii=1:numel(wind.speed)                                                % loo
            Heavyside(Sin < 0 & E < 1e-320) = 0;
            Sin = Heavyside.*Sin;                                                                                                                     % Heavyside function kills off Sin for negative Sin (energy and momentum transferring from waves to wind) and for negative/zero energy
 
-           % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
+           % Set Sin = 0 on land boundaries to avoid ltdelt --> 0.
            Sin(D<=0) = 0;
            
            p = model.p;
+           short = zeros(model.m, model.n, model.o, model.p);
            for tj = 1:p
                short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                                                                      % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
            end
+           %short = short_array_2(cth2,E,dth);           
            short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                                                                % sqrt of mean square slope (eqn. 16, Donelan 2012)
           
 % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -474,7 +645,7 @@ for iii=1:numel(wind.speed)                                                % loo
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan 2012)
           
            
-           if Etc.showplots && rem(tplot,10) == 0                                                                                               % plot every 10th time step if showplots = 1
+           if etc.showplots && rem(tplot,10) == 0                                                                                               % plot every 10th time step if showplots = 1
               
                close all;
 
@@ -506,7 +677,7 @@ for iii=1:numel(wind.speed)                                                % loo
                 htgrid{iii} = ht;                                          % return signifigant wave height at each spatial point (m,n) on the grid
               
 
-            if Etc.showplots && rem(tplot,10) == 0    
+            if etc.showplots && rem(tplot,10) == 0    
                % Plot Signifigant Height
                [xplot,yplot] = meshgrid(1:model.m,1:model.n);
                figure;
@@ -524,7 +695,7 @@ for iii=1:numel(wind.speed)                                                % loo
             ms = sum(ms,3);
             ms = sqrt(ms);                                                                                                                                  % standard deviation of water surface = sqrt(variance of water surface)
 
-           if Etc.showplots && rem(tplot,10) == 0 
+           if etc.showplots && rem(tplot,10) == 0 
                figure(202);hold on;subplot(326);plot(1:model.m,ht(:,model.lati),'.-',1:model.m,ms(:,model.lati),'--r');
                title('Sig. Ht. & mean slope');
                grid on
@@ -542,7 +713,7 @@ for iii=1:numel(wind.speed)                                                % loo
            Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % y-component of wave at 10th frequency bin
            mdir = atan2(Dir_sin,Dir_cos);                                                                                                                   % average wave direction [-pi to pi]
 
-           if Etc.showplots && rem(tplot,10) == 0
+           if etc.showplots && rem(tplot,10) == 0
                figure(20);
                hold on;
                quiver(Wavel'.*cos(mdir'),Wavel'.*sin(mdir'),0.8,'c');
@@ -564,11 +735,10 @@ for iii=1:numel(wind.speed)                                                % loo
        fraction_time_completed = t/model.num_time_steps;
        fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
     
-      save([TitanResults,'/',int2str(UU),'/E_each_windspeed_',int2str(UU)','_timesteps_',int2str(t),'_',Etc.name],'E')
-      %E_each{iii,t} = E;                                                                                                                                    % return energy spectrum for each wind speed iii at each time step t
+      save([TitanResults,'/',int2str(UU),'/E_windspeed_',int2str(UU)','_timesteps_',int2str(t),'_',etc.name],'E')
 
-      if Etc.savedata
-        save([TitanResults,'/',int2str(UU),'/New_u_',int2str(UU),'_t_',int2str(t),'_',Etc.name],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
+      if etc.savedata
+        save([TitanResults,'/',int2str(UU),'/New_u_',int2str(UU),'_t_',int2str(t),'_',etc.name],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
       end
        
        
@@ -586,7 +756,7 @@ for iii=1:numel(wind.speed)                                                % loo
   
 end % end of wind speed loop.
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-if Etc.savedata
+if etc.savedata
     % Make gif of sig height results:
     idx_end = idx;
     filename = 'SigH.gif';                                                 % Specify the output file name
@@ -602,75 +772,7 @@ end
 disp('================================================================')
 disp('Model Run Complete')
 disp('================================================================')
-save([TitanResults,'_Titan'],'sigH','htgrid','E')
+save([TitanResults,'/Titan'],'sigH','htgrid','E')
 toc
-end
-% ==============================================================================================================================================================================================================================================================================================================================================================================================================================
-% User-Defined Functions:   
-function k = wavekgt( f, H, g, T, R, tol )
-%
-%    k = wavekgt( f, H, g, T, R, tol )
-%
-%    Returns a column vector of wavenumbers [k] (1/m) at frequencies [f] (Hz)
-%    using the linear wave dispersion relation for water depth H (m).  tol
-%    is an optional error bound on the predicted f's (the default is 1e-4).
-%    T is surface tension in N/m = dynes/cm * .001: default is 0.074
-%    R = water density in Kgm/m^3: default is
-%    Note: [f] > 0 must increase monotonically from small to large.  This
-%    routine is optimized for speed and works best when length(f) is large.
 
-    if nargin<6
-        tol = 1e-4;                                                                 % default tolerance
-    end                                                  
-    c = 2*pi*sqrt(H/g);                                     
-    f = c * f(:);  
-    Nf = length(f);                                                                 % non-dimensionalize f
-    B = T/(R*g*H*H);                                                                % non-dimensionalize T
-    k = zeros(Nf,1);
-    k(1) = f(1)^2;                                                                  % use deep water limit as initial guess
-    for n = 1:Nf
-        dk = 1;
-        if n > 1
-            k(n) = k(n-1);
-        end
-        while ( abs(dk) ) > tol                                                     % Newton-Raphson iteration loop
-            t = 1;
-        if k(n) < 20
-            t = tanh(k(n)) ;
-        end
-        dk = -(f(n).^2 - k(n).*(1+B.*k(n).^2)*t)...
-            ./ ( 3*B.*k(n).^2*t+t  + k(n)*(1+B.*k(n).^2)*( 1 - t.^2 ) ) ;
-        k(n) = k(n) - dk ;
-        end
-        k(n) = abs(k(n)) ;               
-    end
-
-    k = k/H ;                                                                      % give k dimensions of 1/meter
-end
-%% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function ustar = smooth_nu(U,z,nu)
-% To calculate the friction velocity for smooth flow of any gas.
-%
-% function ustar = smooth(U,z)
-%
-% ustar = friction velocity [m/s]
-% U     = wind speed [m/s] at height z
-% z     = height of wind speed measurement [m]
-% nu    = kinematic viscosity of gas [m^2/s]
-
-    ustar = NaN(1,length(U));
-    z0 = 0.001;
-
-    for j = 1:length(U)
-       m = 0;    
-       for k = 1:6
-           m = m+1;
-           ust = 0.4*U(j)/(log(z/z0));
-           z0 = 0.132*nu/ust;
-       end
-       ustar(j) = ust;
-    end
-end
-
-
-
+plot(linspace(1,length(sigH),length(sigH)),sigH,'LineWidth',2)

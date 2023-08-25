@@ -127,11 +127,11 @@ Model.long = 15;                                                           % lon
 Model.lat = 15;                                                            % latitude grid point for sampling during plotting
 Model.gridX = 1000.0;                                                      % Grid size in X-dimension [m]
 Model.gridY = 1000.0;                                                      % Grid size in Y-dimension [m]
-Model.mindelt = 0.0001;                                                    % minimum time step
+Model.mindelt  = 0.0000001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 100;                                                    % MAXIMUM SIZE OF TIME STEP [S]
-Model.num_time_steps = 50;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
-Model.tolH = 0.003;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
+Model.time_step = 500;                                                     % MAXIMUM SIZE OF TIME STEP [S]
+Model.num_time_steps = 20;                                                % LENGTH OF MODEL RUN (IN TERMS OF # OF TIME STEPS)
+Model.tolH = NaN;                                                          % TOLERANCE THRESHOLD FOR MATURITY 
 
 % % define a bathymetry with a constant slope
 % bathy_map = ones(Model.m,Model.n);
@@ -147,7 +147,8 @@ Model.bathy_map = 100.*ones(Model.m,Model.n);                              % Bat
 
 %% (3) NEAR-SURFACE WIND CONDITIONS
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
-Wind.speed = unique([linspace(0,1,10) linspace(1,2,5) linspace(2,3,3) linspace(3,4,2) 5]);                                      % wind speed [m/s]
+%Wind.speed = unique([linspace(0,1,10) linspace(1,2,5) linspace(2,3,3) linspace(3,4,2) 5]);                                      % wind speed [m/s]
+Wind.speed = 1;                                      % wind speed [m/s]
 
 %% (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
@@ -162,8 +163,11 @@ job{numcomps} = [];
 Etc.showplots = 0;
 Etc.savedata = 0;
 Etc.showlog = 0;
-%% (6) RUN MODEL
+Etc.name = convertStringsToChars("Hydrocarbon");
 
+clear density dynamic_visc ethane_frac kinematic_visc methane_frac nitrogen_frac surf_ten
+%% (6) RUN MODEL
+makeWaves_batch(Titan,Titan.liquid.Hydrocarbon,Model,Wind,Uniflow,Etc); 
 % Modeling Titan Waves
     for liq = range
         Etc.name = convertStringsToChars(Composition(liq));
