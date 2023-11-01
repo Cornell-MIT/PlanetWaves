@@ -1,33 +1,8 @@
-# umwm_titan
-WORKING MODEL:
+10/27/2023
+Working model:
 
-main_live_v2
-
-WORKING TESTS:
-
-testing_changes_results
-
-testing_changes_ref
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## TESTS:
-1. Non-zero current
-2. Cylindrical island?
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-![image](https://user-images.githubusercontent.com/24469269/216115106-07c52808-777f-43b3-aaa8-96d51b80508c.png)
-(Donelan et al. 2012 "Modelling waves and wind stress"
-
-Possible new architecture for fetchLaws?
-
-![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
-
-Original code architecture for fetchLaws
-
-![image](https://user-images.githubusercontent.com/24469269/216111111-2c391b4d-d258-4908-9b43-cca594bc0d49.png)
-
-
-
+makeWaves.m <= model
+test_run.m <= model parameters
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
