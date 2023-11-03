@@ -14,23 +14,37 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %       planet
 %           rho_liquid      : liquid density [kg/m3]
 %           nu_liquid       : liquid kinematic viscocity [m2/s]
+%           nua             : atmospheric gas viscocity [m2/s]
 %           gravity         : gravitational acceleration [m/s2]
 %           surface_temp    : surface temperature [K]
 %           surface_press   : surface pressure [Pa]
 %           surface_tension : surface tension of liquid [N/m]
+%           name            : planet name ['string'] e.g. 'Titan'
 %       model
 %           m               : number of grid cells in x-dimension
 %           n               : number of grid cells in y-dimension
 %           o               : number of frequency bins
 %           p               : number of angular (theta) bins. Must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+%           long            : longitude location of grid to plot 
+%           lat             : latitude location of grid to plot
 %           gridX           : size of grid cell in x-dimension [m]
 %           gridY           : size of grid cell in y-dimension [m]
 %           mindelt         : minimum time step to minimize oscillations of delt to very small values [s]
 %           maxdelt         : maximum time step to prevent large values as wind ramps up at startup [s]
 %           tolH            : minimum change in SigH to stop model at (otherwise runs to full Tsteps) 
+%           cutoff_freq     : cutoff frequency bin seperating the diagnostic from advecting wavenumbers
+%           min_freq        : minimum frequency to model [Hz]
+%           max_freq        : maximum frequency to model [Hz]
 %           bathy_map       : m x n array of depth [m] (+ values = subsurface, - values = subaerial)
 %           time_step       : maximum size of time step [s]
 %           num_time_steps  : length of model run in terms of # of time steps
+%           tune_A1         : tuning parameter for input term (Donelan et al. 2012, eqn. 12)
+%           tune_mss_fac    : A3 tuning parameter in spilling breaker term (Donelan et al. 2012, eqn. 16)
+%           tune_Sdt_fac    : fraction of Sdt term going into spectrum (A4 in Donelan et al. 2012, eqn. 20)
+%           tune_Sbf_fac    : fraction of Sbf term going into spectrum (Gf in Donelan et al. 2012, eqn. 22)
+%           tune_cotharg    : tuneable constant in argument in coth() term for dissipation term (is 1 but later improved fit using 0.2 in Donelan et al. 2012, eqn. 17)
+%           tune_n          : exponent n term in dissipation term (Donelan et al. 2012, eqn. 15)
+%           z_data          : elevation where wind measurements are taken (e.g. u10 would correspond to z_data = 10 m) [m]
 %       wind
 %           dir             : direction of incoming near-surface wind (CCW from East) [radians]
 %           speed           : magnitude of incoming near-surface wind [m/s]
@@ -49,8 +63,7 @@ function [sigH,htgrid,E_each] = makeWaves(planet,model,wind,uniflow,Etc)
 %       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% External function requirements:
-%   (1) none
+% External function requirements: none
 %
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Aprox time to run: 20 minutes (for 2 wind speeds, Time = 100, Tsteps = 200)
@@ -102,7 +115,7 @@ delx = model.gridX*ones(model.m,model.n,model.o,model.p);
 % Wind:
 gust = 0;                                                                  % Gust factor applied to wind at each time step
 zref = 20;                                                                 % height of reference wind speed, normally at 20m [m]
-z = 10;                                                                    % height of measured wind speed [m]
+z = model.z_data;                                                                    % height of measured wind speed [m]
 wfac = 0.035;                                                              % winddrift fraction of Uz ffor U10m
 % Ideal gas law: PV = nRT
 % Densities:
@@ -115,21 +128,21 @@ kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wav
 kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % frequency limits:
-f1 = 0.05;                                                                 % minimum frequency
-f2 = 35;                                                                   % maximum frequency 
+f1 = model.min_freq;                                                                 % minimum frequency
+f2 = model.max_freq;                                                                   % maximum frequency 
 % create frequency limits for spectrum
 dlnf=(log(f2)-log(f1))/(model.o-1);                                        % frequency step size for log normal distribution
 f = exp(log(f1)+(0:model.o-1)*dlnf);                                       % frequencies for spectrum
 dom = 2*pi*dlnf.*f;                                                        % angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
-oa = 7;                                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
+oa = model.cutoff_freq;                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
 ol = 1:oa;                                                                 % bins for long frequencies
 os = oa+1:model.o;                                                         % bins for short frequencies
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
-bf1 = exp(-15.73*dlnf*dlnf);                                               % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
-bf2 = exp(-15.73*4*dlnf*dlnf);                                             % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
+bf1 = exp(-16*dlnf*dlnf);%exp(-15.73*dlnf*dlnf);                                               % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
+bf2 = exp(-16*4*dlnf*dlnf);%exp(-15.73*4*dlnf*dlnf);                                             % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
 bf1a = bf1/(bf1 + bf2);                                                    % normalization (eqn. 21, Donelan 2012)
 bf2 = bf2/(bf1 + bf2);                                                     % normalization (eqn. 21, Donelan 2012
 bf1 = bf1a;
@@ -182,9 +195,9 @@ if Etc.showplots
 end
 %% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Fractions applied to terms from fitting with experiment/observations:
-mss_fac = 240;                                                             % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
-Sdt_fac = 0.001;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
-Sbf_fac = 0.002;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
+mss_fac = model.tune_mss_fac;                                                           % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
+Sdt_fac = model.tune_Sdt_fac;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
+Sbf_fac = model.tune_Sbf_fac;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 wn(:,:,:) = ones(model.m,model.n,model.o);
 nnn(:,:,:) = ones(model.m,model.n,model.o);
@@ -195,7 +208,7 @@ parfor jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number (using linear wave dispersion)
-           nnn(jm,jn,:) = 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
+           nnn(jm,jn,:) = model.tune_n;%1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
            ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);               % Power of Sds
        end
    end
@@ -299,9 +312,9 @@ for iii=1:numel(wind.speed)                                                % loo
           
            % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
            Ula = Ul;
-           Ul = 0.11*Ul;
-           Ul(Ul<0) = Ula(Ul<0)*0.03;                                                                                                                                % Field scale (Donelan et al, 2012). 0.135 in Lab                        
-           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0)*0.015;                                                                                             % Waves against wind
+           Ul = model.tune_A1*Ul;
+           Ul(Ul<0) = Ula(Ul<0);%*0.03;                                                                                                                                % Field scale (Donelan et al, 2012). 0.135 in Lab                        
+           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0);%*0.015;                                                                                             % Waves against wind
 
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
@@ -349,7 +362,7 @@ for iii=1:numel(wind.speed)                                                % loo
 % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Integrate source functions
            Sds_wc = Sds;                                                                                                         % Keep whitecapping (wc) only dissipation for calculating snl growth.
-           Sds(D>0) = coth(0.2*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                % Add viscous, turbulent and plunging dissipation after calculation of Snl
+           Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                % Add viscous, turbulent and plunging dissipation after calculation of Snl
            % aa = input - dissipation
            aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                   % ol = long wavelength waves
            aa = aa(D(:,:,ol,:)>0);                                                                                                    
@@ -377,7 +390,7 @@ for iii=1:numel(wind.speed)                                                % loo
            E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Snl(:,:,ol,:);                                                               % eqn. B3, Donelan 2012 (time discretizaton solition for variance spectrum at next time step)
 
            cath = ones(size(Sds));                                                                                            % horizontal-to-vertical orbital velocity enhancement which leads to more rapid dissipation in shoaling waves relative to deep water spilling breakers
-           cath(D>0) = coth(0.2*wn(D>0).*D(D>0));                                                                             % limits the breaker height to depth of shoaling wave ratio [eqn. 17, Donelan 2012 (but A2 = 42 not 0.2?)  
+           cath(D>0) = coth(0.2*wn(D>0).*D(D>0));                                                                             % limits the breaker height to depth of shoaling wave ratio [eqn. 17, Donelan 2012 (but A2 = 42 not 0.2?)  (should this 0.2 = Model.cotharg?)
            
            E2(:,:,:,:) = zeros(model.m,model.n,model.o,model.p);
            fij = find((Sin(:,:,:,:) - 4*planet.nu_liquid*wn(:,:,:,:).^2 - Sdt(:,:,:,:) - Sbf(:,:,:,:)) > 0);                  % finds terms where input > dissipation
@@ -659,7 +672,7 @@ function ustar = smooth_nu(U,z,nu)
        for k = 1:6
            m = m+1;
            ust = 0.4*U(j)/(log(z/z0));
-           z0 = 0.132*nu/ust;
+           z0 = (1/9)*nu/ust;
        end
        ustar(j) = ust;
     end
