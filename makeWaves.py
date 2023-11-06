@@ -1,5 +1,5 @@
     #!/usr/bin/env python3
-    # test test testing
+
 import time
 import os
 import shutil
