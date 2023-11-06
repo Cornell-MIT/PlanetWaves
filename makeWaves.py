@@ -10,6 +10,10 @@ import cmath
 import datetime
 import numpy as np
 
+def close_diary(dfile):
+    with open(dfile, 'a') as file:
+    file.write(f"Run ended at {datetime.datetime.now()}\n")
+
 class ModelPlanet:
     def __init__(self):
         self.rho_liquid = None
@@ -215,11 +219,26 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         cth2 = np.tile(cth2, (Model.o, 1, 1, 1))
         cth2 = np.moveaxis(cth2, 0, 2)
 
-    def close_diary():
-        with open(dfile, 'a') as file:
-            file.write(f"Run ended at {datetime.datetime.now()}\n")
+        D = model.bathy_map  # depth of liquid [m]
+        D[D <= 0] = 0  # limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
+        D[:, 0] = 0
+        D[0, :] = 0
+        D[:, -1] = 0
+        D[-1, :] = 0  # Set array boundary depths to 0 (absorptive boundaries)
 
-    close_diary()
+        # plot the bathymetry
+        xplot, yplot = np.meshgrid(np.arange(1, model.m + 1), np.arange(1, model.n + 1))
+
+        # Assuming you have 'D' and 'xplot' and 'yplot' defined above, you can use the following code for plotting:
+        plt.figure()
+        plt.pcolormesh(xplot, yplot, D, shading='auto')
+        plt.colorbar()
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title('Bathymetry plot')
+        plt.show()
+
+    close_diary(dfile)
 
 
 # Measure the elapsed time
@@ -227,9 +246,11 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
     print(f'Time elapsed: {elapsed_time} seconds')
 
     return sigH, htgrid, E_each
+    
+    
 
 
-def main():
+def run_model():
     
     planet_to_run = ModelPlanet()
     planet_to_run.default("Titan")
@@ -251,4 +272,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    run_model()
