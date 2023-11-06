@@ -17,7 +17,7 @@ def remove_old_logs():
     dir_name = os.path.join(os.getcwd())
     old_logs = os.listdir(dir_name)
     for olog in old_logs:
-        if olog.endswith(".txt"):
+        if olog.endswith("_TitanUMWM.txt"):
             os.remove(os.path.join(dir_name,olog))
 
 def close_diary(dfile):
@@ -71,6 +71,16 @@ class ModelGeometry:
         self.num_time_steps = 10
         self.tolH = None
         self.bathy_map = 100 * np.ones((self.m, self.n))
+        self.cutoff_freq = 12
+        self.min_freq = 0.05
+        self.max_freq = 35
+        self.z_data = 10
+        self.tune_A1 = 0.11
+        self.tune_mss_fac = 240
+        self.tune_Sdt_fac = 0.001
+        self.tune_Sbf_fac = 0.002
+        self.tune_cotharg = 0.2
+        self.tune_n = 2.4
 
 class ModelWind:
     def __init__(self):
@@ -103,7 +113,7 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         
     current_time = datetime.datetime.now()
     date_string = current_time.strftime("%m%d%Y_%H%M%S")
-    dfile = f"{date_string}_FetchLaws.txt"
+    dfile = f"{date_string}_TitanUMWM.txt"
 
     with open(dfile, 'w') as file:
         file.write(f"Run started at {current_time}\n")
