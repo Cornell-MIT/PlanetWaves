@@ -9,10 +9,11 @@ import cmath
 
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 
 def close_diary(dfile):
     with open(dfile, 'a') as file:
-    file.write(f"Run ended at {datetime.datetime.now()}\n")
+        file.write(f"Run ended at {datetime.datetime.now()}\n")
 
 class ModelPlanet:
     def __init__(self):
@@ -74,7 +75,7 @@ class ModelUniFlow:
 class ModelHousekeeping:
     def __init__(self):
         self.showplots = 0
-        self.savedata = 0
+        self.savedata = 1
         self.showlog = 1
 
 
@@ -100,9 +101,9 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         ModelResults = os.path.join(os.getcwd(), 'ModelResults')
 
         if not os.path.exists(ModelResults) and Etc.savedata:
+            os.makedirs(ModelResults)
             print(f"Results being saved to {ModelResults}")
             file.write(f"Results being saved to {ModelResults}\n")
-            os.makedirs(ModelResults)
         else:
             oldmatfiles = os.path.join(ModelResults, '*.mat')
             for file in os.listdir(ModelResults):
@@ -219,7 +220,7 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         cth2 = np.tile(cth2, (Model.o, 1, 1, 1))
         cth2 = np.moveaxis(cth2, 0, 2)
 
-        D = model.bathy_map  # depth of liquid [m]
+        D = Model.bathy_map  # depth of liquid [m]
         D[D <= 0] = 0  # limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation
         D[:, 0] = 0
         D[0, :] = 0
@@ -227,7 +228,7 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         D[-1, :] = 0  # Set array boundary depths to 0 (absorptive boundaries)
 
         # plot the bathymetry
-        xplot, yplot = np.meshgrid(np.arange(1, model.m + 1), np.arange(1, model.n + 1))
+        xplot, yplot = np.meshgrid(np.arange(1, Model.m + 1), np.arange(1, Model.n + 1))
 
         # Assuming you have 'D' and 'xplot' and 'yplot' defined above, you can use the following code for plotting:
         plt.figure()
