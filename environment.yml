@@ -1,0 +1,28 @@
+name: wave_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - bzip2=1.0.8
+  - ca-certificates=2023.7.22
+  - libexpat=2.5.0
+  - libffi=3.4.2
+  - libsqlite=3.44.0
+  - libzlib=1.2.13
+  - openssl=3.1.4
+  - pip=23.3.1
+  - python=3.12.0
+  - setuptools=68.2.2
+  - tk=8.6.13
+  - tzdata=2023c
+  - ucrt=10.0.22621.0
+  - vc=14.3
+  - vc14_runtime=14.36.32532
+  - vs2015_runtime=14.36.32532
+  - wheel=0.41.3
+  - xz=5.2.6
+  - pip:
+      - datetime==5.2
+      - numpy==1.26.1
+      - pytz==2023.3.post1
+      - zope-interface==6.1
