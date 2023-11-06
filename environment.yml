@@ -26,3 +26,5 @@ dependencies:
       - numpy==1.26.1
       - pytz==2023.3.post1
       - zope-interface==6.1
+      - matplotlib=3.5.3 
+

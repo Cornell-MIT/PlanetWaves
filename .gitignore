@@ -8,3 +8,6 @@ FetchLaws/largerun_main_Titan/main.asv
 FetchLaws/groundtruthing/TestingChanges.xlsx
 *.asv
 FetchLaws/groundtruthing/testing_changes_ref.mlx
+*.pyc
+wave_env/
+

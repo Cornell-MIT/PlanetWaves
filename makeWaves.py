@@ -11,7 +11,17 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
+def remove_old_logs():
+    # remove old model run logs 
+    # to run from command line: python -c 'import makeWaves; makeWaves.remove_old_logs()'
+    dir_name = os.path.join(os.getcwd())
+    old_logs = os.listdir(dir_name)
+    for olog in old_logs:
+        if olog.endswith(".txt"):
+            os.remove(os.path.join(dir_name,olog))
+
 def close_diary(dfile):
+    # close log diary
     with open(dfile, 'a') as file:
         file.write(f"Run ended at {datetime.datetime.now()}\n")
 
