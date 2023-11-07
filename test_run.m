@@ -47,7 +47,7 @@ Earth.name = 'Earth';
 % (2a) MODEL GEOMETRY
 Model.m = 20;                                                              % Number of Grid Cells in X-Dimension
 Model.n = 100;                                                             % Number of Grid Cells in Y-Dimension
-Model.o = 100;                                                             % Number of Frequency bins
+Model.o = 35;                                                             % Number of Frequency bins
 Model.p = 288;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = 10;                                                           % longitude grid point for sampling during plotting 
 Model.lat = 10;                                                            % latitude grid point for sampling during plotting
@@ -58,7 +58,7 @@ Model.maxdelt = 2000.0;                                                    % max
 Model.time_step = 10;                                                     % Maximum Size of time step [s]
 Model.num_time_steps = 10;                                                 % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
-Model.cutoff_freq = 50;                                                    % cutoff frequency bin from diagnostic to advection
+Model.cutoff_freq = 12;                                                    % cutoff frequency bin from diagnostic to advection
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 
@@ -78,7 +78,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-Wind.speed = [3 5 7];                                                            % magnitude of incoming wind [m/s]
+Wind.speed = [3];                                                            % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents
@@ -98,21 +98,21 @@ planet_to_run = Earth;
 [sigH,htgrid,freqspec] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc); 
 
 
-UMWM_WVHT = dictionary(Wind.speed,sigH(:,end));
-
-PM_H = 0.22.*(Wind.speed.^2)./(planet_to_run.gravity);
-
-figure;
-plot(Wind.speed,PM_H,'-b','LineWidth',3)
-% plot(keys(LO_WVHT),values(LO_WVHT),'-ok')
-% hold on
-% plot(keys(LO_WVHT_STD),values(LO_WVHT) + values(LO_WVHT_STD),'--ok')
-% plot(keys(LO_WVHT_STD),values(LO_WVHT) - values(LO_WVHT_STD),'--ok')
-plot(keys(UMWM_WVHT),values(UMWM_WVHT),'-r')
-%legend('Lake Ontario 45012 5-days','Lake Ontario + STD','Lake Ontario - STD','UMWM-Titan','location','best')
-legend('Pierson-Moskowitz','UMWM-Titan')
-grid on
-xlabel('wind speed [m/s]')
-ylabel('sig wave height [m]')
-title(planet_to_run.name)
+% UMWM_WVHT = dictionary(Wind.speed,sigH(:,end));
+% 
+% PM_H = 0.22.*(Wind.speed.^2)./(planet_to_run.gravity);
+% 
+% figure;
+% plot(Wind.speed,PM_H,'-b','LineWidth',3)
+% % plot(keys(LO_WVHT),values(LO_WVHT),'-ok')
+% % hold on
+% % plot(keys(LO_WVHT_STD),values(LO_WVHT) + values(LO_WVHT_STD),'--ok')
+% % plot(keys(LO_WVHT_STD),values(LO_WVHT) - values(LO_WVHT_STD),'--ok')
+% plot(keys(UMWM_WVHT),values(UMWM_WVHT),'-r')
+% %legend('Lake Ontario 45012 5-days','Lake Ontario + STD','Lake Ontario - STD','UMWM-Titan','location','best')
+% legend('Pierson-Moskowitz','UMWM-Titan')
+% grid on
+% xlabel('wind speed [m/s]')
+% ylabel('sig wave height [m]')
+% title(planet_to_run.name)
 

@@ -19,7 +19,7 @@ def remove_old_logs():
     dir_name = os.path.join(os.getcwd())
     old_logs = os.listdir(dir_name)
     for olog in old_logs:
-        if olog.endswith("_TitanUMWM.txt"):
+        if olog.endswith("_RunLog.txt"):
             os.remove(os.path.join(dir_name,olog))
 
 def close_diary(dfile):

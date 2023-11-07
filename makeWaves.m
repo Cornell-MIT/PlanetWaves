@@ -193,7 +193,8 @@ nnn(:,:,:) = ones(model.m,model.n,model.o);
 ann(:,:,:) = ones(model.m,model.n,model.o);
 m = model.m; n = model.n; g = planet.gravity;
 sfcT = planet.surface_tension; rhow = planet.rho_liquid; mynnn = model.tune_n;                                                % defined here so no broadcast variable in the parfor loop
-parfor jm = 1:m
+
+parfor (jm = 1:m,parcluster)
    for jn = 1:n
        if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number (using linear wave dispersion)
@@ -202,6 +203,8 @@ parfor jm = 1:m
        end
    end
 end
+
+delete(gcp('nocreate'));
 % reshape the matrix (dimensions of [n m o p])
 wn = repmat(wn,[1 1 1 model.p]);
 nnn = repmat(nnn,[1 1 1 model.p]);
@@ -266,7 +269,10 @@ for iii=1:numel(wind.speed)                                                % loo
    % Currents superimposed onto wave-driven flow
    Uer = 0*D + 0.0;                                                        % Eastward current [m/s]
    Uei = 0*D + 0.0;                                                        % Northward current [m/s]
-  
+
+   disp('================================================================')
+   disp('starting model time iteration')
+   disp('================================================================')
 %% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    for t = 1:model.num_time_steps                                                                                                                                    % loop through time
       
@@ -319,9 +325,10 @@ for iii=1:numel(wind.speed)                                                % loo
            
            p = model.p;                                                                                                                              % defined locally here so not a broadcast variable in the parfor loop
            
-           parfor tj = 1:p
+           parfor (tj = 1:p,parcluster)
                short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                                                                      % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
            end
+           delete(gcp('nocreate'));
            short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                                                                % sqrt of mean square slope (eqn. 16, Donelan 2012)
           
 % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -374,6 +381,7 @@ for iii=1:numel(wind.speed)                                                % loo
           
 % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            E1 = zeros(size(E));                                                                                               % E^(n+1) in forward Euler differencing
+           E2 = zeros(size(E));
            E1(:,:,ol,:) = E(:,:,ol,:).*exp(newdelt*fac_exp);                                                                  % Long waves.
           
           
@@ -430,10 +438,9 @@ for iii=1:numel(wind.speed)                                                % loo
            E1(E1 < 0)=0;
           
 % -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-          
+          Crot = zeros(size(E));
            Crot(:,:,ol,:) = (c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...                                   % eqn. A8, Donelan 2012
                -(c(:,ym,ol,:)-c(:,yp,ol,:)).*cth(:,:,ol,:)./(dely(:,ym,ol,:)+dely(:,yp,ol,:));
-          
            % Determine if rotation is clockwise or counter clockwise
            Crotcw = zeros(size(Crot));Crotccw = zeros(size(Crot));                  
            Crotccw(Crot>0) = Crot(Crot>0); Crotcw(Crot<0) = Crot(Crot<0);
