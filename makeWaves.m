@@ -77,7 +77,7 @@ tic
 %% ==========================================================================================================================================================================================================================================================================
 assert(rem(model.p,8)==0,'Model input parameter p must be factorable by 8.')
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-dfile=[datestr(now,'mmddyyyy_HHMMSS'),'_FetchLaws.txt'];
+dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_RunLog.txt');
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -125,7 +125,6 @@ rhorat=rhoa/planet.rho_liquid;                                             % air
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Hemholtz instabilities (Donelan 2012, pg. 3)
 kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
 % modified wavenumbers
-kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % frequency limits:
 f1 = model.min_freq;                                                       % minimum frequency to model
@@ -329,6 +328,7 @@ for iii=1:numel(wind.speed)                                                % loo
            Sin(D<=0) = 0;
            
            p = model.p;
+           
            parfor tj = 1:p
                short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                                                                      % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
            end
