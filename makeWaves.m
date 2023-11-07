@@ -115,7 +115,7 @@ delx = model.gridX*ones(model.m,model.n,model.o,model.p);
 % Wind:
 gust = 0;                                                                  % Gust factor applied to wind at each time step
 zref = 20;                                                                 % height of reference wind speed, normally at 20m [m]
-z = model.z_data;                                                                    % height of measured wind speed [m]
+z = model.z_data;                                                          % height of measured wind speed [m] (e.g. U10 => z_data = 10m)
 wfac = 0.035;                                                              % winddrift fraction of Uz ffor U10m
 % Ideal gas law: PV = nRT
 % Densities:
@@ -128,12 +128,12 @@ kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wav
 kcgn = 1.0*kcg;                                                            % n power min is not shifted with respect to kcg
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % frequency limits:
-f1 = model.min_freq;                                                                 % minimum frequency
-f2 = model.max_freq;                                                                   % maximum frequency 
+f1 = model.min_freq;                                                       % minimum frequency to model
+f2 = model.max_freq;                                                       % maximum frequency to model
 % create frequency limits for spectrum
 dlnf=(log(f2)-log(f1))/(model.o-1);                                        % frequency step size for log normal distribution
 f = exp(log(f1)+(0:model.o-1)*dlnf);                                       % frequencies for spectrum
-dom = 2*pi*dlnf.*f;                                                        % angular frequency (w = 2pi*f)
+dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
 oa = model.cutoff_freq;                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
@@ -141,8 +141,8 @@ ol = 1:oa;                                                                 % bin
 os = oa+1:model.o;                                                         % bins for short frequencies
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
-bf1 = exp(-16*dlnf*dlnf);%exp(-15.73*dlnf*dlnf);                                               % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
-bf2 = exp(-16*4*dlnf*dlnf);%exp(-15.73*4*dlnf*dlnf);                                             % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
+bf1 = exp(-16*dlnf*dlnf);%exp(-15.73*dlnf*dlnf);                           % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
+bf2 = exp(-16*4*dlnf*dlnf);%exp(-15.73*4*dlnf*dlnf);                       % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
 bf1a = bf1/(bf1 + bf2);                                                    % normalization (eqn. 21, Donelan 2012)
 bf2 = bf2/(bf1 + bf2);                                                     % normalization (eqn. 21, Donelan 2012
 bf1 = bf1a;
@@ -203,32 +203,32 @@ wn(:,:,:) = ones(model.m,model.n,model.o);
 nnn(:,:,:) = ones(model.m,model.n,model.o);
 ann(:,:,:) = ones(model.m,model.n,model.o);
 m = model.m; n = model.n; g = planet.gravity;
-sfcT = planet.surface_tension; rhow = planet.rho_liquid; 
+sfcT = planet.surface_tension; rhow = planet.rho_liquid; mynnn = model.tune_n;
 parfor jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
            wn(jm,jn,:) = wavekgt(f,D(jm,jn),g,sfcT,rhow,1e-4);                                                                 % wave number (using linear wave dispersion)
-           nnn(jm,jn,:) = model.tune_n;%1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);                  % Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
+           nnn(jm,jn,:) = mynnn;%1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0);           % Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
            ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);               % Power of Sds
        end
    end
 end
-% reshape the matrix
+% reshape the matrix (dimensions of [n m o p])
 wn = repmat(wn,[1 1 1 model.p]);
 nnn = repmat(nnn,[1 1 1 model.p]);
 ann = repmat(ann,[1 1 1 model.p]);
 % conversions for nnn?
 nnn = (2.53/2.5).*nnn;
 nnninv = 1./nnn;
-% reshape the matrix 
-D = repmat(D,[1 1 model.o model.p]);
-f = repmat(f',[1 model.p model.m model.n]);
+% reshape the matrix (D, f, dom all have dimensions of [n m o p])
+D = repmat(D,[1 1 model.o model.p]);                                                                                         % 2D matrix of depths repeated in the frequency and direction dimension (D(x,y,i,j) = D(x,y) for all i and j)
+f = repmat(f',[1 model.p model.m model.n]);                                                                                  % 1D matrix of frequencies repeated in x, y, and direction dimension (f(i,j,A,k) = f(A) for all i,j,k)
 f = shiftdim(f,2);
-dom = repmat(dom',[1 model.p model.m model.n]);
+dom = repmat(dom',[1 model.p model.m model.n]);                                                                              % 1D matrix of discrete angular frequencies repeated in x, y, and direction dimension (dom(i,j,A,k) = dom(A) for all i,j,k)
 dom = shiftdim(dom,2);
 %% -- ocean currents ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Uer = uniflow.East*D + 0.0;                                                                                                                            % Eastward current, m/s
-Uei = uniflow.North*D + 0.0;                                                                                                                           % Northward current, m/s
+Uer = uniflow.East*D + 0.0;                                                                                                  % Eastward current, m/s
+Uei = uniflow.North*D + 0.0;                                                                                                 % Northward current, m/s
 %% -- wave speed and group velocity --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 c = (2*pi*f)./wn;                                                                                                                                                                                                    % phase speed
 c(D<=0) = 0;                                                                                                                                                                                                         % phase speed on land is set to zero
@@ -253,7 +253,7 @@ if Etc.savedata
 end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-idx = 1;                                                                   % for frame for gif
+idx = 1;                                                                   % frame for making gif
 sigH = zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
 htgrid = cell(1,numel(wind.speed));                                        % initialize htgrid for returning
 E_each =  cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
@@ -313,8 +313,8 @@ for iii=1:numel(wind.speed)                                                % loo
            % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
            Ula = Ul;
            Ul = model.tune_A1*Ul;
-           Ul(Ul<0) = Ula(Ul<0);%*0.03;                                                                                                                                % Field scale (Donelan et al, 2012). 0.135 in Lab                        
-           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0);%*0.015;                                                                                             % Waves against wind
+           Ul(Ul<0) = Ula(Ul<0);%*0.03;                                                                                                                              % Field scale (Donelan et al, 2012). 0.135 in Lab                        
+           Ul(cos(windir-waveang)<0) = Ula(cos(windir-waveang)<0);%*0.015;                                                                                           % Waves against wind
 
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % input to energy spectrum from wind
@@ -361,26 +361,26 @@ for iii=1:numel(wind.speed)                                                % loo
            Snl(D <= 0) = 0;
 % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Integrate source functions
-           Sds_wc = Sds;                                                                                                         % Keep whitecapping (wc) only dissipation for calculating snl growth.
-           Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                % Add viscous, turbulent and plunging dissipation after calculation of Snl
+           Sds_wc = Sds;                                                                                                           % Keep whitecapping (wc) only dissipation for calculating snl growth.
+           Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;   % Add viscous, turbulent and plunging dissipation after calculation of Snl
            % aa = input - dissipation
-           aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                   % ol = long wavelength waves
+           aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                     % ol = long wavelength waves (that will not advect)
            aa = aa(D(:,:,ol,:)>0);                                                                                                    
            aa = max(abs(aa(:)));
            aaa = explim;
           
-           if isnan(aa)                                                                                                          % if source = dissipation then denominator for new possible time step is 5e-5
+           if isnan(aa)                                                                                                            % if source = dissipation then denominator for new possible time step is 5e-5
                aa = aaa/model.maxdelt;
            end
-           newdelt = max([aaa/aa model.mindelt]);                                                                                % newdelt = delt to give max of 50% growth or decay
-           newdelt = min([newdelt model.maxdelt (model.time_step-sumt) delt]);                                                   % min[max(0.1/(Sin-Sds) 0.0001) 2000 TotalModelTime CourantGrid]
+           newdelt = max([aaa/aa model.mindelt]);                                                                                  % newdelt = delt to give max of 50% growth or decay
+           newdelt = min([newdelt model.maxdelt (model.time_step-sumt) delt]);                                                     % min[max(0.1/(Sin-Sds) 0.0001) 2000 TotalModelTime CourantGrid]
            fprintf('newdelt: %.2f\n',newdelt);
           
            % add to model time
            sumt = sumt + newdelt;
            modt = modt + newdelt;
           
-           fac_exp = (Sin(:,:,ol,:) - Sds(:,:,ol,:));
+           fac_exp = (Sin(:,:,ol,:) - Sds(:,:,ol,:));                                                                              % difference in input and dissipation term to be used in exp() term for energy
           
 % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            E1 = zeros(size(E));                                                                                               % E^(n+1) in forward Euler differencing
@@ -403,14 +403,19 @@ for iii=1:numel(wind.speed)                                                % loo
           
            E1 = real(E1); E1(E1 < 0)=0;E1(D <= 0)=0;
            E(D <= 0) = 0; E(:,:,os,:) = E1(:,:,os,:);
-           E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                       % E = (E+E1)/2 (time-splitting for stable integration) [eqn. B5, Donelan 2012]
+           E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                        % E = (E+E1)/2 (time-splitting for stable integration) [eqn. B5, Donelan 2012]
           
 % -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-           advect = zeros(model.m,model.n,model.o,model.p);
-           Ccg = Cg + Uer.*cth + Uei.*sth;
+           advect = zeros(model.m,model.n,model.o,model.p);                                                                       % initialize the 4D advection array
+           Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                        % group velocity including unidirectional current and wave velocity
           
            % Upwave advection with account taken of varying delx and dely
-           advect(:,:,ol,cp) = advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan 2012
+           % Note: only long frequencies are advected, short frequencies are assumed to be in equilibrium with
+           % the wave and do not need to be advected (oa defines the cutoff between short and long frequency 
+           % bins and can be varied by the user). If not enough frequencies are being advected because of a 
+           % poorly chosen oa, then there will be no fetch dependence across the grid since no energy is coming '
+           % into a grid from its neighbor
+           advect(:,:,ol,cp) = advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan 2012 
                - Ccg(xp,:,ol,cp).*cth(xp,:,ol,cp).*E(xp,:,ol,cp).*dely(xp,:,ol,cp))...
                ./((dely(xp,:,ol,cp) + dely(:,:,ol,cp)).*(delx(xp,:,ol,cp) + delx(:,:,ol,cp)))*4;
           
@@ -427,10 +432,10 @@ for iii=1:numel(wind.speed)                                                % loo
                ./((dely(:,:,ol,sm) + dely(:,ym,ol,sm)).*(delx(:,:,ol,sm) + delx(:,ym,ol,sm)))*4;
           
 % -- Full energy from source, sink, and advection -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-           E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*advect(:,:,ol,:);                                                              % eqn. B6, Donelan 2012
+           E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*advect(:,:,ol,:);                                                                % eqn. B6, Donelan 2012
           
            % clean up
-           E1(D <= 0) = 0;                                                                                                      % energy on land is set to zero
+           E1(D <= 0) = 0;                                                                                                        % energy on land is set to zero
            E1=real(E1);                                                                                                      
            E1(E1 < 0)=0;
           
@@ -541,7 +546,7 @@ for iii=1:numel(wind.speed)                                                % loo
            end
 
            % Integrate spectrum over wavenumber to plot directional plot of 10th wavelength.
-           Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);                           % not sure
+           Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);                           % integrating over frequency spectrum for plotting
            Wavel = 2*pi./Wavel;
            Wavel = Wavel.^(0.25); 
            % Direction of one wavelength.
