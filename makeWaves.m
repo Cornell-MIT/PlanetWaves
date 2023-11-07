@@ -115,7 +115,6 @@ delx = model.gridX*ones(model.m,model.n,model.o,model.p);
 % Wind:
 gust = 0;                                                                  % Gust factor applied to wind at each time step
 zref = 20;                                                                 % height of reference wind speed, normally at 20m [m]
-z = model.z_data;                                                          % height of measured wind speed [m] (e.g. U10 => z_data = 10m)
 wfac = 0.035;                                                              % winddrift fraction of Uz ffor U10m
 % Ideal gas law: PV = nRT
 % Densities:
@@ -126,18 +125,14 @@ kutoff = 1000;                                                             % wav
 kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
 % modified wavenumbers
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
-% frequency limits:
-f1 = model.min_freq;                                                       % minimum frequency to model
-f2 = model.max_freq;                                                       % maximum frequency to model
 % create frequency limits for spectrum
-dlnf=(log(f2)-log(f1))/(model.o-1);                                        % frequency step size for log normal distribution
-f = exp(log(f1)+(0:model.o-1)*dlnf);                                       % frequencies for spectrum
+dlnf=(log(model.max_freq)-log(model.min_freq))/(model.o-1);                % frequency step size for log normal distribution
+f = exp(log(model.min_freq)+(0:model.o-1)*dlnf);                           % frequencies for spectrum
 dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 % Frequency bins:
-oa = model.cutoff_freq;                                                    % top bin advected (make wavelengths [vector wn] at oa 1/20th of the grid spacing)
-ol = 1:oa;                                                                 % bins for long frequencies
-os = oa+1:model.o;                                                         % bins for short frequencies
+ol = 1:model.cutoff_freq;                                                  % bins for long frequencies
+os = model.cutoff_freq+1:model.o;                                          % bins for short frequencies
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
 bf1 = exp(-16*dlnf*dlnf);%exp(-15.73*dlnf*dlnf);                           % part of non-linear source term for downshifting and spilling breakers, eqn. 21 Donelan 2012
@@ -192,17 +187,12 @@ if Etc.showplots
     myc.Label.String = 'Liquid Depth [m]';
     title('Lake Model Bathymetry')
 end
-%% -- Fractions of terms -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% Fractions applied to terms from fitting with experiment/observations:
-mss_fac = model.tune_mss_fac;                                                           % MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
-Sdt_fac = model.tune_Sdt_fac;                                                           % fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
-Sbf_fac = model.tune_Sbf_fac;                                                           % fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 wn(:,:,:) = ones(model.m,model.n,model.o);
 nnn(:,:,:) = ones(model.m,model.n,model.o);
 ann(:,:,:) = ones(model.m,model.n,model.o);
 m = model.m; n = model.n; g = planet.gravity;
-sfcT = planet.surface_tension; rhow = planet.rho_liquid; mynnn = model.tune_n;
+sfcT = planet.surface_tension; rhow = planet.rho_liquid; mynnn = model.tune_n;                                                % defined here so no broadcast variable in the parfor loop
 parfor jm = 1:m
    for jn = 1:n
        if D(jm,jn) > 0
@@ -247,7 +237,7 @@ mindelx = min(squeeze(delx(1,:,1,1)));                                          
 waveang = repmat(waveang,[model.o 1 model.m model.n]);
 waveang=shiftdim(waveang,2);
 if Etc.savedata
-    m = model.m; n = model.n; o = model.o; p = model.p;
+    m = model.m; n = model.n; o = model.o; p = model.p; oa = model.cutoff_freq;
     save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
 end
 file = file - 1;
@@ -294,15 +284,15 @@ for iii=1:numel(wind.speed)                                                % loo
           
            Ul = real(U_z.*sqrt(Cd));                                        
            Ustar = Ul;
-           U_10 = 2.5*Ul.*log(10/z) + U_z;                                                                                                                           % law of wall
+           U_10 = 2.5*Ul.*log(10/model.z_data) + U_z;                                                                                                                           % law of wall
            ustarw = Ustar .* sqrt(rhorat);                                                                                                                           % shear stress
           
            Ul = repmat(Ul,[1 1 model.o model.p]);
            U = repmat(U_z,[1 1 model.o model.p]);
-           Ul = 2.5*Ul.*log(l2/z)+U;
+           Ul = 2.5*Ul.*log(l2/model.z_data)+U;
 
            ustw = repmat(ustarw,[1 1 model.o model.p]);
-           Ud = - ustw./kappa.*log(lz/z);                                                                                                                            % depth averaged air velocity (law of the wall)
+           Ud = - ustw./kappa.*log(lz/model.z_data);                                                                                                                            % depth averaged air velocity (law of the wall)
           
            % calculate wind input as a fraction of stress
            Ul(D>0) = abs(Ul(D>0).*cos(windir(D>0)-waveang(D>0))-c(D>0)-Ud(D>0).*cos(windir(D>0)-waveang(D>0))-Uer(D>0).*cth(D>0)-Uei(D>0).*sth(D>0))...              % Sin = A1*Ul*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan 2012]
@@ -327,7 +317,7 @@ for iii=1:numel(wind.speed)                                                % loo
            % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
            Sin(D<=0) = 0;
            
-           p = model.p;
+           p = model.p;                                                                                                                              % defined locally here so not a broadcast variable in the parfor loop
            
            parfor tj = 1:p
                short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:p)-tj+p,p)+1),4)*dth;                                                                      % energy in each angular bin get the mean square slope (eqn. 16, Donelan 2012)
@@ -337,13 +327,13 @@ for iii=1:numel(wind.speed)                                                % loo
 % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
            Sdt(:,:,:,:) = repmat(Ustar,[1 1 model.o model.p]);
-           Sdt = Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                 % eqn 20, Donelan 2012
+           Sdt = model.tune_Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                           % eqn 20, Donelan 2012
 %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sbf = zeros(model.m,model.n,model.o,model.p);
-           Sbf(D>0) = Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                                 % eqn. 22, Donelan 2012
+           Sbf(D>0) = model.tune_Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                           % eqn. 22, Donelan 2012
 % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
            Sds = zeros(size(Sin));
-           Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                                    % LH p 712. vol 1 [eqn. 17, Donelan 2012]
+           Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+model.tune_mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                              % LH p 712. vol 1 [eqn. 17, Donelan 2012]
           
            % Set Sds = 0 on land boundaries to avoid newdelt --> 0.
            Sds(D<=0) = 0;
@@ -395,7 +385,7 @@ for iii=1:numel(wind.speed)                                                % loo
            E2(:,:,:,:) = zeros(model.m,model.n,model.o,model.p);
            fij = find((Sin(:,:,:,:) - 4*planet.nu_liquid*wn(:,:,:,:).^2 - Sdt(:,:,:,:) - Sbf(:,:,:,:)) > 0);                  % finds terms where input > dissipation
            E2(fij) = wn(fij).^(-4).*((Sin(fij)-4*planet.nu_liquid*wn(fij).^2 - Sdt(fij) - Sbf(fij))./(cath(fij) ...
-               .*ann(fij)*2*pi.*f(fij).*(1+mss_fac*short(fij)).^2)).^(nnninv(fij));                                           % LH p.712, vol 1
+               .*ann(fij)*2*pi.*f(fij).*(1+model.tune_mss_fac*short(fij)).^2)).^(nnninv(fij));                                % LH p.712, vol 1
            E2(D<=0) = 0; E1(D<=0) = 0; 
            E2(E2<0) = 0; E1(E1<0) = 0;
           
@@ -411,9 +401,9 @@ for iii=1:numel(wind.speed)                                                % loo
           
            % Upwave advection with account taken of varying delx and dely
            % Note: only long frequencies are advected, short frequencies are assumed to be in equilibrium with
-           % the wave and do not need to be advected (oa defines the cutoff between short and long frequency 
+           % the wave and do not need to be advected (model.cutoff_freq defines the cutoff between short and long frequency 
            % bins and can be varied by the user). If not enough frequencies are being advected because of a 
-           % poorly chosen oa, then there will be no fetch dependence across the grid since no energy is coming '
+           % poorly chosen model.cutoff_freq, then there will be no fetch dependence across the grid since no energy is coming '
            % into a grid from its neighbor
            advect(:,:,ol,cp) = advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan 2012 
                - Ccg(xp,:,ol,cp).*cth(xp,:,ol,cp).*E(xp,:,ol,cp).*dely(xp,:,ol,cp))...
@@ -474,7 +464,7 @@ for iii=1:numel(wind.speed)                                                % loo
           
            Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % shear stress and law of the wall
            Cdf = Cd;
-           Ustar_smooth = smooth_nu((1-wfac)*U_z(:),z,planet.nua);
+           Ustar_smooth = smooth_nu((1-wfac)*U_z(:),model.z_data,planet.nua);
            Ustar_smooth = reshape(Ustar_smooth,model.m,model.n);                                                                                % Surface current (friction velocity for hydraulically smooth interface)
           
            Ustar_smooth = (Ustar_smooth./U_z).^2;
