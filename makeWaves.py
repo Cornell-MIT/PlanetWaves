@@ -5,11 +5,13 @@ import os
 import shutil
 import re
 import cmath
+import math
 
 
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 def remove_old_logs():
     # remove old model run logs 
@@ -98,8 +100,33 @@ class ModelHousekeeping:
         self.savedata = 1
         self.showlog = 1
 
+def wavekgt(f, H, g, T, R, tol=1e-4):
+    c = 2 * np.pi * np.sqrt(H / g)
+    f = c * np.array(f).reshape(-1, 1)
+    Nf = len(f)
+    B = T / (R * g * H * H)
+    k = np.zeros((Nf, 1))
+    k[0] = f[0] ** 2
 
-        
+    for n in range(Nf):
+        dk = 1
+        if n > 0:
+            k[n] = k[n - 1]
+
+        while abs(dk) > tol:
+            t = 1
+            if k[n] < 20:
+                t = np.tanh(k[n])
+            dk = -(f[n] ** 2 - k[n] * (1 + B * k[n] ** 2) * t) / (
+                3 * B * k[n] ** 2 * t + t + k[n] * (1 + B * k[n] ** 2) * (1 - t ** 2)
+            )
+            k[n] = k[n] - dk
+
+        k[n] = abs(k[n])
+
+    k = k / H
+    return k
+    
 def make_waves(Planet, Model, Wind, Uniflow, Etc):
     start_time = time.time()
 
@@ -259,6 +286,58 @@ def make_waves(Planet, Model, Wind, Uniflow, Etc):
         plt.title('Bathymetry plot')
         plt.show()
 
+        # Fractions applied to terms from fitting with experiment/observations:
+        mss_fac = Model.tune_mss_fac  # MSS adjustment to Sdiss. 2000 produces very satisfactory overshoot, 400 does not. (A4 in Donelan 2012; eqn. 6 Donelan 2001)
+        Sdt_fac = Model.tune_Sdt_fac  # fraction of Sdt that goes into spectrum (A4 in eqn. 20, Donelan 2012; A4 = 0.01?)
+        Sbf_fac = Model.tune_Sbf_fac  # fraction of Sbf that goes into spectrum (0.004 is for smooth sandy bottom) (Gf in eqn. 22, Donelan 2012) 
+
+        # Initialize arrays
+        wn = np.ones((Model.m, Model.n, Model.o))
+        nnn = np.ones((Model.m, Model.n, Model.o))
+        ann = np.ones((Model.m, Model.n, Model.o))
+
+        m = Model.m
+        n = Model.n
+        g = Planet.gravity
+        sfcT = Planet.surface_tension
+        rhow = Planet.rho_liquid
+        
+
+        for jm in range(m):
+            for jn in range(n):
+                if D[jm, jn] > 0:
+                    wn[jm, jn, :] = wavekgt(f, D[jm, jn], g, sfcT, rhow, 1e-4).reshape(Model.o,)  # wave number (using linear wave dispersion)
+                    nnn[jm, jn, :] = Model.tune_n  # 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn)**2)./(1+(wn(jm,jn,:)./kcgn)**2))**2.0)                  # Power n of Sds on the degree of saturation [eqn. 15, Donelan 2012, eqn. 5, Donelan 2001]
+                    ann[jm, jn, :] = 0.04 + 41.96*(abs(2 - (1+3*(wn[jm, jn, :]/kcga)**2)/(1+(wn[jm, jn, :]/kcga)**2))**4.0)  # Power of Sds
+
+
+        # Reshape the matrix
+        wn = np.repeat(wn[:, :,:, np.newaxis], Model.p, axis=3)
+        nnn = np.tile(nnn, (1, 1, 1, Model.p))
+        ann = np.tile(ann, (1, 1, 1, Model.p))
+        
+
+        nnn = (2.53/2.5) * nnn
+        nnninv = 1.0 / nnn
+        
+        print(f'1: {D.shape}')
+        # Reshape the matrix (4d array with dimension [n m o p])
+        D = np.tile(D,(1,1,13,13))
+        print(f'2: {D.shape}')
+        f = np.tile(f.T,(Model.m,Model.n,1))
+        f = np.repeat(f[:,:,:,np.newaxis],Model.p,axis=3)
+        dom = np.tile(dom.T,(Model.m,Model.n,1))
+        dom  = np.repeat(dom[:,:,:,np.newaxis],Model.p,axis=3)
+        
+        Uer = Uniflow.East * D + 0.0  # Eastward current, m/s
+        Uei = Uniflow.North * D + 0.0 # Northward current, m/s
+        
+        c = (2 * math.pi * f) / wn  # phase speed
+        c[D[:,:,1,1]< 0] = 0 # phase speed on land is set to zero
+        Cg = np.zeros_like(c)  # initialize group speed
+        Cg[D > 0] = c[D > 0] / 2 * (1 + 2 * wn[D > 0] * D[D > 0] / np.sinh(2 * wn[D > 0] * D[D > 0]) + 2 * Planet.surface_tension * wn[D > 0] / Planet.rho_liquid / (Planet.gravity / wn[D > 0] + Planet.surface_tension * wn[D > 0] / Planet.rho_liquid))  # Group velocity for all waves (Kinsman "Wind Waves: Their Generation and Propagation on the Ocean Surface")
+        
+    
     close_diary(dfile)
 
 

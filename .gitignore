@@ -10,4 +10,4 @@ FetchLaws/groundtruthing/TestingChanges.xlsx
 FetchLaws/groundtruthing/testing_changes_ref.mlx
 *.pyc
 wave_env/
-
+env/

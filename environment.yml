@@ -9,6 +9,7 @@ dependencies:
   - libffi=3.4.2=h8ffe710_5
   - libsqlite=3.44.0=hcfcfb64_0
   - libzlib=1.2.13=hcfcfb64_5
+  - matplotlib=3.8.1
   - openssl=3.1.4=hcfcfb64_0
   - pip=23.3.1=pyhd8ed1ab_0
   - python=3.12.0=h2628c8c_0_cpython

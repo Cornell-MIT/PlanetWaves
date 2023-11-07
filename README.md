@@ -13,3 +13,5 @@ To work in virtual enviroment (miniconda)
 > conda env create -f environment.yml
 
 > conda activate wave_env
+
+> conda env update --prefix ./env --file environment.yml  --prune
