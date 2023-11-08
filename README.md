@@ -36,6 +36,9 @@ To work in virtual enviroment (miniconda)
 4. Comparing to open ocean
    - ID periods of low variation in wind speed, direction, and gusts near Hawai’i (Huppert et al. 2020)
      - Compare to model for deep uniform bathymetry
+     - 
+
+![EarthDataFigure](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/fba689f2-06e1-4eb6-8668-a3ec405d97f1)
 
 ## Changes to model
 
