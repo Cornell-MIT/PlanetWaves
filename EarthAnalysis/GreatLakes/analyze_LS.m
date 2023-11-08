@@ -4,7 +4,7 @@ clear
 close all
 
 makeplots = 0;
-filen = "BuoyData/Superior/45004h2021"; % Lake Superior Buoy 45004 2022
+filen = "BuoyData/Superior/45004h2012"; % Lake Superior Buoy 45004 2022
 
 data_cadence = 6; % measurement every 10 minute [# pts/hr]
 window_size = 10; % window size in [hrs]
