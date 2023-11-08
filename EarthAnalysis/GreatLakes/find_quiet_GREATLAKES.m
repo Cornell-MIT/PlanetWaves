@@ -18,6 +18,7 @@ function [quiet_index,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % author: U.G. Schneck (schneck.una@gmail)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    quiet_index = NaN;
 
     thd_dir = direction_threshold; % threshold for direction (less than 10 degree change)
     thd_g = gust_threshold; % threshold for gust (less than 150%)
@@ -91,10 +92,18 @@ function [quiet_index,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet
     
     end
 
-    avgu = mean(umag(quiet_index),"omitmissing");
-    avght = mean(waveht(quiet_index),"omitmissing");
-    std_u = std(umag(quiet_index),"omitmissing");
-    std_ht = std(waveht(quiet_index),"omitmissing");
+    if ~isnan(quiet_index)
+        avgu = mean(umag(quiet_index),"omitmissing");
+        avght = mean(waveht(quiet_index),"omitmissing");
+        std_u = std(umag(quiet_index),"omitmissing");
+        std_ht = std(waveht(quiet_index),"omitmissing");
+    else
+        avgu = NaN;
+        avght = NaN;
+        std_u = NaN;
+        std_ht = NaN;
+        disp('no data fits this criteria, change the thresholds for direction and/or gusts')
+    end
 
 
 end
