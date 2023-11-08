@@ -23,12 +23,12 @@ To work in virtual enviroment (miniconda)
 1. Compare effect of changing cut off frequency
 2. Compare to wind tank experiments (Banfield et al. 2015)
 3. Comparing to closed lakes
-   - ID periods of low variation in wind speed, direction, and gusts for
+   - ID periods of low variation in wind speed, direction, and gusts for (<ins>find_quiet_GREATLAKES.m</ins>)
      - Lake Erie
        1. Deep water buoy
        2. Shallow water buoy
      - Lake Superior 
-       1. Deep water buoy
+       1. Deep water buoy (IN PROGRESS)
        2. Shallow water buoy
    - Compare to model for
      - Deep uniform bathymetry
