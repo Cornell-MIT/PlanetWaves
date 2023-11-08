@@ -15,3 +15,30 @@ To work in virtual enviroment (miniconda)
 > conda activate wave_env
 
 > conda env update --prefix ./env --file environment.yml  --prune
+
+## Model Run Benchmarking
+
+### Changing model geometry
+
+1. Compare effect of changing cut off frequency
+2. Compare to wind tank experiments (Banfield et al. 2015)
+3. Comparing to closed lakes
+   - ID periods of low variation in wind speed, direction, and gusts for
+     - Lake Erie
+       1. Deep water buoy
+       2. Shallow water buoy
+     - Lake Superior 
+       1. Deep water buoy
+       2. Shallow water buoy
+   - Compare to model for
+     - Deep uniform bathymetry
+     - Realistic lake bathymetry
+4. Comparing to open ocean
+   - ID periods of low variation in wind speed, direction, and gusts near Hawai’i (Huppert et al. 2020)
+     - Compare to model for deep uniform bathymetry
+
+## Changes to model
+
+1. Add Alves-Banner-Young curve to model.
+2. Add maturity threshold with minimum number of time steps
+3. Set batch jobs to make model run in background with updates
