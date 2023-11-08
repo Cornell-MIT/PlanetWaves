@@ -38,7 +38,8 @@ To work in virtual enviroment (miniconda)
      - Compare to model for deep uniform bathymetry
      - 
 
-![EarthDataFigure](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/fba689f2-06e1-4eb6-8668-a3ec405d97f1)
+![EarthDataFigure](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/b00c8bfd-1e7a-4d55-9a95-d37db344ae18)
+
 
 ## Changes to model
 
