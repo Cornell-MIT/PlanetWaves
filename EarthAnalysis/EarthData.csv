@@ -1,0 +1,2 @@
+﻿WindSpeed [m],STD WindSpeed [m],WaveHeight [m],STD WaveHeight [m],Fetch [m],Depth [m],Location,Buoy ID,Year,SourceCode,SourceData
+16.55,0.33,4.28,0.28,,237.5,LakeSuperior,45004,2022,LS_45004_2022.m,https://www.ndbc.noaa.gov/station_history.php?station=45004
