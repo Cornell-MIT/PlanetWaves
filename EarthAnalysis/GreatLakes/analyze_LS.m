@@ -3,9 +3,9 @@ clc
 clear
 close all
 
-makeplots = 0;
-filen = "BuoyData/Superior/45004h2012"; % Lake Superior Buoy 45004 2022
-
+makeplots = 1;
+filen = 'BuoyData/Superior/45004h2021'; % Lake Superior Buoy 45004 2022
+yr = filen(end-3:end);
 data_cadence = 6; % measurement every 10 minute [# pts/hr]
 window_size = 10; % window size in [hrs]
 dir_t = 15;
@@ -23,19 +23,19 @@ if ~isnan(qi)
         
         figure;
         boxplot([umag gust],'Notch','on','Labels',{'|u|','gust'},'Whisker',1)
-        title('2022')
+        title(yr)
         
         figure;
         boxplot(dir,'Notch','on','Labels',{'direction'},'Whisker',1)
-        title('2022')
+        title(yr)
         
         figure;
         boxplot([umag(qi) gust(qi)],'Notch','on','Labels',{'|u|','gust'},'Whisker',1)
-        title('ROI 2022')
+        title(strcat('ROI',' ',yr))
         
         figure;
         boxplot(dir(qi),'Notch','on','Labels',{'direction'},'Whisker',1)
-        title('ROI 2022')
+        title(strcat('ROI',' ',yr))
         
         figure;
         subplot(2,1,1)
@@ -46,7 +46,7 @@ if ~isnan(qi)
         ylim([0 20])
         xlabel('time (# measurement pts)')
         ylabel('u [m/s]')
-        title('2022')
+        title(yr)
         subplot(2,1,2)
         yyaxis right
         h1 = plot(qi,umag(qi),'-k');
@@ -65,7 +65,7 @@ if ~isnan(qi)
         hold on
         plot(qi,waveht(qi),'-or','MarkerFaceColor','r')
         grid on;
-        title({stru,strht})
+        title({yr,stru,strht})
     else
         disp(stru);
         disp(strht);
