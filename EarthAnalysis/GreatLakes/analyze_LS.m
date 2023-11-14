@@ -2,14 +2,15 @@
 clc
 clear
 close all
+% OBJECTIVE: Find periods of relative quiescence in Lake Superior Wind/Wave Data to compare to UMWM-Titan
 
 makeplots = 1;
-filen = 'BuoyData/Superior/45004h2021'; % Lake Superior Buoy 45004 2022
-yr = filen(end-3:end);
+filen = 'BuoyData/Superior/45004h2019'; % Lake Superior Buoy 45004 2022
+yr = filen(end-3:end); % year number for plots
 data_cadence = 6; % measurement every 10 minute [# pts/hr]
 window_size = 10; % window size in [hrs]
-dir_t = 15;
-g_t = 1.5;
+dir_t = 15; % maximum possible change in direction over the window
+g_t = 1.5; % maximum percent above the mean wind speed for concurrent gusts
 
 [qi,umag,gust,dir,waveht,avgu,avght,varu,varht] = find_quiet_GREATLAKES(filen,data_cadence,window_size,dir_t,g_t);
 
