@@ -20,30 +20,32 @@ To work in virtual enviroment (miniconda)
 
 ### Changing model geometry
 
-1. Compare effect of changing cut off frequency
+==highlight==
+1. **(_US: ongoing_) Compare effect of changing cut off frequency** 
 2. Compare to wind tank experiments (Banfield et al. 2015)
 3. Comparing to closed lakes
    - ID periods of low variation in wind speed, direction, and gusts for (<ins>find_quiet_GREATLAKES.m</ins>)
      - Lake Erie
        1. Deep water buoy
        2. Shallow water buoy
-     - Lake Superior 
-       1. Deep water buoy (IN PROGRESS)
+     - **(_US: ongoing_)  Lake Superior** 
+       1. **(_US: ongoing_) Deep water buoy**
        2. Shallow water buoy
    - Compare to model for
      - Deep uniform bathymetry
      - Realistic lake bathymetry
 4. Comparing to open ocean
-   - ID periods of low variation in wind speed, direction, and gusts near Hawai’i (Huppert et al. 2020)
+   - ID periods of low variation in wind speed, direction, and gusts near Hawai’i (Huppert et al. 2020) or Gulf of Mexico? (Lin et al. 2011)
      - Compare to model for deep uniform bathymetry
-     - 
 
-![EarthDataFigure](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/7e82488b-8e23-43a5-bb8c-d7b6ccfa52d5)
+
+
+![Picture1](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/d3ab52df-0260-4a08-a9b3-866d85b00e2b)
 
 
 
 ## Changes to model
 
-1. Add Alves-Banner-Young curve to model.
+1. Add Alves-Banner-Young curve to model
 2. Add maturity threshold with minimum number of time steps
 3. Set batch jobs to make model run in background with updates
