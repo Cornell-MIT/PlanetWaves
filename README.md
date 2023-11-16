@@ -20,7 +20,6 @@ To work in virtual enviroment (miniconda)
 
 ### Changing model geometry
 
-==highlight==
 1. **(_US: ongoing_) Compare effect of changing cut off frequency** 
 2. Compare to wind tank experiments (Banfield et al. 2015)
 3. Comparing to closed lakes
