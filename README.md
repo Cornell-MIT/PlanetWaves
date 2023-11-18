@@ -38,8 +38,10 @@ To work in virtual enviroment (miniconda)
 
 
 ![Picture1](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/d3ab52df-0260-4a08-a9b3-866d85b00e2b)
-![lakesuperior](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/f68f4e88-dd5c-4ea0-b1b3-7415f6c69249)
 
+
+
+![Screenshot 2023-11-17 211208](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/21aebd2c-57f2-4f7b-bc88-317eafc5e153)
 
 
 ## Changes to model
