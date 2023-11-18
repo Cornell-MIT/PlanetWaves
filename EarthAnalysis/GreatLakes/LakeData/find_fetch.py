@@ -233,7 +233,7 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
 
 def find_fetch(buoy,wind_dir):
 
-    ploton = False
+    ploton = True
     
     blat = buoy[0]#47.585
     blon = buoy[1]#-86.585
@@ -263,6 +263,6 @@ if __name__ == '__main__':
         buoy_lat = 47.585
         buoy_lon = -86.585
 
-    wind_direction = (0,1) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
+    wind_direction = (1,0) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
         
-    fetch_m = find_fetch([buoy_lat,buoy_lon],(0,1))
+    fetch_m = find_fetch([buoy_lat,buoy_lon],wind_direction)
