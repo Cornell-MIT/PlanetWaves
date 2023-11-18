@@ -6,7 +6,7 @@ from skimage import measure
 import scipy.ndimage as ndimage
 from osgeo import gdal, osr
 from math import radians, sin, cos, sqrt, atan2
-
+import math
    
 def extract_transformation(file_name):
     # FUNCTION TO EXTRACT 
@@ -167,6 +167,85 @@ def find_islands(depth,trs):
     
     return islands
 
+def degrees_to_vector(degrees):
+    # Convert degrees to radians
+    radians = math.radians(degrees)
+    
+    # Calculate the x and y components of the vector
+    x = math.cos(radians)
+    y = math.sin(radians)
+    
+    # Normalize the vector
+    vector_length = math.sqrt(x**2 + y**2)
+    normalized_x = x / vector_length
+    normalized_y = y / vector_length
+    
+    return normalized_x, normalized_y
+    
+def ray_casting(vRayStart,direction_deg,depth):
+    
+    # DDA Algorithm based on https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_RayCastDDA.cpp
+    
+    vMapCheck = vRayStart
+    vecMap = depth
+    vMapSize = np.array(depth).shape
+    vRayDir = degrees_to_vector(direction_deg)
+    
+    vRayUnitStepSize = (
+    math.sqrt(1 + (vRayDir[1] / vRayDir[0]) * (vRayDir[1] / vRayDir[0])),
+    math.sqrt(1 + (vRayDir[0] / vRayDir[1]) * (vRayDir[0] / vRayDir[1]))
+    )
+    
+    vStep = [0, 0]
+    vRayLength1D = [0, 0]
+
+    if vRayDir[0] < 0:
+        vStep[0] = -1
+        vRayLength1D[0] = (vRayStart[0] - float(vMapCheck[0])) * vRayUnitStepSize[0]
+    else:
+        vStep[0] = 1
+        vRayLength1D[0] = (float(vMapCheck[0] + 1) - vRayStart[0]) * vRayUnitStepSize[0]
+
+    if vRayDir[1] < 0:
+        vStep[1] = -1
+        vRayLength1D[1] = (vRayStart[1] - float(vMapCheck[1])) * vRayUnitStepSize[1]
+    else:
+        vStep[1] = 1
+        vRayLength1D[1] = (float(vMapCheck[1] + 1) - vRayStart[1]) * vRayUnitStepSize[1]
+
+    # Walk until a collision
+    bTileFound = False
+    fMaxDistance = 100000.0
+    fDistance = 0.0
+    
+    while not bTileFound and fDistance < fMaxDistance:
+        if vRayLength1D[0] < vRayLength1D[1]:
+            vMapCheck[0] += vStep[0]
+            fDistance = vRayLength1D[0]
+            vRayLength1D[0] += vRayUnitStepSize[0]
+        else:
+            vMapCheck[1] += vStep[1]
+            fDistance = vRayLength1D[1]
+            vRayLength1D[1] += vRayUnitStepSize[1]
+
+        if (
+            0 <= vMapCheck[0] < vMapSize[0]
+            and 0 <= vMapCheck[1] < vMapSize[1]
+            and vecMap[vMapCheck[1] * vMapSize[0] + vMapCheck[0]] == 1
+        ):
+            bTileFound = True
+    
+
+    if bTileFound:
+        vIntersection = vRayStart + vRayDir * fDistance
+    else:
+        vIntersection = None
+        fDistance = None
+        print('no intersection found')
+        
+    return vIntersection, fDistance
+    
+    
 def calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): # < ------------------------------------------------------------ PROBLEM HERE
     # FUNCTION WILL FIND THE FETCH FROM THE BUOY TO THE NEAREST SHORELINE IN SPECIFIED DIRECTION
         
@@ -256,13 +335,26 @@ def find_fetch(buoy,wind_dir):
     return f_dist
 
 if __name__ == '__main__':
-
+    
     station = 45004 # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
 
     if station == 45004:
         buoy_lat = 47.585
         buoy_lon = -86.585
 
-    wind_direction = (1,0) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
-        
-    fetch_m = find_fetch([buoy_lat,buoy_lon],wind_direction)
+    #wind_direction = (1,0) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
+    #fetch_m = find_fetch([buoy_lat,buoy_lon],wind_direction)
+
+    depth_file = 'LS.tiff' 
+    LS,LSm,LSt = extract_tiff(depth_file)
+    geo_trs = extract_transformation(depth_file)
+    depth = clean_depth(LS,-10)
+    main_shore = extract_main_shoreline(depth,LSt)
+    dd = zero_outside_basin(depth,main_shore[2],LSt)
+    
+    
+    wind_dir = 0
+    print(degrees_to_vector(wind_dir))
+    bx,by = geo_to_pixel(buoy_lat, buoy_lon, geo_trs)
+    ray_casting([bx,by],wind_dir,dd)
+    
