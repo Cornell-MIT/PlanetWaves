@@ -7,45 +7,7 @@ import scipy.ndimage as ndimage
 from osgeo import gdal, osr
 from math import radians, sin, cos, sqrt, atan2
 
-
-def degrees_to_direction(degrees):
-    
-    # Normalize degrees to be within 0 to 360 range
-    degrees %= 360
-    
-    # range of angles for a finite eight neighbor grid 
-    direction_ranges = {
-        (337.5, 22.5): 'N',
-        (22.5, 67.5): 'NE',
-        (67.5, 112.5): 'E',
-        (112.5, 157.5): 'SE',
-        (157.5, 202.5): 'S',
-        (202.5, 247.5): 'SW',
-        (247.5, 292.5): 'W',
-        (292.5, 337.5): 'NW'
-    }
-    
-    # Check which range the degrees fall into
-    for angle_range, direction in direction_ranges.items():
-        if angle_range[0] <= degrees < angle_range[1]:
-            return direction    
-        else
-            print('degree not valid')
-            return None
-
-def direction_to_step(direction):
-    
-    if direction == 'N':
-    elif direction == 'NE':
-    elif direction == 'E':
-    elif direction == 'SE':
-    elif direction == 'S':
-    elif direction == 'SW':
-    elif direction == 'W':
-    elif direction == 'NW':
-    
-
-    
+   
 def extract_transformation(file_name):
     # FUNCTION TO EXTRACT 
 
@@ -108,6 +70,13 @@ def extract_tiff(tiff_file):
         transform = src.transform
         return img,metadata,transform
 
+def clean_depth(depth_tiff, threshold):
+    
+    depth = depth_tiff[0] # multiband for some reason? only look at first band
+    depth = (depth < threshold).astype(int) # zero out shallow depths to make shoreline cleaner
+    
+    return depth
+    
 def extract_all_shoreline(depth,trs):
     # FUNCTION WILL EXTRACT ALL THE BOUNDARIES (AKA SHORELINES) IN THE IMAGE
     
@@ -205,8 +174,6 @@ def calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): # < ------
     dy,dx = direction
     #dy,dx = degree_to_vector(direction)
 
-    
-
     distance = 0
     
     maxWhile = 1e9
@@ -214,9 +181,7 @@ def calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): # < ------
     
     x = xb
     y = yb
-    
-    print(dy,dx)
-    
+        
     while 0 <= y < depth_binary.shape[0] and 0 <= x < depth_binary.shape[1] and whileCount <= maxWhile:
         
         x0 = x
@@ -254,7 +219,7 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
     plt.plot(shoreline[0],shoreline[1],linewidth=2,color='black')
     for i in islands:
         lon, lat = transform * (i[:, 1], i[:, 0])
-        plt.plot(lon,lat,linewidth=2,color='blue')
+        plt.plot(lon,lat,linewidth=2,color='black')
 
     # plot details
     cbar = plt.colorbar(img_plot,orientation='horizontal')
@@ -266,39 +231,38 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
     plt.show()
     
 
-def main():
-    
-    
-    file_name = 'LS.tiff'  # lake superior bathy data from noaa
+def find_fetch(buoy,wind_dir):
 
-    LS,LSm,LSt = extract_tiff(file_name)
-    geo_trs = extract_transformation(file_name)
+    ploton = False
     
-    # Station 45005 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
-    lat = 47.585
-    lon = -86.585
-    buoy_location = [lon,lat]
-
-    depth = LS[0] # multiband for some reason? only look at first band
-    depth = (depth < -10).astype(int) # zero out shallow depths to make shoreline cleaner
-    
-    main_shore = extract_main_shoreline(depth,LSt)
+    blat = buoy[0]#47.585
+    blon = buoy[1]#-86.585
         
+    depth_file = 'LS.tiff'  # lake superior bathy data from noaa
+
+    # RUN CALCULATIONS TO FIND FETCH FOR BUOY GIVEN WIND DIRECTION AND MAKE PLOT
+    LS,LSm,LSt = extract_tiff(depth_file)
+    geo_trs = extract_transformation(depth_file)
+    depth = clean_depth(LS,-10)
+    main_shore = extract_main_shoreline(depth,LSt)
     dd = zero_outside_basin(depth,main_shore[2],LSt)
     ii = find_islands(dd,LSt)
-    
-
-    #wind_dir = 45 # from North [deg]
-    wind_dir = (0,1)
-    f_dist,flat,flon = calculate_fetch(buoy_location,dd,geo_trs,wind_dir)
+    f_dist,flat,flon = calculate_fetch([blon,blat],dd,geo_trs,wind_dir)
     print(f"{f_dist/1000} kilometers")
     
-    fetch_pt = [flon,flat]
+    if ploton:
+        plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat])
     
-    plot_lake(LS,LSm,LSt,buoy_location,main_shore,ii,fetch_pt)
-    
-    
-    
+    return f_dist
 
 if __name__ == '__main__':
-    main()
+
+    station = 45004 # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
+
+    if station == 45004:
+        buoy_lat = 47.585
+        buoy_lon = -86.585
+
+    wind_direction = (0,1) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
+        
+    fetch_m = find_fetch([buoy_lat,buoy_lon],(0,1))
