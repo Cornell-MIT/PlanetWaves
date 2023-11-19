@@ -15,7 +15,10 @@ from osgeo import gdal, osr
 from math import radians, sin, cos, sqrt, atan2
 
 '''
-find_fetch.py: Find the fetch to a buoy station given the bathymetry of a lake (.tiff) for any arbitrary direction
+find_fetch.py: 
+
+    Find the fetch to a buoy station given the bathymetry 
+    of a lake (.tiff) for any arbitrary direction.
 
 Author: Una Schneck (schneck.una@gmail.com)
 
@@ -24,6 +27,7 @@ Author: Una Schneck (schneck.una@gmail.com)
 # Define log_level as a global variable
 log_level = logging.DEBUG
 
+# FUNCTION TO SET UP CUSTOM LOGGING
 def setup_custom_logger():
     
     global log_level
@@ -42,72 +46,33 @@ def setup_custom_logger():
 
     return logger
 
+# FUNCTION TO INSTANTIATE LOGGING FILE
 def make_log():
     
     global log_level
     mylog = setup_custom_logger()
     
     return mylog
-    
-def extract_transformation(file_name):
-    # FUNCTION TO EXTRACT THE TRANFORMATION MATRIX FROM TIFF FILE
-    
-    mylog = make_log()
-     
-    try:
-        dataset = gdal.Open(file_name)
-        if dataset is None:
-            mylog.critical(f"Unable to open the file --> {file_name} <-- . Double-check spelling.")
-            return None
-        else:
-            mylog.info(f"File {file_name} imported successfully")
-            
-        try:
-            geotransform = dataset.GetGeoTransform()
-            mylog.info("extract_transformation() sucessful ")
-            return geotransform
-        except Exception as e:
-            mylog.critical(f"Error while getting geotransform: {e}")
-            return None
-        
-    except Exception as e:
-        mylog.critical(f"Exception occurred: {e}")
-        return None
 
-
-def pixel_to_geo(x, y, geotransform):
-    # FUNCTION TO CONVERT PIXEL COORDINATE TO GEOGRAPHIC COORDINATE
+# FUNCTION TO CONVERT DEGREES INTO A NORMALIZED VECTOR
+def degrees_to_vector(degrees):
     
-    mylog = make_log()
-
-    try:
-        lon = geotransform[0] + x * geotransform[1] + y * geotransform[2]
-        lat = geotransform[3] + x * geotransform[4] + y * geotransform[5]
-        mylog.info("pixel_to_geo() sucessful ")
-        return lat, lon
-    except Exception as e:
-        mylog.critical(f"Error in pixel_to_geo(): {e}")
-        return None,None
-
-def geo_to_pixel(lat, lon, geotransform):
-    # FUNCTION TO CONVERT GEOGRAPHIC COORDINATE TO PIXEL COORDINATE
+    radians = math.radians(degrees)
     
-    mylog = make_log()
+    # Calculate the x and y components of the vector
+    x = math.cos(radians)
+    y = math.sin(radians)
     
-    try:
-        inv_geotransform = gdal.InvGeoTransform(geotransform)
-        x, y = gdal.ApplyGeoTransform(inv_geotransform, lon, lat)
-        x_int = int(x + 0.5)  # Round to the nearest integer
-        y_int = int(y + 0.5)  # Round to the nearest integer
-        mylog.info("geo_to_pixel successful")
-        return x_int, y_int
-    except Exception as e:
-        mylog.critical(f"Error in geo_to_pixel(): {e}")
-        return None, None
+    # Normalize the vector
+    vector_length = math.sqrt(x**2 + y**2)
+    normalized_x = x / vector_length
+    normalized_y = y / vector_length
+    
+    return normalized_x, normalized_y
 
+# FUNCTION TO CALCULATE DISTANCE BETWEEN TWO POINTS ON A GLOBE USING HAVERSINE 
 def calculate_distance(lat1, lon1, lat2, lon2):
-    # Convert latitude and longitude from degrees to radians
-    
+        
     mylog = make_log()
     
     try:
@@ -132,8 +97,8 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         mylog.critical(f"Error in calculate_distance(): {e}")
         return None
 
+# FUNCTION TO EXTRACT THE DATA, METADATA, AND TRANSFORM INFORMATION FROM TIFF FILE 
 def extract_tiff(tiff_file):
-    # FUNCTION WILL EXTRACT THE DATA, METADATA, AND TRANSFORM INFORMATION FROM TIFF FILE 
     
     mylog = make_log()
     
@@ -150,11 +115,66 @@ def extract_tiff(tiff_file):
             
             return img,metadata,transform
     except Exception as e:
-        mylog.critical(f"Error in calculate_distance(): {e}")
+        mylog.critical(f"Error in extract_tiff(): {e}")
         return None,None,None
 
+# FUNCTION TO EXTRACT THE TRANFORMATION MATRIX FROM TIFF FILE
+def extract_transformation(file_name):
+    
+    mylog = make_log()
+     
+    try:
+        dataset = gdal.Open(file_name)
+        if dataset is None:
+            mylog.critical(f"Unable to open the file --> {file_name} <-- . Double-check spelling.")
+            return None
+        else:
+            mylog.info(f"File {file_name} imported successfully")
+            
+        try:
+            geotransform = dataset.GetGeoTransform()
+            mylog.info("extract_transformation() sucessful ")
+            return geotransform
+        except Exception as e:
+            mylog.critical(f"Error while getting geotransform: {e}")
+            return None
+        
+    except Exception as e:
+        mylog.critical(f"Exception occurred: {e}")
+        return None
+
+# FUNCTION TO CONVERT PIXEL COORDINATE TO GEOGRAPHIC COORDINATE
+def pixel_to_geo(x, y, geotransform):
+    
+    mylog = make_log()
+
+    try:
+        lon = geotransform[0] + x * geotransform[1] + y * geotransform[2]
+        lat = geotransform[3] + x * geotransform[4] + y * geotransform[5]
+        mylog.info("pixel_to_geo() sucessful ")
+        return lat, lon
+    except Exception as e:
+        mylog.critical(f"Error in pixel_to_geo(): {e}")
+        return None,None
+
+# FUNCTION TO CONVERT GEOGRAPHIC COORDINATE TO PIXEL COORDINATE
+def geo_to_pixel(lat, lon, geotransform):
+    
+    mylog = make_log()
+    
+    try:
+        inv_geotransform = gdal.InvGeoTransform(geotransform)
+        x, y = gdal.ApplyGeoTransform(inv_geotransform, lon, lat)
+        x_int = int(x + 0.5)  # Round to the nearest integer
+        y_int = int(y + 0.5)  # Round to the nearest integer
+        mylog.info("geo_to_pixel successful")
+        return x_int, y_int
+    except Exception as e:
+        mylog.critical(f"Error in geo_to_pixel(): {e}")
+        return None, None
+
+# FUNCTION TO EXTRACT DEPTH THRESHOLDED TO SOME VALUE TO MAKE THE ARRAY AND SUBSEQUENT SHORELINE EXTRACTION CLEANER
 def clean_depth(depth_tiff, threshold):
-    # EXTRACT DEPTH THRESHOLDED TO SOME VALUE TO MAKE THE ARRAY AND SUBSEQUENT SHORELINE EXTRACTION CLEANER
     
     mylog = make_log()
     
@@ -167,8 +187,8 @@ def clean_depth(depth_tiff, threshold):
         mylog.critical(f"Error in clean_depth(): {e}")
         return None
     
+# FUNCTION TO EXTRACT ALL THE BOUNDARIES (AKA SHORELINES) IN THE IMAGE
 def extract_all_shoreline(depth,trs):
-    # FUNCTION WILL EXTRACT ALL THE BOUNDARIES (AKA SHORELINES) IN THE IMAGE
     
     mylog = make_log()
     
@@ -186,9 +206,9 @@ def extract_all_shoreline(depth,trs):
     except Exception as e:
         mylog.critical(f"Error in extract_all_shoreline(): {e}")
         return None
-        
+
+# FUNCTION TO EXTRACT JUST THE LONGEST BOUNDARY (AKA SHORELINE) IN THE IMAGE
 def extract_main_shoreline(depth,trs):
-    # FUNCTION WILL EXTRACT JUST THE LONGEST BOUNDARY (AKA SHORELINE) IN THE IMAGE
     
     mylog = make_log()
     
@@ -211,9 +231,9 @@ def extract_main_shoreline(depth,trs):
     except Exception as e:
         mylog.critical(f"Error in extract_main_shoreline(): {e}")
         return None,None,None
-        
+
+# FUNCTION TO ZERO OUT ALL THE DEPTH INFORMATION OUTSIDE THE MAIN SHORELINE         
 def zero_outside_basin(depth,shore,trs): 
-    # FUNCTION WILL ZERO OUT ALL THE DEPTH INFORMATION OUTSIDE THE MAIN SHORELINE 
     
     mylog = make_log()
     
@@ -251,8 +271,8 @@ def zero_outside_basin(depth,shore,trs):
         mylog.critical(f"Error in zero_outside_basin(): {e}")
         return None
 
+# FUNCTION TO FIND ALL THE BOUNDARIES (AKA SHORELINES FOR ISLANDS) WITHIN THE MAIN BASIN
 def find_islands(depth,trs):
-    # FUNCTION WILL FIND ALL THE BOUNDARIES (AKA SHORELINES FOR ISLANDS) WITHIN THE MAIN BASIN
     
     mylog = make_log()
     
@@ -277,31 +297,14 @@ def find_islands(depth,trs):
     except Exception as e:
         mylog.critical(f"Error in find_island(): {e}")
         return None
-    
-
-def degrees_to_vector(degrees):
-    # Convert degrees to radians
-    
-    radians = math.radians(degrees)
-    
-    # Calculate the x and y components of the vector
-    x = math.cos(radians)
-    y = math.sin(radians)
-    
-    # Normalize the vector
-    vector_length = math.sqrt(x**2 + y**2)
-    normalized_x = x / vector_length
-    normalized_y = y / vector_length
-    
-    return normalized_x, normalized_y
-    
+        
+# FUNCTION WILL FIND THE FETCH FROM THE BUOY TO THE NEAREST SHORELINE IN SPECIFIED DIRECTION    
+# NOTE: only works for cardinal directions
 def grid_calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): # 
-    # FUNCTION WILL FIND THE FETCH FROM THE BUOY TO THE NEAREST SHORELINE IN SPECIFIED DIRECTION
-    # only works for cardinal directions
-    
+
     my_log = make_log()
     
-    mylog.debug("grid_calculate_fetch() only works for cardinal direction. Need true ray casting for fetch calculation")
+    mylog.warning("grid_calculate_fetch() only works for cardinal direction. Need true ray casting for fetch calculation")
     
     try:
         xb,yb = geo_to_pixel(buoy_lonlat[1],buoy_lonlat[0],geotransform)
@@ -340,63 +343,7 @@ def grid_calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): #
         mylog.critical(f"Error in grid_calculate_fetch(): {e}")
         return None
 
-def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
-    # FUNCTION WILL PLOT THE LAKE, THE MAIN SHORELINE, AND BUOY LOCATION
-
-    # Plot the first band of the multiband image
-    plt.figure(figsize=(8, 8))
-    img_plot = plt.imshow(img[0],
-            extent=[transform[2], transform[2] + transform[0] * img.shape[2],transform[5] + transform[4] * img.shape[1], transform[5]],
-            cmap='viridis') 
-    
-    plt.scatter(buoy_loc[0],buoy_loc[1],color='red', marker='o', s=100) 
-    plt.scatter(fetch_loc[0],fetch_loc[1],color='blue', marker='o', s=100)
-    plt.annotate('', xy=buoy_loc, xytext=fetch_loc, arrowprops=dict(arrowstyle='->', color='black'))   
-     
-    plt.plot(shoreline[0],shoreline[1],linewidth=2,color='black')
-    for i in islands:
-        lon, lat = transform * (i[:, 1], i[:, 0])
-        plt.plot(lon,lat,linewidth=2,color='black')
-
-    # plot details
-    cbar = plt.colorbar(img_plot,orientation='horizontal')
-    cbar.set_label('Depth [m]')  # Set your colorbar label here
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
-    plt.title('Lake Superior')
-    plt.grid(True)
-    plt.show()
-    
-def find_fetch(buoy,wind_dir):
-    # CALCULATE THE FETCH AND INTERSECTION POINT WITH THE SHORELINE FROM THE BUOY FOR A GIVEN WIND DIRECTION
-    
-    mylog = make_log()
-    
-    ploton = True
-    
-    blat = buoy[0]#47.585
-    blon = buoy[1]#-86.585
-        
-    depth_file = 'LS.tiff'  # lake superior bathy data from noaa
-
-    # RUN CALCULATIONS TO FIND FETCH FOR BUOY GIVEN WIND DIRECTION AND MAKE PLOT
-    LS,LSm,LSt = extract_tiff(depth_file)
-    geo_trs = extract_transformation(depth_file)
-    depth = clean_depth(LS,-10)
-    main_shore = extract_main_shoreline(depth,LSt)
-    dd = zero_outside_basin(depth,main_shore[2],LSt)
-    ii = find_islands(dd,LSt)
-    #f_dist,flat,flon = grid_calculate_fetch([blon,blat],dd,geo_trs,wind_dir)
-    #print(f"{f_dist/1000} kilometers")
-    mylog.error("Cannot calculate fetch yet. Ray casting is not working")
-    #f_dist,flat,flon = ray_casting() # <---- not workiung
-    
-    if ploton:
-        plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat])
-        
-
-    return f_dist
-
+# FUNCTION TO FIND FETCH USING RAY CASTING
 def ray_casting(vRayStart,direction_deg,depth):
     
     # DDA Algorithm based on 
@@ -441,10 +388,10 @@ def ray_casting(vRayStart,direction_deg,depth):
     fMaxDistance = max(vMapSize)
     fDistance = 0.
     
-    mylog.debug(vMapCheck[1])
-    mylog.debug(vMapSize[0])
-    mylog.debug(vMapCheck[0])
-    mylog.debug(vecMap[vMapCheck[1] * vMapSize[0] + vMapCheck[0]])
+    print(vMapCheck[1])
+    print(vMapSize[0])
+    print(vMapCheck[0])
+    print(vecMap[vMapCheck[1] * vMapSize[0] + vMapCheck[0]])
     
     return 
     
@@ -474,7 +421,72 @@ def ray_casting(vRayStart,direction_deg,depth):
 
 
     return vIntersection, fDistance
+
+# FUNCTION TO CALCULATE THE FETCH AND INTERSECTION POINT WITH THE SHORELINE FROM THE BUOY FOR A GIVEN WIND DIRECTION
+def find_fetch(buoy,wind_dir):
     
+    mylog = make_log()
+    
+    ploton = True
+    
+    blat = buoy[0]#47.585
+    blon = buoy[1]#-86.585
+        
+    depth_file = 'LS.tiff'  # lake superior bathy data from noaa
+
+    # RUN CALCULATIONS TO FIND FETCH FOR BUOY GIVEN WIND DIRECTION AND MAKE PLOT
+    LS,LSm,LSt = extract_tiff(depth_file)
+    geo_trs = extract_transformation(depth_file)
+    depth = clean_depth(LS,-10)
+    main_shore = extract_main_shoreline(depth,LSt)
+    dd = zero_outside_basin(depth,main_shore[2],LSt)
+    ii = find_islands(dd,LSt)
+    #f_dist,flat,flon = grid_calculate_fetch([blon,blat],dd,geo_trs,wind_dir)
+    #print(f"{f_dist/1000} kilometers")
+    mylog.error("Cannot calculate fetch yet. Ray casting is not working")
+    #f_dist,flat,flon = ray_casting() # <---- not workiung
+    
+    if ploton:
+        plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat])
+        
+
+    return f_dist
+    
+def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
+    # FUNCTION WILL PLOT THE LAKE, THE MAIN SHORELINE, AND BUOY LOCATION
+
+    # Plot the first band of the multiband image
+    plt.figure(figsize=(8, 8))
+    img_plot = plt.imshow(img[0],
+            extent=[transform[2], transform[2] + transform[0] * img.shape[2],transform[5] + transform[4] * img.shape[1], transform[5]],
+            cmap='viridis') 
+    
+    plt.scatter(buoy_loc[0],buoy_loc[1],color='red', marker='o', s=100) 
+    plt.scatter(fetch_loc[0],fetch_loc[1],color='blue', marker='o', s=100)
+    plt.annotate('', xy=buoy_loc, xytext=fetch_loc, arrowprops=dict(arrowstyle='->', color='black'))   
+     
+    plt.plot(shoreline[0],shoreline[1],linewidth=2,color='black')
+    for i in islands:
+        lon, lat = transform * (i[:, 1], i[:, 0])
+        plt.plot(lon,lat,linewidth=2,color='black')
+
+    # plot details
+    cbar = plt.colorbar(img_plot,orientation='horizontal')
+    cbar.set_label('Depth [m]')  # Set your colorbar label here
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    plt.title('Lake Superior')
+    plt.grid(True)
+    plt.show()
+
+# MAIN FUNCTION: 
+#   INPUTS: 
+#       (1) BUOY LOCATION
+#       (2) BATHYMETRY OF GIVEN LAKE
+#       (3) WIND DIRECTION
+#   OUTPUTS: 
+#       (1) FETCH (aka DISTANCE)
+#       (2) INTERSECTION POINT WITH NEAREST SHORELINE
 def main():
 
     station = 45004 # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
@@ -482,9 +494,6 @@ def main():
     if station == 45004:
         buoy_lat = 47.585
         buoy_lon = -86.585
-
-    #wind_direction = (1,0) # < -------------------------------------------- problem here! This is quantize so won't work in most directions
-    #fetch_m = find_fetch([buoy_lat,buoy_lon],wind_direction)
 
     depth_file = 'LS.tiff' 
     LS,LSm,LSt = extract_tiff(depth_file)
@@ -497,7 +506,7 @@ def main():
     wind_dir = 190
     bx,by = geo_to_pixel(buoy_lat, buoy_lon, geo_trs)
     ray_casting([bx,by],wind_dir,dd)
-
+    
 
 if __name__ == '__main__':
     main() 
