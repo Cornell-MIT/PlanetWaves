@@ -1,70 +1,71 @@
 #!/usr/bin/env python3
 
-import sys
-import rasterio
-import pandas as pd
-import numpy as np
-import math
 import logging
-import colorlog
-import scipy.ndimage as ndimage
+import sys
 
-from skimage import measure
+from math import radians, sin, cos, sqrt, atan2
 from matplotlib import pyplot as plt
 from osgeo import gdal, osr
-from math import radians, sin, cos, sqrt, atan2
+from skimage import measure
+
+import colorlog
+import numpy as np
+import pandas as pd
+import rasterio
+import scipy.ndimage as ndimage
+
 
 '''
 find_fetch.py: 
 
     Find the fetch to a buoy station given the bathymetry 
-    of a lake (.tiff) for any arbitrary direction.
+    of a lake (.tiff) for any arbitrary wind direction.
 
 Author: Una Schneck (schneck.una@gmail.com)
 
 '''
 
+#####################################################################################################
+#####################################################################################################
+## LOGGING FUNCTIONS
+
 # Define log_level as a global variable
 log_level = logging.DEBUG
 
 # FUNCTION TO SET UP CUSTOM LOGGING
-def setup_custom_logger():
+def make_log():
     
     global log_level
     
-    logger = logging.getLogger("LOGGING")
+    logger = logging.getLogger(__name__)
 
     logger.setLevel(log_level)
 
     if not logger.handlers:
         stdout = colorlog.StreamHandler(stream=sys.stdout)
         fmt = colorlog.ColoredFormatter(
-            "%(name)s: %(white)s%(asctime)s%(reset)s | %(log_color)s%(levelname)s%(reset)s | %(blue)s%(filename)s:%(lineno)s%(reset)s | %(process)d >>> %(log_color)s%(message)s%(reset)s"
+            "%(name)s: %(white)s%(asctime)s%(reset)s | %(log_color)s%(levelname)s%(reset)s | %(blue)s%(filename)s:%(lineno)s%(reset)s  >>> %(log_color)s%(message)s%(reset)s"
         )
         stdout.setFormatter(fmt)
         logger.addHandler(stdout)
 
     return logger
 
-# FUNCTION TO INSTANTIATE LOGGING FILE
-def make_log():
-    
-    global log_level
-    mylog = setup_custom_logger()
-    
-    return mylog
+#####################################################################################################
+#####################################################################################################
+## HELPER FUNCTIONS
 
 # FUNCTION TO CONVERT DEGREES INTO A NORMALIZED VECTOR
 def degrees_to_vector(degrees):
     
-    radians = math.radians(degrees)
+    radians = radians(degrees)
     
     # Calculate the x and y components of the vector
-    x = math.cos(radians)
-    y = math.sin(radians)
+    x = cos(radians)
+    y = sin(radians)
     
     # Normalize the vector
-    vector_length = math.sqrt(x**2 + y**2)
+    vector_length = sqrt(x**2 + y**2)
     normalized_x = x / vector_length
     normalized_y = y / vector_length
     
@@ -91,11 +92,15 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         distance = radius_earth * c  # Distance in kilometers
         distance = distance*1000 # DIstance in meters
         
-        mylog.info("calculate_distance() sucessful")
+        mylog.info(f"{calculate_distance.__name__} ran successfully")
         return distance 
     except Exception as e:
         mylog.critical(f"Error in calculate_distance(): {e}")
         return None
+
+#####################################################################################################
+#####################################################################################################
+## TIFF FILE FUNCTIONS
 
 # FUNCTION TO EXTRACT THE DATA, METADATA, AND TRANSFORM INFORMATION FROM TIFF FILE 
 def extract_tiff(tiff_file):
@@ -111,7 +116,7 @@ def extract_tiff(tiff_file):
             metadata = src.meta
             transform = src.transform
             
-            mylog.info("extract_tiff() succesful")
+            mylog.info(f"{extract_tiff.__name__} ran successfully")
             
             return img,metadata,transform
     except Exception as e:
@@ -129,11 +134,11 @@ def extract_transformation(file_name):
             mylog.critical(f"Unable to open the file --> {file_name} <-- . Double-check spelling.")
             return None
         else:
-            mylog.info(f"File {file_name} imported successfully")
+            mylog.info(f"File <{file_name}> imported successfully")
             
         try:
             geotransform = dataset.GetGeoTransform()
-            mylog.info("extract_transformation() sucessful ")
+            mylog.info(f"{extract_transformation.__name__} ran successfully")
             return geotransform
         except Exception as e:
             mylog.critical(f"Error while getting geotransform: {e}")
@@ -151,7 +156,7 @@ def pixel_to_geo(x, y, geotransform):
     try:
         lon = geotransform[0] + x * geotransform[1] + y * geotransform[2]
         lat = geotransform[3] + x * geotransform[4] + y * geotransform[5]
-        mylog.info("pixel_to_geo() sucessful ")
+        mylog.info(f"{pixel_to_geo.__name__} ran successfully")
         return lat, lon
     except Exception as e:
         mylog.critical(f"Error in pixel_to_geo(): {e}")
@@ -167,11 +172,15 @@ def geo_to_pixel(lat, lon, geotransform):
         x, y = gdal.ApplyGeoTransform(inv_geotransform, lon, lat)
         x_int = int(x + 0.5)  # Round to the nearest integer
         y_int = int(y + 0.5)  # Round to the nearest integer
-        mylog.info("geo_to_pixel successful")
+        mylog.info(f"{geo_to_pixel.__name__} ran successfully")
         return x_int, y_int
     except Exception as e:
         mylog.critical(f"Error in geo_to_pixel(): {e}")
         return None, None
+
+#####################################################################################################
+#####################################################################################################
+## SHORELINE AND DEPTH FUNCTIONS
 
 # FUNCTION TO EXTRACT DEPTH THRESHOLDED TO SOME VALUE TO MAKE THE ARRAY AND SUBSEQUENT SHORELINE EXTRACTION CLEANER
 def clean_depth(depth_tiff, threshold):
@@ -181,7 +190,7 @@ def clean_depth(depth_tiff, threshold):
     try:
         depth = depth_tiff[0] # multiband for some reason? only look at first band
         depth = (depth < threshold).astype(int) # zero out shallow depths to make shoreline cleaner        
-        mylog.info("clean_depth() sucessful")
+        mylog.info(f"{clean_depth.__name__} ran successfully")
         return depth
     except Exception as e:
         mylog.critical(f"Error in clean_depth(): {e}")
@@ -201,7 +210,7 @@ def extract_all_shoreline(depth,trs):
             for c in shore:
                 lon, lat = trs * (c[:, 1], c[:, 0])
                 plt.plot(lon,lat,linewidth=2,color='black')
-
+        mylog.info(f"{extract_all_shoreline.__name__} ran successfully")
         return shore
     except Exception as e:
         mylog.critical(f"Error in extract_all_shoreline(): {e}")
@@ -226,7 +235,7 @@ def extract_main_shoreline(depth,trs):
          #   plt.plot(lon2,lat2,linewidth=2,color='green')
             plt.title('shorelines')
             plt.show()
-        mylog.info("extract_main_shoreline() sucessful")
+        mylog.info(f"{extract_main_shoreline.__name__} ran successfully")
         return lon1,lat1,main_shore
     except Exception as e:
         mylog.critical(f"Error in extract_main_shoreline(): {e}")
@@ -265,7 +274,7 @@ def zero_outside_basin(depth,shore,trs):
             
             plt.tight_layout()
             plt.show()
-        mylog.info("zero_outside_basin() sucessful")
+        mylog.info(f"{zero_outside_basin.__name__} ran successfully")
         return depth_inside
     except Exception as e:
         mylog.critical(f"Error in zero_outside_basin(): {e}")
@@ -292,19 +301,23 @@ def find_islands(depth,trs):
                 plt.plot(lon,lat,linewidth=2,color='red')
             plt.title('islands within lake')
             plt.show()
-        mylog.info("find_island() successful")
+        mylog.info(f"{find_islands.__name__} ran successfully")
         return islands
     except Exception as e:
-        mylog.critical(f"Error in find_island(): {e}")
+        mylog.critical(f"Error in {find_islands.__name__}: {e}")
         return None
-        
+
+#####################################################################################################
+#####################################################################################################
+## FETCH FUNCTIONS
+
 # FUNCTION WILL FIND THE FETCH FROM THE BUOY TO THE NEAREST SHORELINE IN SPECIFIED DIRECTION    
 # NOTE: only works for cardinal directions
 def grid_calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): # 
 
     my_log = make_log()
     
-    mylog.warning("grid_calculate_fetch() only works for cardinal direction. Need true ray casting for fetch calculation")
+    mylog.warning(f"{grid_calculate_fetch.__name__} only works for cardinal direction. Need true ray casting for fetch calculation")
     
     try:
         xb,yb = geo_to_pixel(buoy_lonlat[1],buoy_lonlat[0],geotransform)
@@ -340,87 +353,60 @@ def grid_calculate_fetch(buoy_lonlat,depth_binary,geotransform,direction): #
             else:
                 whileCount = whileCount + 1
     except Exception as e:
-        mylog.critical(f"Error in grid_calculate_fetch(): {e}")
+        mylog.critical(f"Error in {grid_calculate_fetch.__name__}: {e}")
         return None
 
 # FUNCTION TO FIND FETCH USING RAY CASTING
-def ray_casting(vRayStart,direction_deg,depth):
+def dda_ray_casting(start_pt,direction_deg,depth):
     
-    # DDA Algorithm based on 
-    # https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_RayCastDDA.cpp
+    # DDA Algorithm for ray casting 
+    # https://en.wikipedia.org/wiki/Digital_differential_analyzer_(graphics_algorithm)
     
     mylog = make_log()
     
-    mylog.debug("DDA ray casting is not working yet. Need to debug here.")
+    depth = np.where(depth == 1, 0, 1)  # invert so that shores are 1s and liquid is 0
+        
+    x_start = start_pt[0]
+    y_start = start_pt[1]
+
+    max_fetch = sqrt(depth.shape[0]**2 + depth.shape[1]**2)
     
-    vMapCheck = vRayStart
-    vecMap = np.where(depth == 1, 0, 1) # invert so that shores are 1s and liquid is 0
-    vMapSize = depth.shape
+    x_end = x_start + max_fetch * cos(radians(direction_deg))
+    y_end = y_start + max_fetch * sin(radians(direction_deg))
     
-    vRayDir = degrees_to_vector(direction_deg)
+    dx = x_end - x_start
+    dy = y_end - y_start
     
-    if vRayDir[0] != 0 and vRayDir[1] != 0:
-        vRayUnitStepSize = [ sqrt(1 + (vRayDir[1] / vRayDir[0]) * (vRayDir[1] / vRayDir[0])), sqrt(1 + (vRayDir[0] / vRayDir[1]) * (vRayDir[0] / vRayDir[1])) ];
-    else:
-        vRayUnitStepSize = vRayDir
+    steps = int(abs(dx)) if abs(dx) > abs(dy) else int(abs(dy))
+
+    x_increment = dx / steps
+    y_increment = dy / steps
+
+    x = x_start
+    y = y_start
+
+    grid_collision_point = None
+    distance = 0
+    
+    for _ in range(steps):
+        x += x_increment
+        y += y_increment
+
+        x_rounded = round(x)
+        y_rounded = round(y)
+
+        # Check if the line has hit a boundary in the array
+        if not (0 <= x_rounded < depth.shape[1]) or not (0 <= y_rounded < depth.shape[0]):
+            mylog.warning(f"{dda_ray_casting.__name__}:  no collision point found")
+            return None
+
+        if depth[y_rounded][x_rounded]:
+            grid_collision_point = (x_rounded, y_rounded)
+            mylog.info(f"{dda_ray_casting.__name__}:  collision point found")
+            mylog.info(f"{dda_ray_casting.__name__} ran successfully")
+            break
             
-    vMapCheck = vRayStart
-    vRayLength1D = [0, 0]
-    vStep = [0, 0]
-
-    # Establish Starting Conditions
-    if vRayDir[0] < 0:
-        vStep[0] = -1
-        vRayLength1D[0] = (vRayStart[0] - float(vMapCheck[0])) * vRayUnitStepSize[0]
-    else:
-        vStep[0] = 1
-        vRayLength1D[0] = (float(vMapCheck[0] + 1) - vRayStart[0]) * vRayUnitStepSize[0]
-
-    if vRayDir[1] < 0:
-        vStep[1] = -1
-        vRayLength1D[1] = (vRayStart[1] - float(vMapCheck[1])) * vRayUnitStepSize[1]
-    else:
-        vStep[1] = 1
-        vRayLength1D[1] = (float(vMapCheck[1] + 1) - vRayStart[1]) * vRayUnitStepSize[1]
-
-    # Perform "Walk" until collision or range check
-    bTileFound = False
-    fMaxDistance = max(vMapSize)
-    fDistance = 0.
-    
-    print(vMapCheck[1])
-    print(vMapSize[0])
-    print(vMapCheck[0])
-    print(vecMap[vMapCheck[1] * vMapSize[0] + vMapCheck[0]])
-    
-    return 
-    
-    while not bTileFound and fDistance < fMaxDistance:
-        # Walk along shortest path
-        if vRayLength1D[0] < vRayLength1D[1]:
-            vMapCheck[0] += vStep[0]
-            fDistance = vRayLength1D[0]
-            vRayLength1D[0] += vRayUnitStepSize[0]
-        else:
-            vMapCheck[1] += vStep[1]
-            fDistance = vRayLength1D[1]
-            vRayLength1D[1] += vRayUnitStepSize[1]
-
-        # Test tile at new test point
-        if (
-            0 <= vMapCheck[0] < vMapSize[0]
-            and 0 <= vMapCheck[1] < vMapSize[1]
-            and vecMap[vMapCheck[1] * vMapSize[0] + vMapCheck[0]] == 1
-        ):
-            bTileFound = True
-
-    # Calculate intersection location
-    vIntersection = None
-    if bTileFound:
-        vIntersection = [vRayStart[0] + vRayDir[0] * fDistance, vRayStart[1] + vRayDir[1] * fDistance]
-
-
-    return vIntersection, fDistance
+    return grid_collision_point
 
 # FUNCTION TO CALCULATE THE FETCH AND INTERSECTION POINT WITH THE SHORELINE FROM THE BUOY FOR A GIVEN WIND DIRECTION
 def find_fetch(buoy,wind_dir):
@@ -448,11 +434,14 @@ def find_fetch(buoy,wind_dir):
     
     if ploton:
         plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat])
-        
 
     return f_dist
+
+#####################################################################################################
+#####################################################################################################
+## PLOTTING RESULTS FUNCTIONS
     
-def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
+def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc,fetch_dist,wind_dir):
     # FUNCTION WILL PLOT THE LAKE, THE MAIN SHORELINE, AND BUOY LOCATION
 
     # Plot the first band of the multiband image
@@ -462,7 +451,7 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
             cmap='viridis') 
     
     plt.scatter(buoy_loc[0],buoy_loc[1],color='red', marker='o', s=100) 
-    plt.scatter(fetch_loc[0],fetch_loc[1],color='blue', marker='o', s=100)
+    plt.scatter(fetch_loc[0],fetch_loc[1],color='magenta', marker='o', s=100)
     plt.annotate('', xy=buoy_loc, xytext=fetch_loc, arrowprops=dict(arrowstyle='->', color='black'))   
      
     plt.plot(shoreline[0],shoreline[1],linewidth=2,color='black')
@@ -475,9 +464,14 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc):
     cbar.set_label('Depth [m]')  # Set your colorbar label here
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    plt.title('Lake Superior')
+    plt.title(f'Lake Superior\nWind Direction: {wind_dir}, Fetch : {fetch_dist}')
     plt.grid(True)
+    plt.savefig(f'Lake_Superior_{wind_dir}deg.jpg', format='jpg')
     plt.show()
+    
+#####################################################################################################
+#####################################################################################################
+## MAIN FUNCTION
 
 # MAIN FUNCTION: 
 #   INPUTS: 
@@ -492,8 +486,8 @@ def main():
     station = 45004 # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
 
     if station == 45004:
-        buoy_lat = 47.585
-        buoy_lon = -86.585
+        blat = 47.585
+        blon = -86.585
 
     depth_file = 'LS.tiff' 
     LS,LSm,LSt = extract_tiff(depth_file)
@@ -501,13 +495,17 @@ def main():
     depth = clean_depth(LS,-10)
     main_shore = extract_main_shoreline(depth,LSt)
     dd = zero_outside_basin(depth,main_shore[2],LSt)
+    ii = find_islands(dd,LSt)
     
+    wind_dir = 360
+    bx,by = geo_to_pixel(blat, blon, geo_trs)
+    dda_pt = dda_ray_casting([bx,by],wind_dir,dd)
     
-    wind_dir = 190
-    bx,by = geo_to_pixel(buoy_lat, buoy_lon, geo_trs)
-    ray_casting([bx,by],wind_dir,dd)
+    flat,flon = pixel_to_geo(dda_pt[0],dda_pt[1],geo_trs)
     
-
+    fetch_dist = calculate_distance(blat,blon,flat,flon)
+    
+    plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat],round(fetch_dist/1000,2),wind_dir)
 if __name__ == '__main__':
     main() 
     
