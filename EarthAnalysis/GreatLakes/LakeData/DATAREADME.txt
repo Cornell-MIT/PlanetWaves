@@ -1,3 +1,2 @@
-https://shoreline.noaa.gov/data/datasheets/medres.html
-https://www.ncei.noaa.gov/products/great-lakes-bathymetry
-https://www.ncei.noaa.gov/maps/grid-extract/
+BATHYMETRY DATA CAME FROM HERE: 
+https://www.ncei.noaa.gov/products/great-lakes-bathymetry (aka https://www.ncei.noaa.gov/maps/grid-extract/)

@@ -2,6 +2,7 @@
 
 import csv
 import logging
+import os
 import sys
 
 from alive_progress import alive_bar
@@ -549,7 +550,7 @@ def main():
     
     if station == 45004:
         buoy_of_interest = Buoy(47.585, -86.585,"Lake Superior")
-        mylog.warning('implement classes in main for other buoys')
+        mylog.warning('Note to self: implement classes in main for other buoys')
         blat = 47.585
         blon = -86.585
         lakename = "Lake Superior"
@@ -559,9 +560,20 @@ def main():
         
     print(f"Calculating fetch for {len(winds)} directions at station {station} in {lakename}")
 
-    depth_file = 'LS.tiff' 
-    csv_filename = 'WindFetchLS.csv'
+    here = os.getcwd()
+    depth_file_name = "LS.tiff"
+    depth_file = os.path.join(here,"LakeData",depth_file_name)  
     
+    if os.path.exists(depth_file):
+        mylog.info(f"{depth_file_name} successfully found")
+    else:
+        mylog.critical(f"{depth_file_name} not found. Check file location.")
+        return
+    
+    csv_filename = 'WindFetchLS.csv'
+    csv_file = os.path.join(here,"LakeData",csv_filename)  
+    
+   
     bx,by,dd,geo_trs,blat,blon,LS,LSm,LSt,main_shore,ii = loop_thru_direction(depth_file,blat, blon)
     wind_fetch,flat,flon,fetch_dist = make_table(bx,by,winds,dd,geo_trs,blat,blon)
     write_to_csv(csv_filename,wind_fetch)
