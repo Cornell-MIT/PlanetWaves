@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import csv
 import logging
 import sys
 
+from alive_progress import alive_bar
 from math import radians, sin, cos, sqrt, atan2
 from matplotlib import pyplot as plt
 from osgeo import gdal, osr
@@ -30,7 +32,7 @@ Author: Una Schneck (schneck.una@gmail.com)
 ## LOGGING FUNCTIONS
 
 # Define log_level as a global variable
-log_level = logging.DEBUG
+log_level = logging.WARNING
 
 # FUNCTION TO SET UP CUSTOM LOGGING
 def make_log():
@@ -51,6 +53,16 @@ def make_log():
 
     return logger
 
+#####################################################################################################
+#####################################################################################################
+# CLASSES
+
+class Buoy:
+    def __init__(self, lat, lon, lakename):
+        self.lat = lat
+        self.lon = lon
+        self.lakename = lakename
+        
 #####################################################################################################
 #####################################################################################################
 ## HELPER FUNCTIONS
@@ -87,7 +99,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         dlat = lat2 - lat1
         a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        radius_earth = 6371  # Radius of the Earth in kilometers
+        radius_earth = 6371.009  # Radius of the Earth in kilometers
 
         distance = radius_earth * c  # Distance in kilometers
         distance = distance*1000 # DIstance in meters
@@ -364,6 +376,8 @@ def dda_ray_casting(start_pt,direction_deg,depth):
     
     mylog = make_log()
     
+    direction_deg = direction_deg%360
+    
     depth = np.where(depth == 1, 0, 1)  # invert so that shores are 1s and liquid is 0
         
     x_start = start_pt[0]
@@ -408,6 +422,7 @@ def dda_ray_casting(start_pt,direction_deg,depth):
             
     return grid_collision_point
 
+
 # FUNCTION TO CALCULATE THE FETCH AND INTERSECTION POINT WITH THE SHORELINE FROM THE BUOY FOR A GIVEN WIND DIRECTION
 def find_fetch(buoy,wind_dir):
     
@@ -437,11 +452,48 @@ def find_fetch(buoy,wind_dir):
 
     return f_dist
 
+def loop_thru_direction(depth_file,blat, blon):
+    
+    LS,LSm,LSt = extract_tiff(depth_file)
+    geo_trs = extract_transformation(depth_file)
+    depth = clean_depth(LS,-10)
+    main_shore = extract_main_shoreline(depth,LSt)
+    dd = zero_outside_basin(depth,main_shore[2],LSt)
+    ii = find_islands(dd,LSt)
+    bx,by = geo_to_pixel(blat, blon, geo_trs)
+    
+    return bx,by,dd,geo_trs,blat,blon,LS,LSm,LSt,main_shore,ii
+        
+def make_table(bx,by,winds,dd,geo_trs,blat,blon):
+    
+    wind_fetch = {}
+  
+    with alive_bar(len(winds),bar='smooth') as bar: 
+        for wind_dir in winds:
+            dda_pt = dda_ray_casting([bx,by],wind_dir,dd)
+            flat,flon = pixel_to_geo(dda_pt[0],dda_pt[1],geo_trs)
+            fetch_dist = calculate_distance(blat,blon,flat,flon)
+            wind_fetch[wind_dir] = fetch_dist
+            bar()
+    
+    return wind_fetch,flat,flon,fetch_dist 
+
+def write_to_csv(csv_filename,wind_fetch):
+
+    # Writing the dictionary to a CSV file
+    with open(csv_filename, 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['Wind [deg]', 'Fetch [m]'])  # Header row
+        for key, value in wind_fetch.items():
+            writer.writerow([key, value])
+    
+    print(f'Fetch table saved to: {csv_filename}')
+    
 #####################################################################################################
 #####################################################################################################
 ## PLOTTING RESULTS FUNCTIONS
     
-def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc,fetch_dist,wind_dir):
+def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc,fetch_dist,wind_dir,lakename):
     # FUNCTION WILL PLOT THE LAKE, THE MAIN SHORELINE, AND BUOY LOCATION
 
     # Plot the first band of the multiband image
@@ -464,9 +516,9 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc,fetch_
     cbar.set_label('Depth [m]')  # Set your colorbar label here
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
-    plt.title(f'Lake Superior\nWind Direction: {wind_dir}, Fetch : {fetch_dist}')
+    plt.title(f'{lakename}\nWind Direction: {wind_dir} deg, Fetch : {fetch_dist} km')
     plt.grid(True)
-    plt.savefig(f'Lake_Superior_{wind_dir}deg.jpg', format='jpg')
+    #plt.savefig(f'Lake_Superior_{wind_dir}deg.jpg', format='jpg')
     plt.show()
     
 #####################################################################################################
@@ -483,29 +535,39 @@ def plot_lake(img,metadata,transform,buoy_loc,shoreline,islands,fetch_loc,fetch_
 #       (2) INTERSECTION POINT WITH NEAREST SHORELINE
 def main():
 
-    station = 45004 # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
-
+    mylog = make_log()
+##########################################################################
+# MAIN INPUTS
+    #wind_dir = 360
+    station = 45004
+    winds = list(range(0, 359, 1))
+    
+    # Station 45004 (East Superior) https://www.ndbc.noaa.gov/station_history.php?station=45004
+###########################################################################
+# RUN CALCULATION
+  
+    
     if station == 45004:
+        buoy_of_interest = Buoy(47.585, -86.585,"Lake Superior")
+        mylog.warning('implement classes in main for other buoys')
         blat = 47.585
         blon = -86.585
+        lakename = "Lake Superior"
+    else:
+        mylog.critical(f'Station is unknown. Only 45004 currently supported')
+        return
+        
+    print(f"Calculating fetch for {len(winds)} directions at station {station} in {lakename}")
 
     depth_file = 'LS.tiff' 
-    LS,LSm,LSt = extract_tiff(depth_file)
-    geo_trs = extract_transformation(depth_file)
-    depth = clean_depth(LS,-10)
-    main_shore = extract_main_shoreline(depth,LSt)
-    dd = zero_outside_basin(depth,main_shore[2],LSt)
-    ii = find_islands(dd,LSt)
+    csv_filename = 'WindFetchLS.csv'
     
-    wind_dir = 360
-    bx,by = geo_to_pixel(blat, blon, geo_trs)
-    dda_pt = dda_ray_casting([bx,by],wind_dir,dd)
+    bx,by,dd,geo_trs,blat,blon,LS,LSm,LSt,main_shore,ii = loop_thru_direction(depth_file,blat, blon)
+    wind_fetch,flat,flon,fetch_dist = make_table(bx,by,winds,dd,geo_trs,blat,blon)
+    write_to_csv(csv_filename,wind_fetch)
+
+    #plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat],round(fetch_dist/1000,2),winds,lakename)
     
-    flat,flon = pixel_to_geo(dda_pt[0],dda_pt[1],geo_trs)
-    
-    fetch_dist = calculate_distance(blat,blon,flat,flon)
-    
-    plot_lake(LS,LSm,LSt,[blon,blat],main_shore,ii,[flon,flat],round(fetch_dist/1000,2),wind_dir)
 if __name__ == '__main__':
     main() 
     
