@@ -13,7 +13,25 @@ u_t = 3; % maxmimum possible change in magnitude of wind
 dir_t = 15; % maximum possible change in direction over the window
 g_t = 1.5; % maximum percent above the mean wind speed for concurrent gusts
 
-[qi,umag,~,~,~,avgu,avght,std_u,std_ht] = find_quiet_GREATLAKES(filen,data_cadence,window_size,u_t,dir_t,g_t);
+[qi,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht]   = find_quiet_GREATLAKES(filen,data_cadence,window_size,u_t,dir_t,g_t);
+
+RESULTS = [avgu' avgdir' avght'];
+RESULTS = rmmissing(RESULTS);
+
+dir_fetch = csvread('WindFetchLS.csv',1,0);
+dir_fetch = dictionary(dir_fetch(:,1),dir_fetch(:,2));
+
+avgfetch = dir_fetch(round(RESULTS(:,2)));
+
+
+RESULTS = [RESULTS avgfetch];
+
+RESULTS = table(round(RESULTS(:,1),1),round(RESULTS(:,2)),round(RESULTS(:,3),1),RESULTS(:,4),'VariableNames',{'WSPD','WDIR','SIGHT','FETCH'});
+
+RESULTS = unique(RESULTS);
+RESULTS = [table(2022.*ones(size(RESULTS(:,1))),'VariableNames',{'YEAR'}) RESULTS];
+
+writetable(RESULTS,'LS_2022.csv')
 
 u_roi = umag;
 u_roi(logical(~qi)) = NaN;
@@ -31,12 +49,15 @@ pm_u(isnan(pm_u)) = [];
 PM = (0.22.*(x).^2)./9.81;
 
 cb = rand(43,3);
-szs = (max(std_ht) + max(std_u))*100;
+szs = (max(std_ht) + max(std_u))*20;
 errorbaryes = 0;
 
 % Create scatter plot with error bars
 figure;
-h1 = scatter(avgu, avght, szs,cb(1,:),'filled');
+h1 = gscatter(avgu,avght,round(avgdir),[],[],szs);
+grid on;
+
+
 hold on;
 if errorbaryes 
     errorbar(avgu, avght, std_ht.*ones(size(avght)), 'vertical', 'LineStyle', 'none', 'LineWidth', 1, 'CapSize', 10, 'Color', 'k');
@@ -59,7 +80,8 @@ u_t = 3; % maxmimum possible change in magnitude of wind
 dir_t = 15; % maximum possible change in direction over the window
 g_t = 1.5; % maximum percent above the mean wind speed for concurrent gusts
 
-[qi,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet_GREATLAKES(filen,data_cadence,window_size,u_t,dir_t,g_t);
+[qi,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = find_quiet_GREATLAKES(filen,data_cadence,window_size,u_t,dir_t,g_t);
+
 
 szs = (max(std_ht) + max(std_u))*100;
 h2 = scatter(avgu, avght, szs,cb(2,:),'filled');

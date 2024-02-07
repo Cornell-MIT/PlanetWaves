@@ -1,4 +1,4 @@
-function [quiet_time,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet_GREATLAKES(filename,data_cadence,window_size,u_threshold,direction_threshold,gust_threshold)
+function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = find_quiet_GREATLAKES(filename,data_cadence,window_size,u_threshold,direction_threshold,gust_threshold)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FUNCTION OBJECTIVE: 
 % Finds a period of quiet where the wind speed is relatively constant, the gusts are relatively similar to the wind speed,
@@ -58,6 +58,7 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet_
     quiet_time = NaN(1,numel(umag)-window_size);
     avgu = NaN(1,numel(umag)-window_size);
     avght = NaN(1,numel(umag)-window_size);
+    avgdir = NaN(1,numel(umag)-window_size);
     std_u = NaN(1,numel(umag)-window_size);
     std_ht = NaN(1,numel(umag)-window_size);
 
@@ -72,12 +73,14 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,std_u,std_ht] = find_quiet_
            quiet_time(i) = 1;
            avgu(i) = mean(umag(tm),"omitmissing");
            avght(i) = mean(sig_h(tm),"omitmissing");
+           avgdir(i) = mean(dir(tm),"omitmissing");
            std_u(i) = std(umag(tm),"omitmissing");
            std_ht(i) = std(sig_h(tm),"omitmissing");
        else
            quiet_time(i) = 0;
            avgu(i) = NaN;
            avght(i) = NaN;
+           avgdir(i) = NaN;
            std_u(i) = NaN;
            std_ht(i) = NaN;
        end

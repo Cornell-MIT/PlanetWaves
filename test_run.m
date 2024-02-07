@@ -78,7 +78,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-Wind.speed = [3];                                                            % magnitude of incoming wind [m/s]
+Wind.speed = [3,4,5];                                                            % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents

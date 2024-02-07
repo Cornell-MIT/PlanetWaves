@@ -111,6 +111,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         mylog.critical(f"Error in calculate_distance(): {e}")
         return None
 
+
 #####################################################################################################
 #####################################################################################################
 ## TIFF FILE FUNCTIONS
@@ -571,7 +572,7 @@ def main():
         return
     
     csv_filename = 'WindFetchLS.csv'
-    csv_file = os.path.join(here,"LakeData",csv_filename)  
+    csv_file = os.path.join(here,csv_filename)  
     
    
     bx,by,dd,geo_trs,blat,blon,LS,LSm,LSt,main_shore,ii = loop_thru_direction(depth_file,blat, blon)
