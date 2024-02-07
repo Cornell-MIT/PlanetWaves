@@ -10,7 +10,9 @@ Model specifics in test_runs.m
 
 Makes plots of sig wave height from saved prev runs saved in '\Titan' in plot_sigH
 
-EX.) H = plot_sigH('cutoff_5',{'New_1','New_2','New_3'}) where cutoff_5 is folder in current directory
+EX.) H = plot_sigH('cutoff_5') where cutoff_5 is folder in current directory will load all wind speeds for all time steps and plot from the center of the grid
+
+EX.) H = plot_sigH('cutoff_5',2) where cutoff_5 is folder in current directory will load first two wind speeds for all time steps from the center of the grid
 
 ## Python (in progress)
 To work in virtual enviroment (miniconda)
