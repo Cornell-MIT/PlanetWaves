@@ -1,12 +1,14 @@
-function [sigH] = plot_sigH(folderName,fileList)
+function [sigH] = plot_sigH(folderName,num_winds)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Makes plots of sig wave height from saved prev runs saved in '\Titan'
-% EX.) H = plot_sigH('cutoff_5',{'New_1','New_2','New_3'}) where cutoff_5 is folder in current directory
+% EX.) H = plot_sigH('cutoff_5') where cutoff_5 is folder in current directory
 % INPUT:
-%       folderName  = e.g. 'cutoff_1'
-%       fileList    = e.g. {'New_1','New_2','New_3'}
+%       folderName    = e.g. 'cutoff_1'
+%       
+%       optional:
+%           num_winds = number of winds to do (defaults to all)
 % OUTPUT:
-%       sigH  (mxn) = signifigant wave height at center of grid for each speed (m) and timestep (n) 
+%       sigH  (mxn)   = signifigant wave height at center of grid for each speed (m) and timestep (n) 
 %
 % ALSO MAKES A PLOT OF SIGNIFIGANT WAVE HEIGHT VERSUS TIME STEP
 %
@@ -23,6 +25,15 @@ cd(currentDirectory)
 
 % get the legend from the logfile
 legend_titles = get_log_winds();
+
+% check if number of winds to plot is specified, defaults to all otherwise
+if ~exist('num_winds','var')
+    num_winds = length(legend_titles);
+end
+
+for qq = 1:num_winds
+    fileList{qq} = strcat('New_',num2str(qq));
+end
 
 % move to file with data
 currentDirectory = strcat(pwd,subfolder);
@@ -62,7 +73,7 @@ for ii = 1:numel(sortedFilenames)
                 break;  % Exit the inner loop 
             end
         else
-            fprintf('''ht'' variable not found in %s\n', sortedFilenames{ii});
+            error('''ht'' variable not found in %s\n', sortedFilenames{ii});
         end
     end
     
@@ -82,10 +93,10 @@ cd(originalDirectory)
     end
     function make_figure()
         figure('units','normalized','outerposition',[0 0 1 1]);
-        plot(1:numel(sortedFilenames),sigH(1,:),'-*','LineWidth',2)
-        hold on;
-        plot(1:numel(sortedFilenames),sigH(2,:),'-*','LineWidth',2)
-        plot(1:numel(sortedFilenames),sigH(3,:),'-*','LineWidth',2)
+        for pp = 1:length(fileList)
+            plot(1:numel(sortedFilenames),sigH(pp,:),'-*','LineWidth',2)
+            hold on;
+        end
         legend(legend_titles,'location','best')
         grid on;
         xlabel('\Deltat')
