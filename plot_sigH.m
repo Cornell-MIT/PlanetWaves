@@ -14,6 +14,7 @@ function [sigH] = plot_sigH(folderName,num_winds)
 %
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+close all
 
 subfolder = '\Titan';
 ignoreFileName = 'New_Reference.mat';
@@ -102,6 +103,13 @@ cd(originalDirectory)
         xlabel('\Deltat')
         ylabel('H_{sig}')
         title(folderName)
+        moveupdir = fullfile(pwd,'..','..');
+        outputfolder = fullfile(moveupdir,'output_figs');
+        if ~exist(outputfolder,'dir')
+            mkdir(outputfolder)
+        end
+        savepath = fullfile(outputfolder,strcat(strrep(folderName, ' ', ''),'.png'));
+        saveas(gcf,savepath);
     end
 
     function legend_titles = get_log_winds()
