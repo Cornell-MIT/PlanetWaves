@@ -324,9 +324,9 @@ end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 idx = 1;                                                                   % frame for making gif
-sigH = zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
-%htgrid = cell(1,numel(wind.speed));                                        % initialize htgrid for returning
-%E_each =  cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
+sigH = NaN;% zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
+htgrid = NaN;%cell(1,numel(wind.speed));                                        % initialize htgrid for returning
+E_each =  NaN;%cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
 for iii=1:numel(wind.speed)                                                % loop through wind velocities
    UU = wind.speed(iii);                                                   % UU = wind speed for loop
    file = file + 1;                                                        % for naming files

@@ -101,8 +101,10 @@ for i = 1:numel(test_cutoff)
 	[sigH,htgrid,freqspec] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
 end	
 
+disp('Run finished')
 
 % UMWM_WVHT = dictionary(Wind.speed,sigH(:,end));
+
 % 
 % PM_H = 0.22.*(Wind.speed.^2)./(planet_to_run.gravity);
 % 
