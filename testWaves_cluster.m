@@ -2,24 +2,7 @@ clc
 clear
 close all
 
-% % DATA SOURCE: https://www.ndbc.noaa.gov/station_realtime.php?station=45012
-% LakeOntario45012 = readtable("LakeOntario_45012_5days.txt","TreatAsMissing","MM");
-% LakeOntario45012 = renamevars(LakeOntario45012,['x_YY'],['YY']);
-% 
-% 
-% pos_windspeed = unique(LakeOntario45012.WSPD);
-% 
-% 
-% for ii = 1:length(pos_windspeed)
-%     i = (LakeOntario45012.WSPD == pos_windspeed(ii));
-%     a = LakeOntario45012(i,:);
-%     avg_waveheight(ii) = mean(a.WVHT,"omitmissing");
-%     std_waveheight(ii) = std(a.WVHT,"omitmissing");
-% end
-% 
-% 
-% LO_WVHT = dictionary(pos_windspeed,avg_waveheight');
-% LO_WVHT_STD = dictionary(pos_windspeed,std_waveheight');
+% SPLIT INTO JOB ARRAY FOR HPC, WIND SPEEDS RUN INDEPENDANT
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -78,7 +61,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [1 3 5 10];                                                            % magnitude of incoming wind [m/s]
+test_speeds = [1 3 5 10];                                                  % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents
@@ -95,10 +78,20 @@ Etc.showlog = 0;
 
 planet_to_run = Earth;
 
-for i = 1:numel(test_speeds) 
-	Wind.speed = test_speeds(i);
+% SPLIT INTO JOB ARRAY 
+
+% take in taskID as the first argument 
+my_task_id = varargin{1}; % type = double
+% take in number of tasks as the second argument
+num_tasks = varargin{2}; % type = double
+% split up original list of wind speeds between different tasks
+my_winds = test_speeds(my_task_id:num_tasks:length(test_speeds));
+
+for i = 1:numel(my_winds) 
+	Wind.speed  = my_winds(i);
 	[sigH,htgrid,freqspec] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
 end	
 
 disp('Run finished')
+
 

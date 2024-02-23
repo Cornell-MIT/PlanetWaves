@@ -81,7 +81,7 @@ dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss'))
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TitanResults = strcat('cutoff_freq_',num2str(model.cutoff_freq)); %sprintf('%s\\Results%s', pwd);
+TitanResults = strcat('wind_speed_',num2str(wind.speed)); %sprintf('%s\\Results%s', pwd);
 
 if exist(TitanResults, 'dir') == 7  && Etc.savedata                            % make output directory 'Results' if doesn't already exist
    oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
