@@ -16,7 +16,7 @@ function [sigH] = plot_sigH(folderName,num_winds)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
 
-subfolder = '\Titan';
+subfolder = '\Results';
 ignoreFileName = 'New_Reference.mat';
 
 % move to file with logfile
