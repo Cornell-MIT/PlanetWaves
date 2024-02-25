@@ -58,7 +58,7 @@ Model.maxdelt = 2000.0;                                                    % max
 Model.time_step = 1000;                                                      % Maximum Size of time step [s]
 Model.num_time_steps = 10;                                                 % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
-Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection
+%Model.cutoff_freq = [1 5 10 12 15 17 20];                                                    % cutoff frequency bin from diagnostic to advection
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 
@@ -78,7 +78,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [1 3 5 10];                                                            % magnitude of incoming wind [m/s]
+Wind.speed = [1 3 5 10];                                                            % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents
@@ -95,10 +95,30 @@ Etc.showlog = 0;
 
 planet_to_run = Earth;
 
-for i = 1:numel(test_speeds) 
-	Wind.speed = test_speeds(i);
+test_cutoff = [1 5 10 12 15 17 20]
+for i = 1:numel(test_cutoff) 
+	Model.cutoff_freq = test_cutoff(i)
 	[sigH,htgrid,freqspec] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
 end	
 
 disp('Run finished')
+
+% UMWM_WVHT = dictionary(Wind.speed,sigH(:,end));
+
+% 
+% PM_H = 0.22.*(Wind.speed.^2)./(planet_to_run.gravity);
+% 
+% figure;
+% plot(Wind.speed,PM_H,'-b','LineWidth',3)
+% % plot(keys(LO_WVHT),values(LO_WVHT),'-ok')
+% % hold on
+% % plot(keys(LO_WVHT_STD),values(LO_WVHT) + values(LO_WVHT_STD),'--ok')
+% % plot(keys(LO_WVHT_STD),values(LO_WVHT) - values(LO_WVHT_STD),'--ok')
+% plot(keys(UMWM_WVHT),values(UMWM_WVHT),'-r')
+% %legend('Lake Ontario 45012 5-days','Lake Ontario + STD','Lake Ontario - STD','UMWM-Titan','location','best')
+% legend('Pierson-Moskowitz','UMWM-Titan')
+% grid on
+% xlabel('wind speed [m/s]')
+% ylabel('sig wave height [m]')
+% title(planet_to_run.name)
 

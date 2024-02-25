@@ -77,7 +77,7 @@ tic
 %% ==========================================================================================================================================================================================================================================================================
 assert(rem(model.p,8)==0,'Model input parameter p must be factorable by 8.')
 % -- prepare log file for commands -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_RunLog.txt');
+dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_WindSpeed_',num2str(wind.speed),'_RunLog.txt');
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -656,7 +656,7 @@ for iii=1:numel(wind.speed)                                                % loo
       %E_each{iii,t} = E;                                                                                                                                    % return energy spectrum for each wind speed iii at each time step t
 
       if Etc.savedata
-        save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
+        save([TitanResults,'/Wind_',int2str(wind.speed),'_t_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
       end
        
        

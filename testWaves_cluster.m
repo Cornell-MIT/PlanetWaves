@@ -70,7 +70,7 @@ Uniflow.North = 0;                                                         % nor
 
 % (5) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 1;
+Etc.savedata = 0;
 Etc.showlog = 0;
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,19 +78,51 @@ Etc.showlog = 0;
 
 planet_to_run = Earth;
 
+%% PARALLELIZE PROCESS 
+% >> eval(pRun('testWaves_cluster',Np,'grid')
+% In serial >> eval(pRun('testWaves_cluster',1,'grid')
+% With 2 processors in parallel >> eval(pRun('testWaves_cluster',1,'grid')
+
 % SPLIT INTO JOB ARRAY 
+PARALLEL = false; % flag to toggle parallelism
 
-% take in taskID as the first argument 
-my_task_id = varargin{1}; % type = double
+% make map
+map1 = 1; % for serial case
+
+if PARALLEL
+% in Hsig matrix the columns are time steps and rows are wind speeds (e.g. 3 speeds for 10 steps is 3x10 array where
+% the rows are independent of one another so can be distributed among Np proceessors [Np 1]
+       map1 = map([Np 1],{},0:Np-1) % {} = block processor, Np = # of processor when job submitted
+end
+% apply map
+Hsig = zeros(numel(test_speeds),Model.num_time_steps,map1); % distributed matrix DMAT
+
+%retrieve local part of global index
+iglobal = global_ind(Hsig,1);
+% retrieve local portion of distributed matrix
+myHsig = local(Hsig); % local cmd copies local piece of distributed matric to processor
+
+% take in taskID (PID) as the first argument 
+%my_task_id = varargin{1}; % type = double
 % take in number of tasks as the second argument
-num_tasks = varargin{2}; % type = double
+%num_tasks = varargin{2}; % type = double
 % split up original list of wind speeds between different tasks
-my_winds = test_speeds(my_task_id:num_tasks:length(test_speeds));
+%my_winds = test_speeds(my_task_id:num_tasks:length(test_speeds));
 
-for i = 1:numel(my_winds) 
-	Wind.speed  = my_winds(i);
-	[sigH,htgrid,freqspec] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
+%% RUN MODEL
+for i_local = 1:length(iglobal)
+       % determine global index of local iteration	
+	iglob = iglobal(i_local)	
+	Wind.speed  = test_speeds(iglob);
+	[myHsig(i_local,:),~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
 end	
+% gather local arrays from each processor
+% store local portion in global matrix
+Hsig = put_local(Hsig,myHsig);
+% gather data to leader procesor
+Hsig_final = agg(Hsig);
+
+save('Hsig_cluster.mat','Hsig_final')
 
 disp('Run finished')
 
