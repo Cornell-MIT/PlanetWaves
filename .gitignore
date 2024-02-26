@@ -20,3 +20,4 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 *.csv
 *.nc
 *.log
+*.out
