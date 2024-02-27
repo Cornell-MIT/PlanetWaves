@@ -6,10 +6,10 @@
 # >> LLsub clusterRUn.sh 4
 
 
-#script = "$1"
-#Np = "$2"
+Np="$1"
 
-#echo "Number of processors: $Np"
-#echo "For script: $script"
+echo "Number of processors: $Np"
 
-matlab -nodisplay -r "eval(pRUN('testWaves_cluster',1,'grid'))"
+
+matlab -nodisplay -r "eval(pRUN('testWaves_cluster',$Np,'grid'))"
+
