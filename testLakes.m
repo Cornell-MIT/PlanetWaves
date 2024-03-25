@@ -1,7 +1,7 @@
 clc
 clear
 close all
-
+addpath('TitanData/Compositions')
 % % DATA SOURCE: https://www.ndbc.noaa.gov/station_realtime.php?station=45012
 % LakeOntario45012 = readtable("LakeOntario_45012_5days.txt","TreatAsMissing","MM");
 % LakeOntario45012 = renamevars(LakeOntario45012,['x_YY'],['YY']);
@@ -25,13 +25,15 @@ close all
 % INPUT PARAMETERS:
 % (1) PLANET CONDITIONS
 %   (a) TITAN
-Titan.rho_liquid = 540;                                                    % Hydrocarbon Liquid density [kg/m3]
-Titan.nu_liquid = 3e-7;                                                    % Hydrocarbon Liquid Viscocity [m2/s]
+Ontario_m = 0.57; % percent methane in Ontario Lacus [%]
+Ligiea_m = 0.78; % percent methane in Ligiea Mare [%]
+Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
 Titan.nua = 0.0126/1e4;                                                    % Titan atmospheric gas viscocity [m2/s]
 Titan.gravity = 1.352;                                                     % Titan Gravity [m/s2]
-Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
 Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
-Titan.surface_tension = 0.018;                                             % Hydrocarbon Liquid Surface Tension [N/m]
+% calculate liquid properties of specific lakes. Replace lake name below.
+% Hydrocarbon Liquid density [kg/m3]; Hydrocarbon Liquid viscosity [m2/s]; Hydrocarbon Liquid Surface Tension [N/m]
+[Titan.rho_liquid, Titan.nu_liquid, Titan.surface_tension] = lakecomp(Ontario_m, Titan.surface_temp); 
 Titan.name = 'Titan';
 
 %   (b) EARTH

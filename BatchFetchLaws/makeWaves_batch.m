@@ -324,9 +324,9 @@ end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 idx = 1;                                                                   % frame for making gif
-sigH = NaN;% zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
-htgrid = NaN;%cell(1,numel(wind.speed));                                        % initialize htgrid for returning
-E_each =  NaN;%cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
+sigH =  zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
+htgrid =  cell(1,numel(wind.speed));                                        % initialize htgrid for returning
+E_each =   cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
 for iii=1:numel(wind.speed)                                                % loop through wind velocities
    UU = wind.speed(iii);                                                   % UU = wind speed for loop
    file = file + 1;                                                        % for naming files
@@ -568,21 +568,21 @@ for iii=1:numel(wind.speed)                                                % loo
                close all;
 
                % diagnostic plot
-               figure(16);clf;semilogx(squeeze(wn(2,model.lati,:,model.p/2)),squeeze(sum(wn(2:4:model.m,model.lati,:,:).*E(2:4:model.m,model.lati,:,:),4)*dthd*dr)','*-');grid on
-               title(['Omni directional wavenumber spectra along latitude ',num2str(model.lati),'. Time = ',num2str(modt/3600),' Hours'])      
+               figure(16);clf;semilogx(squeeze(wn(2,model.lat,:,model.p/2)),squeeze(sum(wn(2:4:model.m,model.lat,:,:).*E(2:4:model.m,model.lat,:,:),4)*dthd*dr)','*-');grid on
+               title(['Omni directional wavenumber spectra along latitude ',num2str(model.lat),'. Time = ',num2str(modt/3600),' Hours'])      
                % Drag coefficient vs fetch
-               figure(202);clf;subplot(321);plot(Cd(:,model.lati).*(U_z(:,model.lati)./U_10(:,model.lati)).^2,'.-');
+               figure(202);clf;subplot(321);plot(Cd(:,model.lat).*(U_z(:,model.lat)./U_10(:,model.lat)).^2,'.-');
                title('Drag coefficient')
                grid on
-               figure(202);hold on;subplot(322);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*Sin(model.long,model.lati,:,:).*E(model.long,model.lati,:,:),4))*dthd*dr,'*-');
+               figure(202);hold on;subplot(322);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*Sin(model.long,model.lat,:,:).*E(model.long,model.lat,:,:),4))*dthd*dr,'*-');
                title('k*Sin');grid on
-               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*Sds(model.long,model.lati,:,:).*E(model.long,model.lati,:,:),4))*dthd*dr,'*-');
-               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*Sdt(model.long,model.lati,:,:).*E(model.long,model.lati,:,:),4))*dthd*dr,'*-g');
-               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*Sbf(model.long,model.lati,:,:).*E(model.long,model.lati,:,:),4))*dthd*dr,'*-r');
+               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*Sds(model.long,model.lat,:,:).*E(model.long,model.lat,:,:),4))*dthd*dr,'*-');
+               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*Sdt(model.long,model.lat,:,:).*E(model.long,model.lat,:,:),4))*dthd*dr,'*-g');
+               figure(202);hold on;subplot(323);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*Sbf(model.long,model.lat,:,:).*E(model.long,model.lat,:,:),4))*dthd*dr,'*-r');
                title('k*Sds(b), k*Sdt(g), k*Sbf(r)');grid on
-               figure(202);hold on;subplot(324);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*Snl(model.long,model.lati,:,:),4))*dthd*dr,'*-');
+               figure(202);hold on;subplot(324);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*Snl(model.long,model.lat,:,:),4))*dthd*dr,'*-');
                title('k*Snl');grid on
-               figure(202);hold on;subplot(325);semilogx(squeeze(wn(model.long,model.lati,:,10)),squeeze(sum(wn(model.long,model.lati,:,:).^2.*E(model.long,model.lati,:,:),4))*dthd*dr,'*-');
+               figure(202);hold on;subplot(325);semilogx(squeeze(wn(model.long,model.lat,:,10)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*E(model.long,model.lat,:,:),4))*dthd*dr,'*-');
                title('k*spectrum');grid on
            end
 
@@ -614,7 +614,7 @@ for iii=1:numel(wind.speed)                                                % loo
             ms = sqrt(ms);                                                                                                                                  % standard deviation of water surface = sqrt(variance of water surface)
 
            if Etc.showplots && rem(tplot,10) == 0 
-               figure(202);hold on;subplot(326);plot(1:model.m,ht(:,model.lati),'.-',1:model.m,ms(:,model.lati),'--r');
+               figure(202);hold on;subplot(326);plot(1:model.m,ht(:,model.lat),'.-',1:model.m,ms(:,model.lat),'--r');
                title('Sig. Ht. & mean slope');
                grid on
                pause(3)
