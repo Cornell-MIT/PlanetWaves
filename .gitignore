@@ -8,3 +8,17 @@ FetchLaws/largerun_main_Titan/main.asv
 FetchLaws/groundtruthing/TestingChanges.xlsx
 *.asv
 FetchLaws/groundtruthing/testing_changes_ref.mlx
+*.pyc
+wave_env/
+env/
+EarthAnalysis/GreatLakes/LakeData/superior_lld.tif
+EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
+!EarthAnalysis/GreatLakes/BuoyData/Superior/DATAREADME.txt
+!EarthAnalysis/GreatLakes/LakeData/DATAREADME.txt
+*.jpg
+*.png
+*.csv
+*.nc
+*.log
+*.out
+.pRUN_Parallel_Stub_testWaves_cluster_temp

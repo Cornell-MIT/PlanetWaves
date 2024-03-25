@@ -81,10 +81,9 @@ dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss'))
 diary(dfile);
 RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 % -- create output directory for results -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TitanResults = sprintf('%s\\Titan%s', pwd);
-if ~exist(TitanResults, 'dir')  && Etc.savedata                            % make output directory 'Titan' if doesn't already exist
-    mkdir(TitanResults);
-else
+TitanResults = strcat('wind_speed_',num2str(wind.speed)); %sprintf('%s\\Results%s', pwd);
+
+if exist(TitanResults, 'dir') == 7  && Etc.savedata                            % make output directory 'Results' if doesn't already exist
    oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
    oldmatloc = dir(oldmatfiles);
    for kk = 1:length(oldmatloc)
@@ -93,7 +92,10 @@ else
        fprintf(1,'Deleting previous .mat files %s\n',fullmat);
        delete(fullmat);
    end
+elseif Etc.savedata
+	mkdir(TitanResults);
 end
+
 disp('================================================================')
 disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
 disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
@@ -322,9 +324,9 @@ end
 file = file - 1;
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 idx = 1;                                                                   % frame for making gif
-sigH = zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
-htgrid = cell(1,numel(wind.speed));                                        % initialize htgrid for returning
-E_each =  cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
+sigH = NaN;% zeros(numel(wind.speed),length(1:model.num_time_steps));            % initialize sigH for returning 
+htgrid = NaN;%cell(1,numel(wind.speed));                                        % initialize htgrid for returning
+E_each =  NaN;%cell(numel(wind.speed),length(1:model.num_time_steps));          % initialize E-spectrum for returning
 for iii=1:numel(wind.speed)                                                % loop through wind velocities
    UU = wind.speed(iii);                                                   % UU = wind speed for loop
    file = file + 1;                                                        % for naming files
@@ -448,7 +450,7 @@ for iii=1:numel(wind.speed)                                                % loo
            end
            newdelt = max([aaa/aa model.mindelt]);                                                                                  % newdelt = delt to give max of 50% growth or decay
            newdelt = min([newdelt model.maxdelt (model.time_step-sumt) delt]);                                                     % min[max(0.1/(Sin-Sds) 0.0001) 2000 TotalModelTime CourantGrid]
-           fprintf('newdelt: %.2f\n',newdelt);
+           %fprintf('newdelt: %.2f\n',newdelt);
           
            % add to model time
            sumt = sumt + newdelt;
@@ -590,7 +592,7 @@ for iii=1:numel(wind.speed)                                                % loo
                 ht = sum(ht,3);                                            % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
                 ht = 4*sqrt(abs(ht));                                      % signifigant wave height (from zeroth order moment of surface)
                 [sigH(iii,t),~] = max(max(ht));                            % return the largest signifigant wave height along the grid
-                htgrid{iii} = ht;                                          % return signifigant wave height at each spatial point (m,n) on the grid
+                %htgrid{iii} = ht;                                          % return signifigant wave height at each spatial point (m,n) on the grid
               
 
             if Etc.showplots && rem(tplot,10) == 0    
@@ -651,7 +653,7 @@ for iii=1:numel(wind.speed)                                                % loo
        fraction_time_completed = t/model.num_time_steps;
        fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
     
-      E_each{iii,t} = E;                                                                                                                                    % return energy spectrum for each wind speed iii at each time step t
+      %E_each{iii,t} = E;                                                                                                                                    % return energy spectrum for each wind speed iii at each time step t
 
       if Etc.savedata
         save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')

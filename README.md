@@ -1,81 +1,61 @@
 # umwm_titan
-WORKING MODEL:
 
-main_live_v2
+To erase old logs (Ubuntu 22.04):
+> python -c 'import makeWaves; makeWaves.remove_old_logs()'
 
-WORKING TESTS:
+## MATLAB
+Model in makeWaves.m
 
-testing_changes_results
+Model specifics in test_runs.m
 
-testing_changes_ref
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## TESTS:
-1. Non-zero current
-2. Cylindrical island?
+Makes plots of sig wave height from saved prev runs saved in '\Titan' in plot_sigH
 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+EX.) H = plot_sigH('cutoff_5') where cutoff_5 is folder in current directory will load all wind speeds for all time steps and plot from the center of the grid
 
-![image](https://user-images.githubusercontent.com/24469269/216115106-07c52808-777f-43b3-aaa8-96d51b80508c.png)
-(Donelan et al. 2012 "Modelling waves and wind stress"
+EX.) H = plot_sigH('cutoff_5',2) where cutoff_5 is folder in current directory will load first two wind speeds for all time steps from the center of the grid
 
-Possible new architecture for fetchLaws?
+## Python (in progress)
+To work in virtual enviroment (miniconda)
+> conda env create -f environment.yml
 
-![Screenshot 2023-02-01 115335](https://user-images.githubusercontent.com/24469269/216110589-4a1b802c-acb3-4f33-b869-22423ad302bc.jpg)
+> conda activate wave_env
 
-Original code architecture for fetchLaws
+> conda env update --prefix ./env --file environment.yml  --prune
 
-![image](https://user-images.githubusercontent.com/24469269/216111111-2c391b4d-d258-4908-9b43-cca594bc0d49.png)
+## Model Run Benchmarking
 
-
-
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Notes from meeting with Alex (1/25/2023) :
-
-```
-To do:
-	-Replicate patch-model results for a pure methane liquid with wind speed vs mature sig wave height
-	-Compare results between energy models with the umwm models for sig wave height at different wind speeds
-	-Get FORTRAN model working for comparison with MATLAB version for a sanity-check
-	-get descriptions of the scripts' main functions, subroutines, and outputs 
-```
-
-Targets of interest for model: how does the wave field change for different liquid parameters (density, viscocity)?
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Notes from meeting with Taylor (1/8/2023) : 
-
-Was able to run the model using the smoothed LM bathymetry but it was really slow so he coarsened it by a factor of 3 in each direction (9x fewer gridpoints)
-and used the MATLAB profiler found that line 488 and line 544 take up over half the runtime. Could be a good target for optimizing.
-
-To run UMWM_Titan_2c.m and/or UMWM_Titan_FetchLaws.m requires a directory named 'Titan' for results to be saved and loaded from.
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Initial Notes from Alex (12/16/2022):
-
-```
-MAIN SCRIPTS : 
-|
-|_UMWM_Titan_Ligeia_Noplot_3m_v1.m : wave model using LM bathymetry map for uniform 2.5 and 3 m/s winds <-- most commented/recently updated
-|
-|_UMWM_Titan_FetchLaws.m : wave model for small patch of a deep sea for winds 0.4 - 10 m/s. This script was used to determined the threshold for wave generation and 
-			       generate plots for significant wave height vs. wind speed
+1. **(_US: ongoing_) Compare effect of changing cut off frequency** 
+2. Compare to wind tank experiments (Banfield et al. 2015)
+3. Comparing to closed lakes
+   - ID periods of low variation in wind speed, direction, and gusts for (<ins>find_quiet_GREATLAKES.m</ins>)
+     - Lake Erie
+       1. Deep water buoy
+       2. Shallow water buoy
+     - **(_US: ongoing_)  Lake Superior** 
+       1. **(_US: ongoing_) Deep water buoy**
+       2. Shallow water buoy
+   - Compare to model for
+     - Deep uniform bathymetry
+     - Realistic lake bathymetry
+4. Comparing to open ocean
+   - ID periods of low variation in wind speed, direction, and gusts near Hawai’i (Huppert et al. 2020) or Gulf of Mexico? (Lin et al. 2011)
+     - Compare to model for deep uniform bathymetry
 
 
-SUBROUTINES : (must be in the same directory as the model script
-|
-|_WAVEKgT.m :
-|
-|_smooth_nu.m :
+
+![Picture1](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/d3ab52df-0260-4a08-a9b3-866d85b00e2b)
+
+  ![ls_fetch](https://github.com/Cornell-MIT/umwm_titan/assets/24469269/f64b8d6c-16b9-465f-981e-3c8428b7cbea)
 
 
-MAIN OUTPUTS : 
-|
-|_1. Map of signifigant wave heights
-|
-|_2. Wave field energy spectrum 
-|
-|_3. Magnitudes of dissipation terms in the model
-```
+
+
+
+
+
+
+## Changes to model
+
+1. Add Alves-Banner-Young curve to model
+2. Add maturity threshold with minimum number of time steps
+3. Set batch jobs to make model run in background with updates
