@@ -45,20 +45,20 @@ Earth.surface_tension = 0.072;                                             % Wat
 Earth.name = 'Earth';
 
 % (2a) MODEL GEOMETRY
-Model.m = 20;                                                              % Number of Grid Cells in X-Dimension
-Model.n = 100;                                                             % Number of Grid Cells in Y-Dimension
+Model.m = 100;                                                              % Number of Grid Cells in X-Dimension
+Model.n = 20;                                                             % Number of Grid Cells in Y-Dimension
 Model.o = 35;                                                             % Number of Frequency bins
-Model.p = 288;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+Model.p = 40;                                                             % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = 10;                                                           % longitude grid point for sampling during plotting 
 Model.lat = 10;                                                            % latitude grid point for sampling during plotting
-Model.gridX = 10;                                                          % Grid size in X-dimension [m]
-Model.gridY = 10;                                                          % Grid size in Y-dimension [m]
+Model.gridX = 1000;                                                          % Grid size in X-dimension [m]
+Model.gridY = 1000;                                                          % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 10;                                                     % Maximum Size of time step [s]
+Model.time_step = 1000;                                                     % Maximum Size of time step [s]
 Model.num_time_steps = 10;                                                 % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
-Model.cutoff_freq = 12;                                                    % cutoff frequency bin from diagnostic to advection
+Model.cutoff_freq = 13;                                                    % cutoff frequency bin from diagnostic to advection
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 
@@ -71,7 +71,7 @@ Model.bathy_map = deep_bathy;                                             % Bath
 
 % (2c) TUNING PARAMETERS 
 Model.tune_A1 = 0.11;
-Model.tune_mss_fac = 240;
+Model.tune_mss_fac = 2000;
 Model.tune_Sdt_fac = 0.001;
 Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
