@@ -2,7 +2,9 @@ clc
 clear
 close all
 
-% (Serial test) SPLIT INTO JOB ARRAY FOR HPC, WIND SPEEDS RUN INDEPENDANT
+load('ol_bathtub_0.002000_slope.mat','zDep')
+
+% SPLIT INTO JOB ARRAY FOR HPC, WIND SPEEDS RUN INDEPENDANT
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -49,8 +51,7 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = 10;                                                        % elevation of wind measurement [m]
-deep_bathy = 100.*ones(Model.m,Model.n);                                 % depth of water column beneath buoy [m]
-Model.bathy_map = deep_bathy;                                              % Bathymetry of model basin [m]
+Model.bathy_map = zDep;                                              % Bathymetry of model basin [m] 
 
 % (2c) TUNING PARAMETERS 
 Model.tune_A1 = 0.11;
@@ -61,7 +62,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [1 3 5 10];                                                  % magnitude of incoming wind [m/s]
+test_speeds = [1 2 3];                                                  % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents
@@ -76,16 +77,53 @@ Etc.showlog = 0;
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-planet_to_run = Earth;
+planet_to_run = Titan;
 
-Hsig = zeros(numel(test_speeds),Model.num_time_steps);
+%% PARALLELIZE PROCESS 
+% >> eval(pRun('testWaves_cluster',Np,'grid')
+% In serial >> eval(pRun('testWaves_cluster',1,'grid')
+% With 2 processors in parallel >> eval(pRun('testWaves_cluster',1,'grid')
+
+% SPLIT INTO JOB ARRAY 
+PARALLEL = true; % flag to toggle parallelism
+
+% make map
+map1 = 1; % for serial case
+
+if PARALLEL
+% in Hsig matrix the columns are time steps and rows are wind speeds (e.g. 3 speeds for 10 steps is 3x10 array where
+% the rows are independent of one another so can be distributed among Np proceessors [Np 1]
+       map1 = map([Np 1],{},0:Np-1); % {} = block processor, Np = # of processor when job submitted
+end
+% apply map
+Hsig = zeros(numel(test_speeds),Model.num_time_steps,map1); % distributed matrix DMAT
+
+%retrieve local part of global index
+iglobal = global_ind(Hsig,1);
+% retrieve local portion of distributed matrix
+myHsig = local(Hsig); % local cmd copies local piece of distributed matric to processor
+
+% take in taskID (PID) as the first argument 
+%my_task_id = varargin{1}; % type = double
+% take in number of tasks as the second argument
+%num_tasks = varargin{2}; % type = double
+% split up original list of wind speeds between different tasks
+%my_winds = test_speeds(my_task_id:num_tasks:length(test_speeds));
 
 %% RUN MODEL
-for i = 1:length(test_speeds)
-       	Wind.speed  = test_speeds(i);
-	[myHsig(i,:),~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
+for i_local = 1:length(iglobal)
+       % determine global index of local iteration	
+	iglob = iglobal(i_local);
+	Wind.speed  = test_speeds(iglob);
+	[myHsig(i_local,:),~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
 end	
-save('Hsig_serial.mat','Hsig_final')
+% gather local arrays from each processor
+% store local portion in global matrix
+Hsig = put_local(Hsig,myHsig);
+% gather data to leader procesor
+Hsig_final = agg(Hsig);
+
+save('OntarioBathtub.mat','Hsig_final')
 
 disp('Run finished')
 

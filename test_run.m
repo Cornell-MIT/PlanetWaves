@@ -2,6 +2,8 @@ clc
 clear
 close all
 
+load('ol_bathtub_0.002000_slope.mat','zDep')
+
 % % DATA SOURCE: https://www.ndbc.noaa.gov/station_realtime.php?station=45012
 % LakeOntario45012 = readtable("LakeOntario_45012_5days.txt","TreatAsMissing","MM");
 % LakeOntario45012 = renamevars(LakeOntario45012,['x_YY'],['YY']);
