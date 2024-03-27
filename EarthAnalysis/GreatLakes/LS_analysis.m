@@ -99,15 +99,17 @@ JS_m = 4.*sqrt((1.67e-7).*((x.^2)./9.81).*m_fetch);
 plot(x, JS, '--k', 'LineWidth', 3);
 fill([x, fliplr(x)], [JS_p, fliplr(JS_m)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
 fill([x, fliplr(x)], [JS_m, fliplr(JS_p)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
+load('waveheights.mat') % from model run
+plot([1 5 10 15 20],ht_wind,'--sr','LineWidth',1,'MarkerFaceColor','r')
 xlabel('u [m/s]')
 ylabel('H_{sig} [m]')
 title('JONSWAP for Avg Fetch +/- STD Fetch')
 grid on
 
 
-figure;
-boxplot(myfetch)
-ylabel('fetch [km]')
-title('lake superior 2002-2022')
-grid on
+% figure;
+% boxplot(myfetch)
+% ylabel('fetch [km]')
+% title('lake superior 2002-2022')
+% grid on
 
