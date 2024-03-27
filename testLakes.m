@@ -118,3 +118,4 @@ planet_to_run = Earth;
 % ylabel('sig wave height [m]')
 % title(planet_to_run.name)
 
+% title(planet_to_run.name)
