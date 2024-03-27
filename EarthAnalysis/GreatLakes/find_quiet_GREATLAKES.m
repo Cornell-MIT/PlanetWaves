@@ -1,4 +1,4 @@
-function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = find_quiet_GREATLAKES(filename,data_cadence,window_size,u_threshold,direction_threshold,gust_threshold)
+function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_avail] = find_quiet_GREATLAKES(filename,data_cadence,window_size,u_threshold,direction_threshold,gust_threshold)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FUNCTION OBJECTIVE: 
 % Finds a period of quiet where the wind speed is relatively constant, the gusts are relatively similar to the wind speed,
@@ -27,7 +27,9 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = find
     % LOAD IN DATA
     warning('off','MATLAB:table:ModifiedAndSavedVarnames') % suppress annoying message about changing the year name column that I don't care about
     lakedatatable = readtable(strcat(filename,'.txt'),MissingRule="omitrow",ReadVariableNames=true);
-    
+    disp(filename)
+    %disp(lakedatatable)
+
     window_size = data_cadence*window_size; % window size in terms of number of measurements
     
     % extract relevant data from table
@@ -95,9 +97,12 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = find
     if ~sum(quiet_time)
         mes = sprintf('%s : no data fits this criteria, change the thresholds for |u|, direction, and/or gusts \n',yr);
         fprintf(mes);
+        [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht] = deal(NaN);
+        none_avail = 1;
     else
         mes =  sprintf('%s : SUCCESS \n',yr);
         fprintf(mes);
+        none_avail = 0;
     end
        
 
