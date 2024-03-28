@@ -107,9 +107,9 @@ title('JONSWAP for Avg Fetch +/- STD Fetch')
 grid on
 
 
-% figure;
-% boxplot(myfetch)
-% ylabel('fetch [km]')
-% title('lake superior 2002-2022')
-% grid on
+figure;
+boxplot(myfetch)
+ylabel('fetch [km]')
+title('lake superior 2002-2022')
+grid on
 
