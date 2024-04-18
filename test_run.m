@@ -2,10 +2,26 @@ clc
 clear
 close all
 
-% load('ls_low_res.mat','lake_superior_low_res')
-% lake_superior_low_res = -1.*lake_superior_low_res;
-% figure;
-% imagesc(lake_superior_low_res)
+% from find_fetch.py
+load('LakeSuperior_cleaned.mat')
+LS = squeeze(LS);
+resizeFactor = 0.002;
+% from find_fetch.py
+blon = 1729;
+blat = 6618;
+gridcellsize = 1199.997*(1/resizeFactor);
+position =  [blat, blon];
+position = round(position * resizeFactor);
+%LS(LS == 0) = NaN;
+LS = imresize(LS, resizeFactor, 'nearest');
+alphaData = ones(size(LS));
+alphaData(LS==0) = 0;
+LS = -LS;
+%figure; imagesc(-LS,'AlphaData', alphaData); hold on; plot(position(1),position(2),'ok','MarkerFaceColor','k'); colorbar; colormap cool;
+figure; surf(LS); view(2); hold on; plot3(position(1),position(2),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar
+close all;
+
+size_lake = size(LS);
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -31,18 +47,18 @@ Earth.surface_tension = 0.072;                                             % Wat
 Earth.name = 'Earth';
 
 % (2a) MODEL GEOMETRY
-Model.m = 10;                                                              % Number of Grid Cells in X-Dimension
-Model.n = 10;                                                              % Number of Grid Cells in Y-Dimension
-Model.o = 35;                                                             % Number of Frequency bins
+Model.m = size_lake(2);                                                              % Number of Grid Cells in X-Dimension
+Model.n = size_lake(1);                                                              % Number of Grid Cells in Y-Dimension
+Model.o = 35;                                                              % Number of Frequency bins
 Model.p = 72;                                                              % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
-Model.long = 5;                                                            % longitude grid point for sampling during plotting 
-Model.lat = 5;                                                             % latitude grid point for sampling during plotting
-Model.gridX = 40*1000;                                                     % Grid size in X-dimension [m]
-Model.gridY = 40*1000;                                                     % Grid size in Y-dimension [m]
+Model.long = position(1);                                                            % longitude grid point for sampling during plotting 
+Model.lat = position(2);                                                             % latitude grid point for sampling during plotting
+Model.gridX = 10*1000;                                                     % Grid size in X-dimension [m]
+Model.gridY = 10*1000;                                                     % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                               % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 500;                                               % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity 
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -52,13 +68,8 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = 3.6;                                                         % elevation of wind measurement [m]
-deep_bathy = 273.6.*ones(Model.m,Model.n);
-% for i = 1:Model.m
-%     deep_bathy(:,i) = 10*i;                                  % depth of water column beneath buoy [m]
-% end
-
-
-Model.bathy_map = deep_bathy;                                               % bathymetry of model basin [m]
+%deep_bathy = 273.6.*ones(Model.m,Model.n);                                  % depth of water column beneath buoy [m]
+Model.bathy_map = LS;                                               % bathymetry of model basin [m]
 
 % (2c) TUNING PARAMETERS 
 Model.tune_A1 = 0.11;                                                       % wind sea (eq. 12 Donelan+2012)
@@ -69,7 +80,7 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = 1:2:20;                                                      % magnitude of incoming wind [m/s] [e.g. 
+test_speeds = 15;%1:2:20;                                                      % magnitude of incoming wind [m/s] [e.g. 
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 
 % (4) Unidirectional currents
@@ -91,8 +102,9 @@ myHsig = NaN(numel(test_speeds),Model.num_time_steps);
 for i = 1:numel(test_speeds)
 	Wind.speed  = test_speeds(i);
 	[myHsig(i,:),htgrid{i},~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
+    ht_sig(i) = htgrid{k}{end}(Model.long,Model.lat);
     if i == 1
-        figure;
+        figure('units','normalized','outerposition',[0 0 1 1])
     end
     plot(myHsig(i,:),'-','LineWidth',3,'DisplayName', num2str(Wind.speed))
     hold on
@@ -107,14 +119,19 @@ ylabel('significant wave height [m]','interpreter','latex')
 
 disp('run finished')
 
+
 figure;
-for i = 1:numel(test_speeds)
-    ht_sig(i) = myHsig(i,end);
-    plot(test_speeds(i),ht_sig(i),'--sr','LineWidth',1,'MarkerFaceColor','r')
-    hold on
-    
-end
+plot(test_speeds(i),ht_sig(i),'--sr','LineWidth',1,'MarkerFaceColor','r')
 xlabel('$|u|$ [m/s]','interpreter','latex')
 ylabel('$H_{sig}$ [m]','interpreter','latex')
 title(['Waves on',' ',planet_to_run.name],'interpreter','latex');
 grid on;
+
+% >> cd wind_speed_19
+% >> load New_1_1000.mat
+% polarplot3d(squeeze(E(3,5,:,:)),'plottype','contour','radialrange',[0.01 40]); view(2)
+% title('u = 19 m/s')
+% colormap linspecer
+% c = colorbar
+% c.Label.String = 'Energy Density';
+% clim([0 400])
