@@ -59,8 +59,8 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 %
 %
 %   Returns:
-%       sigH                : largest signifigant wave height over the entire spatial array [m]
-%       htgrid              : signifigant wave height for each grid cell [m]
+%       sigH                : significant wave height at specified (Model.lat, Model.lon) coordinates [m]
+%       htgrid              : significant wave height for each grid cell [m]
 %       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %       ms                  : mean slope of liquid surface
 %     
@@ -69,7 +69,7 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 % Compatible with MATLAB 2024a
 %
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% Approx time to run: 7 minutes (for 1 wind speed, 10 time steps)
+% Approx time to run: 7 minutes (for 1 wind speed, 10 time steps for uniform depth)
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Cite: 
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -305,14 +305,14 @@ end
 
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 idx = 1;                                                                   % frame for making gif
-sigH = zeros(1,length(1:model.num_time_steps));            % initialize sigH for returning (initialize to NaN instead?)
-htgrid = cell(1,length(1:model.num_time_steps));                                        % initialize htgrid for returning
-E_each =  cell(1,length(1:model.num_time_steps));          % initialize E-spectrum for returning
+sigH = zeros(1,length(1:model.num_time_steps));                            % initialize sigH for returning (initialize to NaN instead?)
+htgrid = cell(1,length(1:model.num_time_steps));                           % initialize htgrid for returning
+E_each =  cell(1,length(1:model.num_time_steps));                          % initialize E-spectrum for returning
 
 UU = wind.speed;                                                 
 
-U = UU.*ones(model.m,model.n);                                              % set wind velocity everywhere in x-y plane
-windir = wind.dir.*ones(model.m,model.n);                                   % set wind direction everywhere in x-y plane
+U = UU.*ones(model.m,model.n);                                             % set wind velocity everywhere in x-y plane
+windir = wind.dir.*ones(model.m,model.n);                                  % set wind direction everywhere in x-y plane
 windir = repmat(windir,[1 1 model.o model.p]);                             % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
 
 U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
@@ -395,25 +395,25 @@ for t = 1:model.num_time_steps                                                  
        
 
        ustw = repmat(ustarw,[1 1 model.o model.p]);
-       Ud = - ustw./kappa.*log(lz/model.z_data);                                                                                                                 % drift speed (scaled to 1/wavenumber (function of frequency))
+       Ud = - ustw./kappa.*log(lz/model.z_data);                                                                                                                   % drift speed (scaled to 1/wavenumber (function of frequency))
       
        % calculate wind input as a fraction of stress
        relative_angle = windir-waveang;
        Ul_term = Ul.*cos(relative_angle)-c-Ud.*cos(relative_angle)-Uer.*cth-Uei.*sth;
-       %_test = Ul.*cos(relative_angle)-c;                                                                                                                       % positive if wind faster than waves, negative if waves faster than wind
+       %_test = Ul.*cos(relative_angle)-c;                                                                                                                         % positive if wind faster than waves, negative if waves faster than wind
     
 
-       Ul_term = abs(Ul_term).*(Ul_term);                                                                                                                        % Sin = A1*[Ul]*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan+2012]
+       Ul_term = abs(Ul_term).*(Ul_term);                                                                                                                          % Sin = A1*[Ul]*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan+2012]
          
        % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
        Ul_term(Ul_term>0) = model.tune_A1*Ul_term(Ul_term>0);                                                                                                      % wind outruns waves [A1 = 0.11, eqn. 12, Donelan+2012]
        Ul_term(Ul_term<=0) = (model.tune_A1*0.09)*Ul_term(Ul_term<=0);                                                                                             % waves outrun wind [A1 = 0.01, eqn. 12, Donelan+2012]
-       Ul_term(cos(windir-waveang)<0) = (model.tune_A1*0.9)*Ul_term(cos(windir-waveang)<0);                                                                      % waves move against wind [A1 = 0.10, eqn. 12, Donelan+2012]
+       Ul_term(cos(windir-waveang)<0) = (model.tune_A1*0.9)*Ul_term(cos(windir-waveang)<0);                                                                        % waves move against wind [A1 = 0.10, eqn. 12, Donelan+2012]
 
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % input to energy spectrum from wind
        Sin = zeros(size(Ul_term));
-       Sin(D>0) = rhorat*(Ul_term(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));                    % eqn. 4, Donelan+2012
+       Sin(D>0) = rhorat*(Ul_term(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));                   % eqn. 4, Donelan+2012
        
 
        % limits energy going into spectrum once waves outrun wind
@@ -553,9 +553,9 @@ for t = 1:model.num_time_steps                                                  
        Crotcw(Crotcw < -1*dth/newdelt) = -1*dth/newdelt;
 
        E1(:,:,ol,cw) = E1(:,:,ol,cw) - newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                          % eqn. A1, Donelan+2012 (clockwise rotation)
-       E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                            % not sure
+       E1(:,:,ol,:) = E1(:,:,ol,:) + newdelt*Crotcw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                            % add clockwise rotation
        E1(:,:,ol,ccw) = E1(:,:,ol,ccw) + newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                       % eqn. A1, Donelan+2012 (counterclockwise rotation)
-       E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                           % not sure
+       E1(:,:,ol,:) = E1(:,:,ol,:) - newdelt*Crotccw(:,:,ol,:).*E(:,:,ol,:)/dth;                                                           % add counter-clockwise rotation
        E1(E1 < 0) = 0; E1(D <= 0) = 0;
        E = real(E1);E(isnan(E)) = 0;
 
@@ -621,10 +621,10 @@ for t = 1:model.num_time_steps                                                  
             ht = sum(ht,3);                                        % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
             ht = 4*sqrt(abs(ht));                                  % significant wave height (from zeroth order moment of surface)
             ks = ht;
-            [sigH(t),~] = max(max(ht));                            % return the largest significant wave height along the grid
+            sigH(t) = ht(model.long,model.lat);                    % return significant wave height at specified lat,lon coordinates 
 
             if nargout > 1
-                htgrid{t} = ht;                                       % return significant wave height at each spatial point (m,n) on the grid
+                htgrid{t} = ht;                                    % return significant wave height at each spatial point (m,n) on the grid
             end
           
 
@@ -701,9 +701,9 @@ for t = 1:model.num_time_steps                                                  
        break
    elseif t > 1
        fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
-       % if sigH(t-1)/sigH(t) > 1
-       %     error('Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.')
-       % end
+       if sigH(t-1)/sigH(t) > 1
+            warning('Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.')
+       end
    end
 
    

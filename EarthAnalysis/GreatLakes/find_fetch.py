@@ -4,7 +4,7 @@ import csv
 import logging
 import os
 import sys
-from math import atan2, cos, radians, sin, sqrt
+from math import atan2, cos, radians, sin, sqrt, pi
 
 
 import colorlog
@@ -28,6 +28,8 @@ Author: Una Schneck (schneck.una@gmail.com)
 
 Last modified: 04/18/2024
 '''
+
+RADIUS_EARTH = 6371.009  # Radius of the Earth in kilometers
 
 #####################################################################################################
 #####################################################################################################
@@ -124,9 +126,9 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         dlat = lat2 - lat1
         a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        radius_earth = 6371.009  # Radius of the Earth in kilometers
 
-        distance = radius_earth * c  # Distance in kilometers
+
+        distance = RADIUS_EARTH * c  # Distance in kilometers
         distance = distance*1000  # DIstance in meters
 
         mylog.info(f"{calculate_distance.__name__} ran successfully")
@@ -238,13 +240,13 @@ def return_grid_cell_size(map_meta):
     """
     find the actual size of the grid cell of the array given the transformation
     """
-    scale_x = map_meta['transform'].a
-    scale_y = map_meta['transform'].e
+    pixel_width = abs(map_meta['transform'].a)
+    pixel_height = abs(map_meta['transform'].e)
 
-    grid_cell_width = 1 / scale_x  # has units of the coordinate system (e.g. degrees)
-    grid_cell_height = 1 / scale_y  # has units of the coordinate system (e.g. degrees)
+    pix_width_meters = pixel_width * ((RADIUS_EARTH*1000) * 2 * pi / 360) * abs(map_meta['transform'].f)
+    pix_height_meters = pixel_height * ((RADIUS_EARTH*1000) * 2 * pi / 360)
 
-    return grid_cell_width, grid_cell_height
+    return pix_width_meters, pix_height_meters
 
 #####################################################################################################
 #####################################################################################################
@@ -648,6 +650,7 @@ def main(depth_file_name, csv_filename) -> None:
         return
 
     bx, by, dd, geo_trs, LS, LSm, LSt, main_shore, ii = loop_thru_direction(depth_file, deepwater_buoy)
+    print(return_grid_cell_size(LSm))
     wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
     # csv_filename = os.path.join(here, csv_filename)
     # write_to_csv(csv_filename,wind_fetch)
