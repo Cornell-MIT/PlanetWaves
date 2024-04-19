@@ -198,7 +198,7 @@ ann(:,:,:) = ones(model.m,model.n,model.o);
 for jm = 1:model.m
    for jn = 1:model.n
        if D(jm,jn) > 0
-           wn(jm,jn,:) = wavekgt(f,D(jm,jn),planet.gravity,planet.surface_tension,planet.rho_liquid,1e-4);                   % wave number (using linear wave dispersion)
+           wn(jm,jn,:) = wavekgt(f,D(jm,jn),planet.gravity,planet.surface_tension,planet.rho_liquid);                   % wave number (using linear wave dispersion)
            nnn(jm,jn,:) = model.tune_n;                                                                                      % Power n of Sds on the degree of saturation [eqn. 15, Donelan+2012, eqn. 5, Donelan+2001] 1.2 + 1.3*(abs(2 - (1+3*(wn(jm,jn,:)./kcgn).^2)./(1+(wn(jm,jn,:)./kcgn).^2)).^2.0)
            ann(jm,jn,:) = 0.04 + 41.96*(abs(2 - (1+3*(wn(jm,jn,:)./kcga).^2)./(1+(wn(jm,jn,:)./kcga).^2)).^4.0);             % Power of Sds
        end
@@ -481,7 +481,10 @@ for t = 1:model.num_time_steps                                                  
        % add to model time
        sumt = sumt + newdelt;
        modt = modt + newdelt;
-      
+       
+       fprintf('sub-time step sum: %.5f\n',sumt);
+       
+
        fac_exp = (Sin(:,:,ol,:) - Sds(:,:,ol,:));                                                                                                % difference in input and dissipation term to be used in exp() term for energy
       
 % -- Wave Energy ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -746,34 +749,44 @@ function k = wavekgt( f, H, g, T, R, tol )
 %    R = water density in Kgm/m^3: default is
 %    Note: [f] > 0 must increase monotonically from small to large.  This
 %    routine is optimized for speed and works best when length(f) is large.
-
-    if nargin<6
-        tol = 1e-4;                                                                 % default tolerance
-    end                                                  
-    c = 2*pi*sqrt(H/g);                                     
-    f = c * f(:);  
-    Nf = length(f);                                                                 % non-dimensionalize f
-    B = T/(R*g*H*H);                                                                % non-dimensionalize T
-    k = zeros(Nf,1);
-    k(1) = f(1)^2;                                                                  % use deep water limit as initial guess
-    for n = 1:Nf
-        dk = 1;
-        if n > 1
-            k(n) = k(n-1);
+    if H > 0
+        if nargin<6
+            tol = 1e-4;                                                                 % default tolerance
+        end                                                  
+        c = 2*pi*sqrt(H/g);                                     
+        f = c * f(:);  
+        Nf = length(f);                                                                 % non-dimensionalize f
+        B = T/(R*g*H*H);                                                                % non-dimensionalize T
+        k = zeros(Nf,1);
+        k(1) = f(1)^2;                                                                  % use deep water limit as initial guess
+        for n = 1:Nf
+            dk = 1;
+            if n > 1
+                k(n) = k(n-1);
+            end
+            maxWhile = 1e6;
+            numWhile = 0;
+            while ( abs(dk) ) > tol                                                   % Newton-Raphson iteration loop
+                t = 1;
+                if k(n) < 20
+                    t = tanh(k(n)) ;
+                end
+                dk = -(f(n).^2 - k(n).*(1+B.*k(n).^2)*t)...
+                    ./ ( 3*B.*k(n).^2*t+t  + k(n)*(1+B.*k(n).^2)*( 1 - t.^2 ) ); 
+                k(n) = k(n) - dk ;
+                numWhile = numWhile + 1;
+                if numWhile > maxWhile
+                    warning('stuck in while loop calculating wave number. Using less tuned value')
+                    break;
+                end
+            end
+            k(n) = abs(k(n)) ;               
         end
-        while ( abs(dk) ) > tol                                                     % Newton-Raphson iteration loop
-            t = 1;
-        if k(n) < 20
-            t = tanh(k(n)) ;
-        end
-        dk = -(f(n).^2 - k(n).*(1+B.*k(n).^2)*t)...
-            ./ ( 3*B.*k(n).^2*t+t  + k(n)*(1+B.*k(n).^2)*( 1 - t.^2 ) ) ;
-        k(n) = k(n) - dk ;
-        end
-        k(n) = abs(k(n)) ;               
+    
+        k = k/H ;                                                                      % give k dimensions of 1/meter
+    else
+        k = 0;
     end
-
-    k = k/H ;                                                                      % give k dimensions of 1/meter
 end
 %% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function ustar = smooth_nu(U,z,nu)

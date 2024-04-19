@@ -11,22 +11,27 @@ blon = 1729;
 blat = 6618;
 gridcellsizeX = 4542.948547909539*(1/resizeFactor);
 gridcellsizeY = 92.66280063299297*(1/resizeFactor);
-pos =  [blat, blon];
+pos =  [blon, blat];
 pos_orig = pos;
 pos = round(pos * resizeFactor);
-%LS(LS == 0) = NaN;
 LS = imresize(LS, resizeFactor, "bilinear");
-alphaData = ones(size(LS));
+size_lake = size(LS);
+alphaData = ones(size_lake);
 alphaData(LS==0) = 0;
 LS = -LS;
-%figure; imagesc(-LS,'AlphaData', alphaData); hold on; plot(position(1),position(2),'ok','MarkerFaceColor','k'); colorbar; colormap cool;
+LS = round(LS);
+
 % figure;
 % subplot(2,1,1)
-% surf(LS_orig,'edgecolor','none'); view(2); hold on; plot3(pos_orig(1),pos_orig(2),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('original resolution')
+% surf(LS_orig,'edgecolor','none'); view(2); hold on; plot3(pos_orig(2),pos_orig(1),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('original resolution')
 % subplot(2,1,2)
-% surf(LS,'edgecolor','none'); view(2); hold on; plot3(pos(1),pos(2),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('degraded resolution')
+%surf(LS,'edgecolor','none'); view(2); hold on; plot3(pos(2),pos(1),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('degraded resolution')
+% figure
+% for i = 1:7
+%     plot(LS(i,:))
+%     hold on
+% end
 
-size_lake = size(LS);
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
 % (1) PLANET CONDITIONS
@@ -49,18 +54,18 @@ Earth.surface_press = 1*101300;                                            % Ear
 Earth.surface_tension = 0.072;                                             % Water Liquid Surface Tension [N/m]
 Earth.name = 'Earth';
 % (2a) MODEL GEOMETRY
-Model.m = 10;%size_lake(2);                                                    % Number of Grid Cells in X-Dimension
-Model.n = 10;%size_lake(1);                                                    % Number of Grid Cells in Y-Dimension
+Model.m = size_lake(1);                                                    % Number of Grid Cells in X-Dimension
+Model.n = size_lake(2);                                                    % Number of Grid Cells in Y-Dimension
 Model.o = 35;                                                              % Number of Frequency bins
 Model.p = 72;                                                              % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = pos(1);                                                       % longitude grid point for sampling during plotting
 Model.lat = pos(2);                                                        % latitude grid point for sampling during plotting
-Model.gridX = gridcellsizeX;                                                     % Grid size in X-dimension [m]
-Model.gridY = gridcellsizeY;                                                     % Grid size in Y-dimension [m]
+Model.gridX = gridcellsizeX;                                               % Grid size in X-dimension [m]
+Model.gridY = gridcellsizeY;                                               % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
+Model.time_step = 1;%100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+Model.num_time_steps = 500;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -68,25 +73,25 @@ Model.max_freq = 35;                                                       % max
 % (2b) BUOY SPECIFC:
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
-Model.z_data = 3.6;                                                         % elevation of wind measurement [m]
-Model.bathy_map = 273.6.*ones(Model.m,Model.n);                             % depth of water column beneath buoy [m]
-%Model.bathy_map = LS;                                                      % bathymetry of model basin [m]
+Model.z_data = 3.6;                                                        % elevation of wind measurement [m]
+%Model.bathy_map = 273.6.*ones(Model.m,Model.n);                           % depth of water column beneath buoy [m]
+Model.bathy_map = LS;                                                      % bathymetry of model basin [m]
 % (2c) TUNING PARAMETERS
-Model.tune_A1 = 0.11;                                                       % wind sea (eq. 12 Donelan+2012)
+Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
 Model.tune_Sdt_fac = 0.001;
 Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = 15;%1:2:20;                                                      % magnitude of incoming wind [m/s] [e.g.
+test_speeds = 1:2:20;                                                      % magnitude of incoming wind [m/s] [e.g.
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
 % (5) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 0;
+Etc.savedata = 1;
 Etc.showlog = 0;
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
