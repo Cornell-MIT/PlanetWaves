@@ -24,6 +24,8 @@ find_fetch.py:
     Find the fetch to a buoy station given the bathymetry
     of a lake (.tiff) for any arbitrary wind direction.
 
+    Extracts and cleans depth profile for lake
+
 Author: Una Schneck (schneck.una@gmail.com)
 
 Last modified: 04/18/2024
@@ -651,7 +653,7 @@ def main(depth_file_name, csv_filename) -> None:
 
     bx, by, dd, geo_trs, LS, LSm, LSt, main_shore, ii = loop_thru_direction(depth_file, deepwater_buoy)
     print(return_grid_cell_size(LSm))
-    wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
+    # wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
     # csv_filename = os.path.join(here, csv_filename)
     # write_to_csv(csv_filename,wind_fetch)
 
