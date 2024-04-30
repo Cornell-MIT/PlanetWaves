@@ -8,20 +8,38 @@ LS = squeeze(LS);
 LS_orig = -LS;
 resizeFactor = 0.02;
 % from find_fetch.py
-blon = 1729;
-blat = 6618;
+% blon = 1729;
+% blat = 6618;
+blon = 5;
+blat = 53;
 gridcellsizeX = 4542.948547909539*(1/resizeFactor);
 gridcellsizeY = 92.66280063299297*(1/resizeFactor);
 pos =  [blon, blat];
-pos_orig = pos;
-pos = ceil(pos * resizeFactor);
+%pos_orig = pos;
+%pos = ceil(pos * resizeFactor);
 LS = imresize(LS, resizeFactor, "bilinear");
+LS= LS(30:40, 80:end);
+
+
 size_lake = size(LS);
 alphaData = ones(size_lake);
 alphaData(LS==0) = 0;
 LS = -LS;
 LS = round(LS);
 
+disp(LS(blon,blat))
+
+
+% imagesc(LS_slice); 
+% view(2); 
+% hold on; 
+% plot(new_long,new_lat,'or','MarkerFaceColor','r')
+% %plot(Model.long,Model.lat,'or','MarkerFaceColor','r');
+% colormap cool; 
+% colorbar; 
+% title('degraded resolution')
+
+Model.bathy_map = LS;
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -56,7 +74,7 @@ Model.gridY = gridcellsizeY;                                               % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 500;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -65,7 +83,6 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = 3.6;                                                        % elevation of wind measurement [m]
-%Model.bathy_map = 273.6.*ones(Model.m,Model.n);                           % depth of water column beneath buoy [m]
 Model.bathy_map = LS;                                                      % bathymetry of model basin [m]
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
@@ -75,8 +92,8 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [3];                                                      % magnitude of incoming wind [m/s] [e.g.
-Wind.dir = pi;                                                              % direction of incoming wind [radians]
+test_speeds = 1:2:20;                                                      % magnitude of incoming wind [m/s] [e.g.
+Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -85,24 +102,14 @@ Etc.showplots = 0;
 Etc.savedata = 0;
 Etc.showlog = 0;
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-% % 
-figure;
-% subplot(2,1,1)
-% surf(LS_orig,'edgecolor','none'); view(2); hold on; plot3(pos_orig(2),pos_orig(1),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('original resolution')
-% subplot(2,1,2)
-imagesc(LS); 
-view(2); 
-hold on; 
-plot(Model.long,Model.lat,'or','MarkerFaceColor','r');
+figure; 
+imagesc(Model.bathy_map)
 colormap cool; 
-colorbar; 
-title('degraded resolution')
-% figure
-% for i = 1:7
-%     plot(LS(i,:))
-%     hold on
-% end
+hold on
+contour(Model.bathy_map,'--k')
+plot(Model.long,Model.lat,'or','MarkerFaceColor','r')
+colorbar
+
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
 planet_to_run = Earth;

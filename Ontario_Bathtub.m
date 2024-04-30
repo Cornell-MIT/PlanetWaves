@@ -2,7 +2,8 @@ clc
 clear
 close all
 
-load('ol_bathtub_0.002000_slope.mat','zDep')
+load('ls_low_res.mat','lake_superior_low_res')
+imagesc(lake_superior_low_res)
 
 % SPLIT INTO JOB ARRAY FOR HPC, WIND SPEEDS RUN INDEPENDANT
 

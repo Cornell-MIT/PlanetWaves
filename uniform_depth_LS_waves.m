@@ -2,20 +2,23 @@ clc
 clear
 close all
 
+addpath('planetwaves')
+
 % from find_fetch.py
-load('.\EarthAnalysis\GreatLakes\LakeData\LakeSuperior_cleaned.mat')
+load('.\data\EarthAnalysis\GreatLakes\LakeData\LakeSuperior_cleaned.mat')
 LS = squeeze(LS);
 LS_orig = -LS;
 resizeFactor = 0.002;
 % from find_fetch.py
 blon = 1729;
 blat = 6618;
-gridcellsizeX = 1000;%4542.948547909539*(1/resizeFactor);
-gridcellsizeY = 1000;%92.66280063299297*(1/resizeFactor);
+gridcellsizeX = 1000;
+gridcellsizeY = 1000;
 pos =  [blon, blat];
 pos_orig = pos;
 pos = ceil(pos * resizeFactor);
 LS = imresize(LS, resizeFactor, "bilinear");
+
 LS = 273.*ones(size(LS));
 LS(:,5) = 0;
 size_lake = size(LS);
@@ -80,15 +83,10 @@ Uniflow.East = 0;                                                          % eas
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
 % (5) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 0;
-Etc.showlog = 0;
-% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Etc.savedata = 1;
 
-% % 
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 figure;
-% subplot(2,1,1)
-% surf(LS_orig,'edgecolor','none'); view(2); hold on; plot3(pos_orig(2),pos_orig(1),1e4,'or','MarkerFaceColor','r'); colormap cool; colorbar; title('original resolution')
-% subplot(2,1,2)
 imagesc(LS); 
 view(2); 
 hold on; 
@@ -96,11 +94,6 @@ plot(Model.long,Model.lat,'or','MarkerFaceColor','r');
 colormap cool; 
 colorbar; 
 title('degraded resolution')
-% figure
-% for i = 1:7
-%     plot(LS(i,:))
-%     hold on
-% end
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
 planet_to_run = Earth;
@@ -122,6 +115,7 @@ xlabel('model time step [$\Delta$ t]','interpreter','latex')
 ylabel('significant wave height [m]','interpreter','latex')
 disp('run finished')
 
+% plot the results
 for k = 1:numel(test_speeds)
     buoy_waves(k) = htgrid{k}{end}(Model.long,Model.lat);
 end

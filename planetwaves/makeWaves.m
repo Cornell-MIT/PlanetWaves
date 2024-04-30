@@ -53,9 +53,8 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 %           East            : Eastward unidirectional current [m/s]
 %           North           : Northward unidirectional current [m/s]
 %       Etc
-%           showplots       : 0 = no plots made, 1 = plots every tenth loops (will slow down model run)
+%           showplots       : 0 = no plots made, 1 = plots intermediary steps of model
 %           savedata        : 1  = save data for time steps (will slow down model run), 0 = skip saving
-%           showlog         : 1 = print progress to command line (will slow down model run), 0 = no progress printed to command line
 %
 %
 %   Returns:
@@ -65,26 +64,36 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 %       ms                  : mean slope of liquid surface
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-% External function requirements: none
+% 
+% External function requirements: 
+%   MAIN MODEL
+%       (1) wavekgt.m            : estimates wavenumber using Ralph-Newtson estimation
+%       (2) make_log.m           : saves a report of the model parameters and run to a txt file
+%       (3) smooth_nu            : calculates the frictional velocity for hydraulically smooth flow of a gas
+% DEBUGGING (Etc.showplots == 1)
+%       (1) surf_extrema         : make a surface plot of the maximum/minimum values within the grid
+%       (2) plot_freq_depend     : make a plot of the frequency dependence of a value at the deepest and shallowest point of the grid
+%
+% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+% 
 % Compatible with MATLAB 2024a
 %
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Approx time to run: 7 minutes (for 1 wind speed, 10 time steps for uniform depth)
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Cite: 
-% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+% 
 %
 % Authors: Mark Donelan, Alex Hayes, Charlie Detelich, Una Schneck
+% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 tic
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
-
+assert(rem(model.Dirdim,8)==0,'Model input parameter p must be factorable by 8.')
 % -- save input directory to log --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 TitanResults = make_log(planet,model,wind,uniflow,Etc);
-
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
-
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
@@ -93,7 +102,7 @@ kgmolwt = 0.028;                                                           % gra
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % frequency and direction bins
 dr = pi/180;                                                               % conversion from degrees to radians
-dthd = 360/(model.Dirdim);                                                      % step size for angular direction [degrees]
+dthd = 360/(model.Dirdim);                                                 % step size for angular direction [degrees]
 dth = dthd*dr;                                                             % 2pi/p (small angle for integration [radians])
 % Set up geographic deltas
 dely = model.gridY*ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
@@ -112,8 +121,8 @@ kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wav
 % modified wavenumbers
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % create frequency limits for spectrum
-dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);                % frequency step size for log normal distribution
-f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                           % frequencies for spectrum
+dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);             % frequency step size for log normal distribution
+f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                        % frequencies for spectrum
 dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 
@@ -128,8 +137,8 @@ if Etc.showplots
 end
 
 % Frequency bins:
-ol = 1:model.cutoff_freq;                                                  % bins for long frequencies
-os = model.cutoff_freq+1:model.Fdim;                                          % bins for short frequencies
+ol = 1:model.cutoff_freq;                                                  % bins for long frequencies (that will advect)
+os = model.cutoff_freq+1:model.Fdim;                                       % bins for short frequencies (that will not advect because reach equilbrium with wind instantly)
 % Compute diffusion values in 2 freqs and 2 directions:
 %   bf1 + bf2 = 1, and bt1 + bt2 = 1.
 bfac = 16;                                                                 % has also been set to 15.73 by Donelan in past
@@ -144,16 +153,16 @@ B = A.*A;
 fac = bf1.*(1-1/B) + bf2.*(1-1./B.^2);                                     % eqn. 21, Donelan+2012
 Snl_fac = ((1.0942/A)^1.9757)/fac;                                         % eqn. 21, Donelan+2012
 % waveangle [radians]
-waveang = ((0:model.Dirdim-1)-model.Dirdim/2+0.5)*dth;                               % wave angle [Radians]
-th = ((0:model.Dirdim-1)-model.Dirdim/2+0.5)*dth;                                    % angle of wave propagation (phi in Donelan+2012)  between -pi to +pi
+waveang = ((0:model.Dirdim-1)-model.Dirdim/2+0.5)*dth;                     % wave angle [Radians]
+th = ((0:model.Dirdim-1)-model.Dirdim/2+0.5)*dth;                          % angle of wave propagation (phi in Donelan+2012)  between -pi to +pi
 cth=cos(th);                                                               % cosine of angle in wave propagation direction 
 sth=sin(th);                                                               % sine of angle in wave propagation direction
 % compute cos^2 for calculation of mss vs direction.
-tth = (0:model.Dirdim-1)*dth;                                                   % angular difference between short waves and longer waves
+tth = (0:model.Dirdim-1)*dth;                                              % angular difference between short waves and longer waves
 cth2 = cos(tth).^2;                                                        % cosine square of angular difference between short waves and longer waves
 % indices for refraction rotation:
-cw = ([model.Dirdim 1:model.Dirdim-1]);                                              % clockwise rotating indices
-ccw = ([2:model.Dirdim 1]);                                                     % counterclockwise rotating indices
+cw = ([model.Dirdim 1:model.Dirdim-1]);                                    % clockwise rotating indices
+ccw = ([2:model.Dirdim 1]);                                                % counterclockwise rotating indices
 % upwave indices for advective term:
 xp = [1 1:model.LonDim-1];
 yp = [1 1:model.LatDim-1];
@@ -235,10 +244,10 @@ end
 nnn = (2.53/2.5).*nnn;
 nnninv = 1./nnn;
 % reshape the matrix by repeating over the angle dimension p (dimensions of [n m o p])
-D = repmat(D',[1 1 model.Fdim model.Dirdim]);                                                                                         % 2D matrix of depths repeated in the frequency and direction dimension (D(x,y,i,j) = D(x,y) for all i and j)
-f = repmat(f',[1 model.Dirdim model.LonDim model.LatDim]);                                                                                  % 1D matrix of frequencies repeated in x, y, and direction dimension (f(i,j,A,k) = f(A) for all i,j,k)
+D = repmat(D',[1 1 model.Fdim model.Dirdim]);                                                                                % 2D matrix of depths repeated in the frequency and direction dimension (D(x,y,i,j) = D(x,y) for all i and j)
+f = repmat(f',[1 model.Dirdim model.LonDim model.LatDim]);                                                                   % 1D matrix of frequencies repeated in x, y, and direction dimension (f(i,j,A,k) = f(A) for all i,j,k)
 f = shiftdim(f,2);
-dom = repmat(dom',[1 model.Dirdim model.LonDim model.LatDim]);                                                                              % 1D matrix of discrete angular frequencies repeated in x, y, and direction dimension (dom(i,j,A,k) = dom(A) for all i,j,k)
+dom = repmat(dom',[1 model.Dirdim model.LonDim model.LatDim]);                                                               % 1D matrix of discrete angular frequencies repeated in x, y, and direction dimension (dom(i,j,A,k) = dom(A) for all i,j,k)
 dom = shiftdim(dom,2);
 %% -- ocean currents ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Uer = uniflow.East*D + 0.0;                                                                                                  % Eastward current, m/s
@@ -266,7 +275,7 @@ if Etc.showplots
 
 end
 
-dwn = ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                                         % initialize dominant wavenumber (c = dw/dk)
+dwn = ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                       % initialize dominant wavenumber (c = dw/dk)
 dwn(D>0) = dom(D>0)./abs(Cg(D>0));                                                                                                                                                                                   % remove any values on land for dominant wavenumber (c = dw/dk)
 
 if Etc.showplots
@@ -296,7 +305,7 @@ if Etc.showplots
 
 end
 
-E = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                                          % initializing the energy term in x,y,k,theta with zeros
+E = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                        % initializing the energy term in x,y,k,theta with zeros
 cgmax = max(max(max(max(Cg))));                                                                                                                                                                                      % fastest group velocity
 mindelx = min(squeeze(delx(1,:,1,1)));                                                                                                                                                                               % smallest spatial grid spacing for domain of influence
 waveang = repmat(waveang,[model.Fdim 1 model.LonDim model.LatDim]);
@@ -304,7 +313,7 @@ waveang=shiftdim(waveang,2);
 
 if Etc.savedata
     m = model.LonDim; n = model.LatDim; o = model.Fdim; p = model.Dirdim; oa = model.cutoff_freq;
-    save([TitanResults,'/New_Reference'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
+    save([TitanResults,'/Model_Parameters'],'m','n','o','p','freqs','f','wn','dwn','D','Uei','Uer','Cg','c','delx', 'dely','dthd','waveang','dr')
 end
 
 %% -- loop through wind speeds --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -417,33 +426,33 @@ for t = 1:model.num_time_steps                                                  
 % -- Sin --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % input to energy spectrum from wind
        Sin = zeros(size(Ul_term));
-       Sin(D>0) = rhorat*(Ul_term(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));                   % eqn. 4, Donelan+2012
+       Sin(D>0) = rhorat*(Ul_term(D>0).*2*pi.*f(D>0).*wn(D>0)./(planet.gravity+planet.surface_tension.*wn(D>0).*wn(D>0)./planet.rho_liquid));                      % eqn. 4, Donelan+2012
        
 
        % limits energy going into spectrum once waves outrun wind
        Heavyside = ones(size(E));
        Heavyside(Sin < 0 & E < 1e-320) = 0;
 
-       Sin = Heavyside.*Sin;                                                                                                                                    % Heavyside function kills off Sin for negative Sin (energy and momentum transferring from waves to wind) and for negative/zero energy
+       Sin = Heavyside.*Sin;                                                                                                                                       % Heavyside function kills off Sin for negative Sin (energy and momentum transferring from waves to wind) and for negative/zero energy
 
        % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
        Sin(D<=0) = 0;
       
        
        for tj = 1:model.Dirdim
-           short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:model.Dirdim)-tj+model.Dirdim,model.Dirdim)+1),4)*dth;                                                                   % energy in each angular bin get the mean square slope (eqn. 16, Donelan+2012)
+           short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:model.Dirdim)-tj+model.Dirdim,model.Dirdim)+1),4)*dth;                                                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan+2012)
        end
        
-       short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                                                                               % sqrt of mean square slope [eqn. 16, Donelan+2012]
+       short = (cumsum((wn.^3.*short.*dwn),3)-wn.^3.*short.*dwn);                                                                                                   % sqrt of mean square slope [eqn. 16, Donelan+2012]
       
 % -- Sdt ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
        Sdt(:,:,:,:) = Ustar;
-       Sdt = model.tune_Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                         % eqn 20, Donelan+2012
+       Sdt = model.tune_Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                              % eqn 20, Donelan+2012
 
        %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        Sbf = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
-       Sbf(D>0) = model.tune_Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                                         % eqn. 22, Donelan+2012
+       Sbf(D>0) = model.tune_Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                                              % eqn. 22, Donelan+2012
 
 % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        Sds = zeros(size(Sin));
@@ -516,7 +525,7 @@ for t = 1:model.num_time_steps                                                  
        E(:,:,ol,:) = (E(:,:,ol,:)+E1(:,:,ol,:))/2;                                                                             % E = (E+E1)/2 (time-splitting for stable integration) [eqn. B5, Donelan 2012]
       
 % -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-       advect = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                        % initialize the 4D advection array
+       advect = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                      % initialize the 4D advection array
        Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                         % group velocity including unidirectional current and wave velocity
       
        % Upwave advection with account taken of varying delx and dely
@@ -525,19 +534,22 @@ for t = 1:model.num_time_steps                                                  
        % bins and can be varied by the user). If not enough frequencies are being advected because of a 
        % poorly chosen model.cutoff_freq, then there will be no fetch dependence across the grid since no energy is coming '
        % into a grid from its neighbor
-       advect(:,:,ol,cp) = advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan+2012 
+
+       % has the form:
+       % ([Cg + u*cos(theta) + v*sin(theta)]*cos(theta)*E*delta_y) / (4*(delta_y + delta_y*delta_x + delta_x))
+       advect(:,:,ol,cp) = advect(:,:,ol,cp)+(Ccg(:,:,ol,cp).*cth(:,:,ol,cp).*E(:,:,ol,cp).*dely(:,:,ol,cp)...                % advection term in eqn. B6, Donelan+2012 (at all points (x,y) for long frequencies which are traveling with wind)
            - Ccg(xp,:,ol,cp).*cth(xp,:,ol,cp).*E(xp,:,ol,cp).*dely(xp,:,ol,cp))...
            ./((dely(xp,:,ol,cp) + dely(:,:,ol,cp)).*(delx(xp,:,ol,cp) + delx(:,:,ol,cp)))*4;
       
-       advect(:,:,ol,cm) = advect(:,:,ol,cm)+(Ccg(xm,:,ol,cm).*cth(xm,:,ol,cm).*E(xm,:,ol,cm).*dely(xm,:,ol,cm)...            % advection term in eqn. B6, Donelan+2012
+       advect(:,:,ol,cm) = advect(:,:,ol,cm)+(Ccg(xm,:,ol,cm).*cth(xm,:,ol,cm).*E(xm,:,ol,cm).*dely(xm,:,ol,cm)...            % advection term in eqn. B6, Donelan+2012 (at all points (x,y) for long frequencies which are traveling against wind)
            - Ccg(:,:,ol,cm).*cth(:,:,ol,cm).*E(:,:,ol,cm).*dely(:,:,ol,cm))...
            ./((dely(:,:,ol,cm) + dely(xm,:,ol,cm)).*(delx(:,:,ol,cm) + delx(xm,:,ol,cm)))*4;
       
-       advect(:,:,ol,sp) = advect(:,:,ol,sp)+(Ccg(:,:,ol,sp).*sth(:,:,ol,sp).*E(:,:,ol,sp).*delx(:,:,ol,sp)...                % advection term in eqn. B6, Donelan+2012
+       advect(:,:,ol,sp) = advect(:,:,ol,sp)+(Ccg(:,:,ol,sp).*sth(:,:,ol,sp).*E(:,:,ol,sp).*delx(:,:,ol,sp)...                % advection term in eqn. B6, Donelan+2012 (at all points (x,y) for long frequencies waves where wind is north of wave propagation)
            - Ccg(:,yp,ol,sp).*sth(:,yp,ol,sp).*E(:,yp,ol,sp).*delx(:,yp,ol,sp))...
            ./((dely(:,yp,ol,sp) + dely(:,:,ol,sp)).*(delx(:,yp,ol,sp) + delx(:,:,ol,sp)))*4;
       
-       advect(:,:,ol,sm) = advect(:,:,ol,sm)+(Ccg(:,ym,ol,sm).*sth(:,ym,ol,sm).*E(:,ym,ol,sm).*delx(:,ym,ol,sm)...            % advection term in eqn. B6, Donelan+2012
+       advect(:,:,ol,sm) = advect(:,:,ol,sm)+(Ccg(:,ym,ol,sm).*sth(:,ym,ol,sm).*E(:,ym,ol,sm).*delx(:,ym,ol,sm)...            % advection term in eqn. B6, Donelan+2012 (at all points (x,y) for long frequencies waves where wind is south of wave propagation)
            - Ccg(:,:,ol,sm).*sth(:,:,ol,sm).*E(:,:,ol,sm).*delx(:,:,ol,sm))...
            ./((dely(:,:,ol,sm) + dely(:,ym,ol,sm)).*(delx(:,:,ol,sm) + delx(:,ym,ol,sm)))*4;
       
@@ -551,7 +563,7 @@ for t = 1:model.num_time_steps                                                  
       
 % -- Compute refraction including wave-current interaction ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       Crot = zeros(size(E));
-       Crot(:,:,ol,:) = (c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...                      % eqn. A8, Donelan+2012
+       Crot(:,:,ol,:) = (c(xm,:,ol,:)-c(xp,:,ol,:)).*sth(:,:,ol,:)./(delx(xm,:,ol,:)+delx(xp,:,ol,:))...                                   % eqn. A8, Donelan+2012
            -(c(:,ym,ol,:)-c(:,yp,ol,:)).*cth(:,:,ol,:)./(dely(:,ym,ol,:)+dely(:,yp,ol,:));
        % Determine if rotation is clockwise or counter clockwise
        Crotcw = zeros(size(Crot));Crotccw = zeros(size(Crot));                  
@@ -570,8 +582,8 @@ for t = 1:model.num_time_steps                                                  
        E(D <= 0) = 0;
                 
        % Compute form stress spectrum.
-       tauE = sum(wn.*E.*Sin.*cth./c,4)*dth;                                                                                            % eastward wind stress (eqn. 5, Donelan 2012)
-       tauN = sum(wn.*E.*Sin.*sth./c,4)*dth;                                                                                            % northward wind stress (eqn. 5, Donelan 2012)
+       tauE = sum(wn.*E.*Sin.*cth./c,4)*dth;                                                                                               % eastward wind stress (eqn. 5, Donelan 2012)
+       tauN = sum(wn.*E.*Sin.*sth./c,4)*dth;                                                                                               % northward wind stress (eqn. 5, Donelan 2012)
        % Add wind speed dependent tail of slope, "mtail" pinned to the highest wavenumber, "wnh".
        mtail = 0.000112*U_10.*U_10 - 0.01451.*U_10 - 1.0186;
        wnh = squeeze(wn(:,:,model.Fdim,1));                                                                                                % largest wavenumber
@@ -584,7 +596,7 @@ for t = 1:model.num_time_steps                                                  
        Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % shear stress and law of the wall
        Cdf = Cd;
        Ustar_smooth = smooth_nu((1-wfac)*U_z(:),model.z_data,planet.nua);
-       Ustar_smooth = reshape(Ustar_smooth,model.LonDim,model.LatDim);                                                                                % Surface current (friction velocity for hydraulically smooth interface)
+       Ustar_smooth = reshape(Ustar_smooth,model.LonDim,model.LatDim);                                                                      % Surface current (friction velocity for hydraulically smooth interface)
       
        Ustar_smooth = (Ustar_smooth./U_z).^2;
        Cds =  Ustar_smooth;
@@ -598,14 +610,14 @@ for t = 1:model.num_time_steps                                                  
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dth;                            % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
-            ht = sum(ht,3);                                        % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
-            ht = 4*sqrt(abs(ht));                                  % significant wave height (from zeroth order moment of surface)
+            ht = sum(dwn.*wn.*E,4)*dth;                                                                                                     % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
+            ht = sum(ht,3);                                                                                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
+            ht = 4*sqrt(abs(ht));                                                                                                           % significant wave height (from zeroth order moment of surface)
             ks = ht;
-            sigH(t) = ht(model.long,model.lat);                    % return significant wave height at specified lat,lon coordinates 
+            sigH(t) = ht(model.long,model.lat);                                                                                             % return significant wave height at specified lat,lon coordinates 
 
             if nargout > 1
-                htgrid{t} = ht;                                    % return significant wave height at each spatial point (m,n) on the grid
+                htgrid{t} = ht;                                                                                                             % return significant wave height at each spatial point (m,n) on the grid
             end
           
 
@@ -679,189 +691,7 @@ disp('Model Run Complete')
 disp('================================================================')
 toc
 end
-% ==============================================================================================================================================================================================================================================================================================================================================================================================================================
-% User-Defined Functions:   
 
-%% ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function ustar = smooth_nu(U,z,nu)
-% To calculate the friction velocity for smooth flow of any gas.
-%
-% function ustar = smooth(U,z)
-%
-% ustar = friction velocity [m/s]
-% U     = wind speed [m/s] at height z
-% z     = height of wind speed measurement [m]
-% nu    = kinematic viscosity of gas [m^2/s]
-
-    ustar = NaN(1,length(U));
-    z0 = 0.001;
-
-    for j = 1:length(U)
-       m = 0;    
-       for k = 1:6
-           m = m+1;
-           ust = 0.4*U(j)/(log(z/z0));
-           z0 = (1/9)*nu/ust;
-       end
-       ustar(j) = ust;
-    end
-end
-
-function TitanResults = make_log(planet,model,wind,uniflow,Etc)
-% make a log and save file location for result outputs
-
-    assert(rem(model.Dirdim,8)==0,'Model input parameter p must be factorable by 8.')
-    % -- prepare log file for commands 
-    dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_wind_speed_',num2str(wind.speed),'_RunLog.txt');
-    diary(dfile);
-    RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
-    % -- create output directory for results 
-    TitanResults = strcat('wind_speed_',num2str(wind.speed)); 
-    
-    if exist(TitanResults, 'dir') == 7  && Etc.savedata                        % make output directory 'Results' if doesn't already exist
-       oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
-       oldmatloc = dir(oldmatfiles);
-       for kk = 1:length(oldmatloc)
-           basemat = oldmatloc(kk).name;
-           fullmat = fullfile(TitanResults,basemat);
-           fprintf(1,'Deleting previous .mat files %s\n',fullmat);
-           delete(fullmat);
-       end
-    elseif Etc.savedata
-	    mkdir(TitanResults);
-    end
-
-% adds run details to console and saves to log file 
-    disp('================================================================')
-    disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
-    disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
-    disp('================================================================')
-
-    fprintf('Planet:\t\t\t\t %s\n',planet.name)
-    fprintf('\trho_liquid:\t\t %.3f\n',planet.rho_liquid)
-    fprintf('\tnu_liquid:\t\t %.3e\n',planet.nu_liquid)
-    fprintf('\tnua:\t\t\t %.3e\n',planet.nua)
-    fprintf('\tgravity:\t\t %.3f\n',planet.gravity)
-    fprintf('\tsurface_temp:\t\t %.3f\n',planet.surface_temp)
-    fprintf('\tsurface_press:\t\t %.3f\n',planet.surface_press)
-    fprintf('\tsurface_tension:\t %.3f\n',planet.surface_tension)
-    
-    fprintf('\n')
-    
-    fprintf('Model\n')
-    fprintf('\tm:\t\t\t %i\n',model.LonDim)
-    fprintf('\tn:\t\t\t %i\n',model.LatDim)
-    fprintf('\to:\t\t\t %i\n',model.Fdim)
-    fprintf('\tp:\t\t\t %i\n',model.Dirdim)
-    fprintf('\tlong:\t\t\t %i\n',model.long)
-    fprintf('\tlat:\t\t\t %i\n',model.lat)
-    fprintf('\tgridX:\t\t\t %i\n',model.gridX)
-    fprintf('\tgridY:\t\t\t %i\n',model.gridY)
-    fprintf('\tmindelt:\t\t %.2e\n',model.mindelt)
-    fprintf('\tmaxdelt:\t\t %.2f\n',model.maxdelt)
-    fprintf('\ttime_step:\t\t %i\n',model.time_step)
-    fprintf('\tnum_time_steps:\t\t %i\n',model.num_time_steps)
-    fprintf('\ttolH:\t\t\t %.2f\n',model.tolH)
-    fprintf('\tcutoff_freq:\t\t %i\n',model.cutoff_freq)
-    fprintf('\tmin_freq:\t\t %.2f\n',model.min_freq)
-    fprintf('\tmax_freq:\t\t %.2f\n',model.max_freq)
-    fprintf('\tz_data:\t\t\t %.2f\n',model.z_data)
-    fprintf('\ttune_A1:\t\t %.2f\n',model.tune_A1)
-    fprintf('\ttune_mss_fac:\t\t %.2f\n',model.tune_mss_fac)
-    fprintf('\ttune_Sdt_fac:\t\t %.3f\n',model.tune_Sdt_fac)
-    fprintf('\ttune_Sbf_fac:\t\t %.3f\n',model.tune_Sbf_fac)
-    fprintf('\ttune_cotharg:\t\t %.2f\n',model.tune_cotharg)
-    fprintf('\ttune_n:\t\t\t %.2f\n',model.tune_n)
-    fprintf('\tbathy_map (deepest):\t %.2f\n',max(max(model.bathy_map)))
-    
-    allSame = all(all(model.bathy_map == model.bathy_map(1,1)) == 1);
-    if allSame
-        slopex = 0;
-        slopey = 0;
-    else
-        slopex = max(max(model.bathy_map))/(model.LonDim*model.gridX);
-        slopey = max(max(model.bathy_map))/(model.LatDim*model.gridY);
-    end
-    
-    
-    fprintf('\tbathy_map (slopex):\t %.2e\n',slopex)
-    fprintf('\tbathy_map (slopey):\t %.2e\n',slopey)
-    
-    
-    fprintf('\n')
-    
-    fprintf('Wind\n')
-    [fprintf('\tspeed: \t\t\t'),fprintf(' %.2f,', wind.speed(1:end-1)), fprintf(' %.2f\n', wind.speed(end))];
-    fprintf('\tdir: \t\t\t %.2f',wind.dir)
-    
-    fprintf('\n')
-    
-    fprintf('Uniflow\n')
-    fprintf('\tEast:\t\t\t %.2f\n',uniflow.East)
-    fprintf('\tNorth:\t\t\t %.2f\n',uniflow.North)
-    
-    fprintf('\n')
-    
-    fprintf('Etc\n')
-    fprintf('\tshowplots:\t\t %i\n',Etc.showplots)
-    fprintf('\tsavedata:\t\t %i\n',Etc.savedata)
-    fprintf('\tshowlog:\t\t %i\n',Etc.showlog)
-
-disp('================================================================')
-
-end
-
-function surf_extrema(my_array,variable_name,model,extrema_type)
-% make a surf plot of the max and min values of a variable of interest
-
-    %my_array = squeeze(my_array(round(model.LonDim/2),round(model.LatDim/2),:,:));
-
-    reshaped_array = reshape(my_array,model.LonDim*model.LatDim,model.Fdim*model.Dirdim);
-    
-    if strcmp(extrema_type,'tallest')
-        val_ar = max(reshaped_array,[],2);
-    elseif strcmp(extrema_type,'smallest')
-        val_ar = min(reshaped_array,[],2);
-    else
-        error('SURF_EXTREMA: extrema type not specified')
-    end
-
-    valgrid = reshape(val_ar,model.LonDim,model.LatDim);
-    
-
-    figure;
-    surf(valgrid,'FaceColor','interp')
-    colorbar
-    title([variable_name,' ',extrema_type,' at center of grid'])
-    view(2)
-    hold on
-
-end
-
-function plot_freq_depend(my_array,variable_name,depth,frequencies,model)
-% plot the frequency dependence of a variable in the deepest and shallowest section of the grid
-
-    [deep_spot_depth, deep_spot_li] = max(depth(:));
-    [deep_ri,deep_ci] = ind2sub(size(depth),deep_spot_li);
-
-    [shallow_spot_depth, shallow_spot_li] = min(depth(:));
-    [shallow_ri,shallow_ci] = ind2sub(size(depth),shallow_spot_li);
-
-
-
-    figure;
-    plot(frequencies,squeeze(my_array(deep_ri,deep_ci,:,round(model.Dirdim/2))),'LineWidth',3)
-    hold on
-    plot(frequencies,squeeze(my_array(shallow_ri,shallow_ci,:,round(model.Dirdim/2))),'LineWidth',3)
-    xline(frequencies(model.cutoff_freq),'-','cutoff frequency')
-    legend({strcat('Deep=',num2str(deep_spot_depth)), strcat('Shallow=',num2str(shallow_spot_depth))},'Location', 'Best')
-    xlabel('frequency [Hz]')
-    ylabel(variable_name)
-    set(gca, 'XScale', 'log')
-    hold off;
-    
-
-end
 % ==============================================================================================================================================================================================================================================================
 % REFERENCES CITED IN COMMENTS:
 % 1. Donelan+2012 : Donelan et al. 2012 "Modeling waves and wind stress" (JGR)

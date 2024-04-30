@@ -26,7 +26,7 @@ hsv_colors = [hues, saturation, value];
 cyclic_colormap = hsv2rgb(hsv_colors);
 
 
-figure;
+figure('units', 'normalized', 'outerposition', [0 0 1 1]);
 
 for i = 1:length(years)
 
@@ -60,7 +60,14 @@ title('Pierson-Moskwotiz Lake Superior [2002-2022]')
 max_num_fetch = max(cellfun(@numel, data));
 myfetch = cell(length(years),max_num_fetch);
 
-figure;
+mymap = [
+    hex2rgb('1d55c7')
+    hex2rgb('1d85f1')
+    hex2rgb('5ca9ff')
+    hex2rgb('9cd3ff')
+    ];
+
+figure('units', 'normalized', 'outerposition', [0 0 1 1]);
 for i = 1:length(years)
 
     pad_ends = NaN(1,max_num_fetch);
@@ -72,9 +79,9 @@ for i = 1:length(years)
     
         pad_ends(1:numel(fetch)) = fetch;
        
-        scatter(u,h,[],fetch./1000,'filled');
+        scatter(u,h,150,fetch./1000,'filled');
         cb = colorbar;
-        colormap cool
+        colormap(mymap)
         ylabel(cb,'Fetch [km]','FontSize',16,'Rotation',270)
         hold on;
     end
@@ -99,17 +106,25 @@ JS_m = 4.*sqrt((1.67e-7).*((x.^2)./9.81).*m_fetch);
 plot(x, JS, '--k', 'LineWidth', 3);
 fill([x, fliplr(x)], [JS_p, fliplr(JS_m)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
 fill([x, fliplr(x)], [JS_m, fliplr(JS_p)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
-load('waveheights.mat') % from model run
-plot([1 5 10 15 20],ht_wind,'--sr','LineWidth',1,'MarkerFaceColor','r')
-xlabel('u [m/s]')
-ylabel('H_{sig} [m]')
-title('JONSWAP for Avg Fetch +/- STD Fetch')
+%load('waveheights.mat') % from model run
+%load('ht_sig_04162024.mat','test_speeds')
+plot([1     3     5     7     9    11    13    15    17    19],[0    0.1084    0.4292    0.8349    1.3430    1.9401    2.6101    3.3396    4.1236    4.9245],'--sr','LineWidth',1,'MarkerFaceColor','#c7391d','MarkerSize',15,'MarkerEdgeColor','#c7391d')
+xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
+ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
+%title('Lake Superior: BUOY 45004')
 grid on
+box on;
+set(gca,'FontSize',16)
+set(gca,'FontWeight','bold')
 
 
-figure;
-boxplot(myfetch)
-ylabel('fetch [km]')
-title('lake superior 2002-2022')
-grid on
+% figure;
+% boxplot(myfetch)
+% ylabel('fetch [km]')
+% title('lake superior 2002-2022')
+% grid on
 
+function rgb = hex2rgb(hex)
+    hex = reshape(hex, [], 6);
+    rgb = reshape(sscanf(hex.', '%2x'), [], 3) / 255;
+end
