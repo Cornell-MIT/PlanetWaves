@@ -22,11 +22,11 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
            fprintf(1,'Deleting previous .mat files %s\n',fullmat);
            delete(fullmat);
        end
-       oldlogfile = fullfile(TitanResults,'*.txt');
+       oldlogfile = fullfile(ResultsParent,'*.txt');
        oldlogloc = dir(oldlogfile);
        for kk = 1:length(oldlogloc)
            basetxt = oldlogloc(kk).name;
-           fulltxt = fullfile(TitanResults,basetxt);
+           fulltxt = fullfile(ResultsParent,basetxt);
            fprintf(1,'Deleting previous log files %s\n',fulltxt);
            delete(fulltxt);
        end
@@ -37,7 +37,7 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
     
         % -- prepare log file for commands 
     dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_wind_speed_',num2str(wind.speed),'_RunLog.txt');
-    diary(fullfile(TitanResults,dfile));
+    diary(fullfile(ResultsParent,dfile));
     RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 
 % adds run details to console and saves to log file 
