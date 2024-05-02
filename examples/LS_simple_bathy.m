@@ -2,27 +2,32 @@ clc
 clear
 close all
 
-addpath('planetwaves')
+addpath(fullfile('..','planetwaves'))  
+addpath(fullfile('..','data','Earth','GreatLakes','LakeSuperior'))
 
-% from find_fetch.py   
-load('.\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
-LS = squeeze(LS);
-LS_orig = -LS;
-resizeFactor = 0.002;
+% from find_fetch.py 
+load('..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
+LS = -squeeze(LS);
+LS_orig = LS;
+resizeFactor = 0.02;
 % from find_fetch.py
 blon = 1729;
 blat = 6618;
-gridcellsizeX = 1000;
-gridcellsizeY = 1000;
+gridcellsizeX = 4542.948547909539*(1/resizeFactor);
+gridcellsizeY = 92.66280063299297*(1/resizeFactor);
 pos =  [blon, blat];
 pos_orig = pos;
-pos = ceil(pos * resizeFactor);
-LS = imresize(LS, resizeFactor, "bilinear");
 
-LS = 273.*ones(size(LS));
-LS(:,5) = 0;
+LS = imresize(LS, resizeFactor, "bilinear");
+LS = round(LS);
+
+pos = ceil(pos * resizeFactor);
 size_lake = size(LS);
 
+alphaData = ones(size_lake);
+alphaData(LS==0) = 0;
+
+Model.bathy_map = LS;
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -57,7 +62,7 @@ Model.gridY = gridcellsizeY;                                               % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 500;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -66,8 +71,6 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = 3.6;                                                        % elevation of wind measurement [m]
-%Model.bathy_map = 273.6.*ones(Model.m,Model.n);                           % depth of water column beneath buoy [m]
-Model.bathy_map = LS;                                                      % bathymetry of model basin [m]
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
@@ -76,46 +79,59 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [8];                                                      % magnitude of incoming wind [m/s] [e.g.
-Wind.dir = (3*pi)/2;                                                              % direction of incoming wind [radians]
+test_speeds = 1:5:20;                                                      % magnitude of incoming wind [m/s] [e.g.
+Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
 % (5) HOUSEKEEPING
 Etc.showplots = 0;
-Etc.savedata = 1;
-
+Etc.savedata = 0;
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-figure;
-imagesc(LS); 
-view(2); 
-hold on; 
-plot(Model.long,Model.lat,'or','MarkerFaceColor','r');
+figure; 
+imagesc(Model.bathy_map)
 colormap cool; 
-colorbar; 
-title('degraded resolution')
+hold on
+contour(Model.bathy_map,'--k')
+plot(Model.long,Model.lat,'or','MarkerFaceColor','r')
+colorbar
+
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
 planet_to_run = Earth;
-myHsig = NaN(numel(test_speeds),Model.num_time_steps);
+myHsig = cell(1, numel(test_speeds));
+htgrid = cell(1, numel(test_speeds));
+E_spec = cell(1, numel(test_speeds));
+
+% Preallocate cell arrays to store results
+myHsig = cell(1, numel(test_speeds));
+htgrid = cell(1, numel(test_speeds));
+E_spec = cell(1, numel(test_speeds));
+
+parfor i = 1:numel(test_speeds)
+    % Create a local copy of the Wind variable for each iteration so can be parallelized on local machine
+    Wind_local = Wind;
+    Wind_local.speed = test_speeds(i);
+    
+    [myHsig{i}, htgrid{i}, E_spec{i}, ~] = makeWaves(planet_to_run, Model, Wind_local, Uniflow, Etc);   % run model
+    
+end
+disp('run finished')
+
+% plot results
+
+figure
 for i = 1:numel(test_speeds)
-	Wind.speed  = test_speeds(i);
-	[myHsig(i,:),htgrid{i},~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
-  if i == 1
-      figure('units','normalized','outerposition',[0 0 1 1])
-  end
-  plot(myHsig(i,:),'-','LineWidth',3,'DisplayName', num2str(Wind.speed))
-  hold on
-  drawnow
+    plot(myHsig{i}, '-', 'LineWidth', 3, 'DisplayName', num2str(test_speeds(i)))
+    hold on
 end
 grid on;
 legend('show', 'Location', 'northwest','interpreter','latex');
 title(['Waves on',' ',planet_to_run.name],'interpreter','latex');
 xlabel('model time step [$\Delta$ t]','interpreter','latex')
 ylabel('significant wave height [m]','interpreter','latex')
-disp('run finished')
 
-% plot the results
+
 for k = 1:numel(test_speeds)
     buoy_waves(k) = htgrid{k}{end}(Model.long,Model.lat);
 end
@@ -168,11 +184,65 @@ for speed = 1:numel(test_speeds)
     set(ax1,'Ydir','reverse')
     %set(ax1,'Xdir','reverse')
     drawnow
-    % if speed == 1
-    %     gif('0p002_LS_45004.gif','DelayTime',1)
-    % else
-    %     gif
-    % end
+    if speed == 1
+        gif('LakeSuperior_largegrid.gif','DelayTime',1)
+    else
+        gif
+    end
 end
 
+figure('units','normalized','outerposition',[0 0 1 1])
+for speed = 1:numel(test_speeds)
+    
+    subplot(1,3,3)
+    plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
+    hold on
+    plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',1,'MarkerFaceColor','r')
+    hold off;
+    xlabel('u [m/s]')
+    ylabel('H_{sig} [m]')
+    grid on;
+    
+    plot_grid = htgrid{speed}{end}';
+    plot_grid(isnan(plot_grid)) = 0;
+    plot_alpha_data = ones(size(plot_grid));
+    plot_alpha_data(plot_grid==0) = 0;
 
+    ax1 = subplot(1,3,[1,2]);
+    h1 = imagesc(plot_grid./Model.bathy_map);
+    colormap linspecer
+    xlabel('longitude [km]')
+    ylabel('latitude [km]')
+    title(sprintf('H/D at u = %i m/s',test_speeds(speed)))
+    c1 = colorbar;
+    clim([0 1])
+    c1.Label.String = 'H_{sig}/Depth';
+    set(h1, 'AlphaData', plot_alpha_data);
+    hold on;
+   
+    grid on
+    new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
+    new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
+    set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
+    set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
+    
+    
+    [wx,wy] = pol2cart(Wind.dir,1);
+    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
+
+    for i = 1:Model.LonDim
+        for j = 1:Model.LatDim
+            quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'k', 'MaxHeadSize', 1);
+        end
+    end
+    set(ax1,'Ydir','reverse')
+    %set(ax1,'Xdir','reverse')
+    drawnow
+    if speed == 1
+        gif('LakeSuperior_largegrid_H_D.gif','DelayTime',1)
+    else
+        gif
+    end
+end
+
+plot_against_lake_superior_45004(test_speeds,buoy_waves)

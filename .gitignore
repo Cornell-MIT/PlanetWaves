@@ -24,3 +24,4 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 .pRUN_Parallel_Stub_testWaves_cluster_temp
 *.svg
 /myenv
+*.bak

@@ -666,6 +666,6 @@ if __name__ == '__main__':
     # bathymetry profile tiff
     depth_file_name = 'LS.tiff'
     # name of csv to save the fetches list for each direction
-    csv_filename = 'WindFetchLS.csv'
+    csv_filename = 'WindFetchLS_45004.csv'
 
     main(depth_file_name, csv_filename)

@@ -1,7 +1,4 @@
-clc
-clear 
-close all
-
+function plot_against_lake_superior_45004(model_winds,model_waves)
 % This code will extract quiet periods in terms of variability in wind speed, direction, and gust from Lake Superior data
 % at a deepwater buoy. It will produce plots of the sig wave height vs wind speed with direction information against the 
 % first order estimate by Pierson-Moskowitz. It will then extract fetch information for each time there is a wind speed
@@ -11,9 +8,11 @@ close all
 years = 2002:2022;
 data = cell(1, length(years));
 
+cwd = pwd;
+cd('../data/Earth/GreatLakes/LakeSuperior/BuoyData/45004');
 
 for i = 1:length(years)
-    data{i} = analyze_buoy_data(['BuoyData/Superior/45004h' num2str(years(i))]);
+    data{i} = analyze_buoy_data(['45004h' num2str(years(i))]);
 end
 
 
@@ -108,7 +107,7 @@ fill([x, fliplr(x)], [JS_p, fliplr(JS_m)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0
 fill([x, fliplr(x)], [JS_m, fliplr(JS_p)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
 %load('waveheights.mat') % from model run
 %load('ht_sig_04162024.mat','test_speeds')
-plot([1     3     5     7     9    11    13    15    17    19],[0    0.1084    0.4292    0.8349    1.3430    1.9401    2.6101    3.3396    4.1236    4.9245],'--sr','LineWidth',1,'MarkerFaceColor','#c7391d','MarkerSize',15,'MarkerEdgeColor','#c7391d')
+plot(model_winds, model_waves,'--sr','LineWidth',1,'MarkerFaceColor','#c7391d','MarkerSize',15,'MarkerEdgeColor','#c7391d')
 xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
 ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
 %title('Lake Superior: BUOY 45004')
@@ -124,7 +123,10 @@ set(gca,'FontWeight','bold')
 % title('lake superior 2002-2022')
 % grid on
 
+cd(cwd)
 function rgb = hex2rgb(hex)
     hex = reshape(hex, [], 6);
     rgb = reshape(sscanf(hex.', '%2x'), [], 3) / 255;
+end
+
 end

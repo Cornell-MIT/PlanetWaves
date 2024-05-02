@@ -2,7 +2,27 @@ clc
 clear
 close all
 
-addpath('planetwaves')                                                     % location of wave model files
+addpath(fullfile('..','planetwaves'))  
+
+% from find_fetch.py   
+load('..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
+LS = squeeze(LS);
+LS_orig = -LS;
+resizeFactor = 0.002;
+% from find_fetch.py
+blon = 1729;
+blat = 6618;
+gridcellsizeX = 1000;
+gridcellsizeY = 1000;
+pos =  [blon, blat];
+pos_orig = pos;
+pos = ceil(pos * resizeFactor);
+LS = imresize(LS, resizeFactor, "bilinear");
+
+LS = 273.*ones(size(LS));
+LS(:,5) = 0;
+size_lake = size(LS);
+
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -26,18 +46,18 @@ Earth.surface_press = 1*101300;                                            % Ear
 Earth.surface_tension = 0.072;                                             % Water Liquid Surface Tension [N/m]
 Earth.name = 'Earth';
 % (2a) MODEL GEOMETRY
-Model.LonDim = 10;                                                         % Number of Grid Cells in X-Dimension (col count)
-Model.LatDim = 10;                                                         % Number of Grid Cells in Y-Dimension (row count)
-Model.Fdim = 35;                                                           % Number of Frequency bins
-Model.Dirdim = 72;                                                         % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
-Model.long = 5;                                                            % longitude grid point for sampling during plotting
-Model.lat = 5;                                                             % latitude grid point for sampling during plotting
-Model.gridX = 40*1000;                                                     % Grid size in X-dimension [m]
-Model.gridY = 40*1000;                                                     % Grid size in Y-dimension [m]
+Model.LonDim = size_lake(2);                                                    % Number of Grid Cells in X-Dimension (col count)
+Model.LatDim = size_lake(1);                                                    % Number of Grid Cells in Y-Dimension (row count)
+Model.Fdim = 35;                                                              % Number of Frequency bins
+Model.Dirdim = 72;                                                              % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+Model.long = pos(2);                                                       % longitude grid point for sampling during plotting
+Model.lat = pos(1);                                                        % latitude grid point for sampling during plotting
+Model.gridX = gridcellsizeX;                                               % Grid size in X-dimension [m]
+Model.gridY = gridcellsizeY;                                               % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 200;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -46,7 +66,8 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = 3.6;                                                        % elevation of wind measurement [m]
-Model.bathy_map = 273.6.*ones(Model.LonDim,Model.LatDim);                  % depth of water column beneath buoy [m]
+%Model.bathy_map = 273.6.*ones(Model.m,Model.n);                           % depth of water column beneath buoy [m]
+Model.bathy_map = LS;                                                      % bathymetry of model basin [m]
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
@@ -55,8 +76,8 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [3 8 10];                                                    % magnitude of incoming wind [m/s] [e.g.
-Wind.dir = (3*pi)/2;                                                       % direction of incoming wind [radians] where 0 deg corresponds to winds traveling from left to right and increases clockwise
+test_speeds = [8];                                                      % magnitude of incoming wind [m/s] [e.g.
+Wind.dir = (3*pi)/2;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -64,6 +85,15 @@ Uniflow.North = 0;                                                         % nor
 Etc.showplots = 0;
 Etc.savedata = 1;
 
+% ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+figure;
+imagesc(LS); 
+view(2); 
+hold on; 
+plot(Model.long,Model.lat,'or','MarkerFaceColor','r');
+colormap cool; 
+colorbar; 
+title('degraded resolution')
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
 planet_to_run = Earth;
@@ -136,12 +166,13 @@ for speed = 1:numel(test_speeds)
         end
     end
     set(ax1,'Ydir','reverse')
+    %set(ax1,'Xdir','reverse')
     drawnow
-    if speed == 1
-        gif('example.gif','DelayTime',1)
-    else
-        gif
-    end
+    % if speed == 1
+    %     gif('0p002_LS_45004.gif','DelayTime',1)
+    % else
+    %     gif
+    % end
 end
 
 

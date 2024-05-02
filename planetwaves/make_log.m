@@ -22,14 +22,14 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
            fprintf(1,'Deleting previous .mat files %s\n',fullmat);
            delete(fullmat);
        end
-       oldlogfile = fullfile(ResultsParent,'*.txt');
-       oldlogloc = dir(oldlogfile);
-       for kk = 1:length(oldlogloc)
-           basetxt = oldlogloc(kk).name;
-           fulltxt = fullfile(ResultsParent,basetxt);
-           fprintf(1,'Deleting previous log files %s\n',fulltxt);
-           delete(fulltxt);
-       end
+       % oldlogfile = fullfile(ResultsParent,'*.txt');
+       % oldlogloc = dir(oldlogfile);
+       % for kk = 1:length(oldlogloc)
+       %    basetxt = oldlogloc(kk).name;
+       %    fulltxt = fullfile(ResultsParent,basetxt);
+       %    fprintf(1,'Deleting previous log files %s\n',fulltxt);
+       %    delete(fulltxt);
+       % end
     elseif Etc.savedata
         disp(['Creating subdirectories in ' ResultsParent ' to store model output'])
 	    mkdir(TitanResults)

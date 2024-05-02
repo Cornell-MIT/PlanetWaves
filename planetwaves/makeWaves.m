@@ -103,7 +103,7 @@ RRR = 8.314;                                                               % Uni
 % frequency and direction bins
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(model.Dirdim);                                                 % step size for angular direction [degrees]
-dth = dthd*dr;                                                             % 2pi/p (small angle for integration [radians])
+dth = dthd*dr;                                                             % step size of degrees [radians])
 % Set up geographic deltas
 dely = model.gridY*ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
 delx = model.gridX*ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
@@ -324,9 +324,9 @@ E_each =  cell(1,length(1:model.num_time_steps));                          % ini
 
 UU = wind.speed;                                                 
 
-U = UU.*ones(model.LonDim,model.LatDim);                                             % set wind velocity everywhere in x-y plane
-windir = wind.dir.*ones(model.LonDim,model.LatDim);                                  % set wind direction everywhere in x-y plane
-windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                             % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
+U = UU.*ones(model.LonDim,model.LatDim);                                   % set wind velocity everywhere in x-y plane
+windir = wind.dir.*ones(model.LonDim,model.LatDim);                        % set wind direction everywhere in x-y plane
+windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                     % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
 
 U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
 
@@ -601,12 +601,14 @@ for t = 1:model.num_time_steps                                                  
        Ustar_smooth = (Ustar_smooth./U_z).^2;
        Cds =  Ustar_smooth;
       
-       Ustar_smooth = U_z.^2.*(0.3333*Ustar_smooth + 0.6667*(Ustar_smooth.^2)./(Ustar_smooth + Cd));
+       Ustar_smooth = U_z.^2.*((1/3)*Ustar_smooth + (2/3)*(Ustar_smooth.^2)./(Ustar_smooth + Cd));
        tauE = tauE + rhoa*Ustar_smooth.*cos(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Eastward direction
        tauN = tauN + rhoa*Ustar_smooth.*sin(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Northward direction
 
        Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan+2012)
-       Cd = clip(Cd,0,2.5e-3);                                                                                                              % put a cap here on the absolute size of the drag coefficient so U at lambda/2 doesn't go negative and become unphysical, max from Donelan+2004, fig. 2
+       Cd_sat = 3.01e-3;                                                                                                                    % drag coefficient saturates at around U_10 = 25 m/s on Earth (Curcic+2020)
+       max_Cd = Cd_sat*(planet.surface_press/(1*101300));                                                                                   % scale drag coefficient to planetary conditions given all drag force is from surface pressure
+       Cd = clip(Cd,0,max_Cd);                                                                                                              % put a cap here on the absolute size of the drag coefficient so U at lambda/2 doesn't go negative and become unphysical
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       % integrate spectrum to find significant height  
@@ -623,9 +625,9 @@ for t = 1:model.num_time_steps                                                  
 
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % integrate spectrum to find mean slope                                                                                                                         
-        ms = sum(dwn.*wn.^3.*E,4)*dth;                                                                                                              % slope = angle water surface makes with flat surface
+        ms = sum(dwn.*wn.^3.*E,4)*dth;                                                                                                                  % slope = angle water surface makes with flat surface
         ms = sum(ms,3);
-        ms = sqrt(ms);                                                                                                                              % standard deviation of water surface = sqrt(variance of water surface)
+        ms = sqrt(ms);                                                                                                                                  % standard deviation of water surface = sqrt(variance of water surface)
 
        % Integrate spectrum over wavenumber to plot directional plot of 10th wavelength.
        Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);                           % integrating over frequency spectrum for plotting
@@ -646,6 +648,15 @@ for t = 1:model.num_time_steps                                                  
    fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
 
   if nargout > 2
+    % if t == model.num_time_steps
+    %     totE = squeeze(sum(Sds.*dlnf,3));
+    %     totE = squeeze(sum(totE.*dth,3));
+    %     figure;
+    %     imagesc(totE');
+    %     set(gca,'Ydir','reverse')
+    %     colorbar
+    %     title('Total Energy within Lake Grid')
+    % end
     E_each{t} = E;    % return energy spectrum for each wind speed  at each time step t
   end
 
@@ -697,5 +708,6 @@ end
 % 1. Donelan+2012 : Donelan et al. 2012 "Modeling waves and wind stress" (JGR)
 % 2. Donelan+2001 : Donelan et al. 2001 "A Nonlinear Dissipation Function due to Wave Breaking (Proc. ECMWF Workshop on Ocean Wave Forecasting)
 % 3. Kinsman      : Kinsman, Blair 1965 "Wind Waves: Their Generation and Propagation on the Ocean Surface"
-% 4. Donelan+2004 : Donelan et al. 2004 "Aerodynamic Roughness of the Ocean in Strong Winds"
+% 4. Donelan+2004 : Donelan et al. 2004 "Aerodynamic Roughness of the Ocean in Strong Winds" (GRL)
+% 5. Curcic+2020  : Curcic & Haus 2020 "Revised Estimates of Ocean Surface Drag in Strong Winds" (GRL)
 % ==============================================================================================================================================================================================================================================================
