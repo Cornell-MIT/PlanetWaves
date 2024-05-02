@@ -3,7 +3,6 @@
 FetchLaws/main.asv
 *.txt
 FetchLaws/largerun_main_Titan/Omni.gif
-*.gif
 FetchLaws/largerun_main_Titan/main.asv
 FetchLaws/groundtruthing/TestingChanges.xlsx
 *.asv
@@ -16,7 +15,6 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 !EarthAnalysis/GreatLakes/BuoyData/Superior/DATAREADME.txt
 !EarthAnalysis/GreatLakes/LakeData/DATAREADME.txt
 *.jpg
-*.png
 *.csv
 *.nc
 *.log
