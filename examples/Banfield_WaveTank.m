@@ -11,25 +11,18 @@ addpath(fullfile('..','data','Mars'))
 WaveTank = readtable('Banfield2015_table1.xlsx'); % [atm_pressure wind_speed sigH]
 
 figure;
-gscatter(WaveTank.wind_speed_m_s,WaveTank.sig_H_mm.*1000,WaveTank.atm_pressure_mbar,[],[],50)
+scatter(WaveTank.wind_speed_m_s,WaveTank.sig_H_mm./1000,50,WaveTank.atm_pressure_mbar.*1000,'filled')
 grid on;
-title('Banfield+2015 Wave Tank Measurements for different atmospheres [mbar] (table 1)')
+title('Banfield+2015 Wave Tank Measurements for different atmospheres [bar] (table 1)')
 xlabel('wind speed m/s')
 ylabel('sigH m')
-set(gca,'YScale','log')
+colormap(winter)
+colorbar
+
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
 % (1) PLANET CONDITIONS
-%   (a) TITAN
-Titan.rho_liquid = 540;                                                    % Hydrocarbon Liquid density [kg/m3]
-Titan.nu_liquid = 3e-7;                                                    % Hydrocarbon Liquid Viscosity [m2/s]
-Titan.nua = 0.0126/1e4;                                                    % Titan atmospheric gas viscosity [m2/s]
-Titan.gravity = 1.352;                                                     % Titan Gravity [m/s2]
-Titan.surface_temp = 92;                                                   % Titan Surface Temperature [K]
-Titan.surface_press = 1.5*101300;                                          % Titan Surface Pressure [Pa]
-Titan.surface_tension = 0.018;                                             % Hydrocarbon Liquid Surface Tension [N/m]
-Titan.name = 'Titan';
 %   (b) EARTH
 Earth.rho_liquid = 997;                                                    % Water Liqid Density [kg/m3]       
 Earth.nu_liquid = 1.143e-6;                                                % Water Liquid Viscosity [m2/s]
@@ -40,18 +33,18 @@ Earth.surface_press = 1*101300;                                            % Ear
 Earth.surface_tension = 0.072;                                             % Water Liquid Surface Tension [N/m]
 Earth.name = 'Earth';
 %   (c) Paleo-Mars
-Mars = Earth;
+Mars = Earth;                      
 Mars.gravity = 3.71;
 Mars.surface_temp = NaN;
 Mars.surface_pressure = NaN;
 Mars.name = 'Mars';
 % (2a) MODEL GEOMETRY
-Model.LonDim = 3;                                                          % Number of Grid Cells in X-Dimension (col count)
-Model.LatDim = 3;                                                          % Number of Grid Cells in Y-Dimension (row count)
+Model.LonDim = 10;                                                         % Number of Grid Cells in X-Dimension (col count)
+Model.LatDim = 10;                                                         % Number of Grid Cells in Y-Dimension (row count)
 Model.Fdim = 35;                                                           % Number of Frequency bins
 Model.Dirdim = 72;                                                         % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
-Model.long = pos(2);                                                       % longitude grid point for sampling during plotting
-Model.lat = pos(1);                                                        % latitude grid point for sampling during plotting
+Model.long = 6;                                                            % longitude grid point for sampling during plotting
+Model.lat = 6;                                                             % latitude grid point for sampling during plotting
 Model.gridX = 1;                                                           % Grid size in X-dimension [m]
 Model.gridY = 1;                                                           % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
@@ -66,7 +59,7 @@ Model.max_freq = 35;                                                       % max
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
 Model.z_data = (28.5/100);                                                  % elevation of wind measurement [m]
-Model.bathy_map = (16/100).*ones(6,6);
+Model.bathy_map = (16/100).*ones(Model.LonDim,Model.LatDim);
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
@@ -75,7 +68,8 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = unique(banfield_wind_speeds);                                % direction of incoming wind [radians]
+test_speeds = sort(unique(WaveTank.wind_speed_m_s'));                             % magnitude of incoming wind [m/s]
+Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -93,7 +87,7 @@ colorbar
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
-planet_to_run = NaN;
+planet_to_run = Earth;
 
 
 % Preallocate cell arrays to store results
@@ -104,7 +98,7 @@ myHsig = cell(1, numel(test_speeds));
 htgrid = cell(1, numel(test_speeds));
 E_spec = cell(1, numel(test_speeds));
 
-error('need to loop over atm pressure, wind speed, and temperature. fill this in and parallelize')
+warning('need to loop over atm pressure, wind speed, and temperature. fill this in and parallelize')
 
 parfor i = 1:numel(test_speeds)
     % Create a local copy of the Wind variable for each iteration so can be parallelized on local machine
@@ -242,4 +236,5 @@ for speed = 1:numel(test_speeds)
         gif
     end
 end
+
 
