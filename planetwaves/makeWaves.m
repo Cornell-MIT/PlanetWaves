@@ -22,10 +22,10 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 %           surface_tension : surface tension of liquid [N/m]
 %           name            : planet name ['string'] e.g. 'Titan'
 %       model
-%           m               : number of grid cells in x-dimension
-%           n               : number of grid cells in y-dimension
-%           o               : number of frequency bins
-%           p               : number of angular (theta) bins. Must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+%           LonDim          : number of grid cells in x-dimension
+%           LatDim          : number of grid cells in y-dimension
+%           FreqDim         : number of frequency bins
+%           DirDim          : number of angular (theta) bins. Must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 %           long            : longitude location of grid to plot 
 %           lat             : latitude location of grid to plot
 %           gridX           : size of grid cell in x-dimension [m]

@@ -2,34 +2,21 @@ clc
 clear
 close all
 
-% using degraded version of full Lake Superior bathy
+% checking model against Banfield+2015 wave tank experiments
 
 addpath(fullfile('..','planetwaves'))  
-addpath(fullfile('..','data','Earth','GreatLakes','LakeSuperior'))
 
-% from find_fetch.py 
-load('..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
-LS = -squeeze(LS);
-LS_orig = LS;
-resizeFactor = 0.02;
-% from find_fetch.py
-blon = 1729;
-blat = 6618;
-gridcellsizeX = 4542.948547909539*(1/resizeFactor);
-gridcellsizeY = 92.66280063299297*(1/resizeFactor);
-pos =  [blon, blat];
-pos_orig = pos;
+addpath(fullfile('..','data','Mars'))
 
-LS = imresize(LS, resizeFactor, "bilinear");
-LS = round(LS);
+WaveTank = readtable('Banfield2015_table1.xlsx'); % [atm_pressure wind_speed sigH]
 
-pos = ceil(pos * resizeFactor);
-size_lake = size(LS);
-
-alphaData = ones(size_lake);
-alphaData(LS==0) = 0;
-
-Model.bathy_map = LS;
+figure;
+gscatter(WaveTank.wind_speed_m_s,WaveTank.sig_H_mm.*1000,WaveTank.atm_pressure_mbar,[],[],50)
+grid on;
+title('Banfield+2015 Wave Tank Measurements for different atmospheres [mbar] (table 1)')
+xlabel('wind speed m/s')
+ylabel('sigH m')
+set(gca,'YScale','log')
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -52,15 +39,21 @@ Earth.surface_temp = 288;                                                  % Ear
 Earth.surface_press = 1*101300;                                            % Earth Surface Pressure [Pa]
 Earth.surface_tension = 0.072;                                             % Water Liquid Surface Tension [N/m]
 Earth.name = 'Earth';
+%   (c) Paleo-Mars
+Mars = Earth;
+Mars.gravity = 3.71;
+Mars.surface_temp = NaN;
+Mars.surface_pressure = NaN;
+Mars.name = 'Mars';
 % (2a) MODEL GEOMETRY
-Model.LonDim = size_lake(2);                                                    % Number of Grid Cells in X-Dimension (col count)
-Model.LatDim = size_lake(1);                                                    % Number of Grid Cells in Y-Dimension (row count)
-Model.Fdim = 35;                                                              % Number of Frequency bins
-Model.Dirdim = 72;                                                              % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
+Model.LonDim = 3;                                                          % Number of Grid Cells in X-Dimension (col count)
+Model.LatDim = 3;                                                          % Number of Grid Cells in Y-Dimension (row count)
+Model.Fdim = 35;                                                           % Number of Frequency bins
+Model.Dirdim = 72;                                                         % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = pos(2);                                                       % longitude grid point for sampling during plotting
 Model.lat = pos(1);                                                        % latitude grid point for sampling during plotting
-Model.gridX = gridcellsizeX;                                               % Grid size in X-dimension [m]
-Model.gridY = gridcellsizeY;                                               % Grid size in Y-dimension [m]
+Model.gridX = 1;                                                           % Grid size in X-dimension [m]
+Model.gridY = 1;                                                           % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
@@ -72,7 +65,8 @@ Model.max_freq = 35;                                                       % max
 % (2b) BUOY SPECIFC:
 % STATION 45012:
 % https://www.ndbc.noaa.gov/station_page.php?station=45012
-Model.z_data = 3.6;                                                        % elevation of wind measurement [m]
+Model.z_data = (28.5/100);                                                  % elevation of wind measurement [m]
+Model.bathy_map = (16/100).*ones(6,6);
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
@@ -81,8 +75,7 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = 1:5:20;                                                      % magnitude of incoming wind [m/s] [e.g.
-Wind.dir = 0;                                                              % direction of incoming wind [radians]
+test_speeds = unique(banfield_wind_speeds);                                % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -100,15 +93,18 @@ colorbar
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
-planet_to_run = Earth;
-myHsig = cell(1, numel(test_speeds));
-htgrid = cell(1, numel(test_speeds));
-E_spec = cell(1, numel(test_speeds));
+planet_to_run = NaN;
+
 
 % Preallocate cell arrays to store results
 myHsig = cell(1, numel(test_speeds));
 htgrid = cell(1, numel(test_speeds));
 E_spec = cell(1, numel(test_speeds));
+myHsig = cell(1, numel(test_speeds));
+htgrid = cell(1, numel(test_speeds));
+E_spec = cell(1, numel(test_speeds));
+
+error('need to loop over atm pressure, wind speed, and temperature. fill this in and parallelize')
 
 parfor i = 1:numel(test_speeds)
     % Create a local copy of the Wind variable for each iteration so can be parallelized on local machine
@@ -187,7 +183,7 @@ for speed = 1:numel(test_speeds)
     %set(ax1,'Xdir','reverse')
     drawnow
     if speed == 1
-        gif('LakeSuperior_largegrid.gif','DelayTime',1)
+        gif('BanfieldWaveTank.gif','DelayTime',1)
     else
         gif
     end
@@ -241,10 +237,9 @@ for speed = 1:numel(test_speeds)
     %set(ax1,'Xdir','reverse')
     drawnow
     if speed == 1
-        gif('LakeSuperior_largegrid_H_D.gif','DelayTime',1)
+        gif('BanfieldWaveTank_HoverD.gif','DelayTime',1)
     else
         gif
     end
 end
 
-plot_against_lake_superior_45004(test_speeds,buoy_waves)

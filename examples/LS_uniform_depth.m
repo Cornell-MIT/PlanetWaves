@@ -57,7 +57,7 @@ Model.gridY = gridcellsizeY;                                               % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 100;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -100,7 +100,7 @@ planet_to_run = Earth;
 myHsig = NaN(numel(test_speeds),Model.num_time_steps);
 for i = 1:numel(test_speeds)
 	Wind.speed  = test_speeds(i);
-	[myHsig(i,:),htgrid{i},~,~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
+	[myHsig(i,:),htgrid{i}, E_spec{i},~] = makeWaves(planet_to_run,Model,Wind,Uniflow,Etc);
   if i == 1
       figure('units','normalized','outerposition',[0 0 1 1])
   end
