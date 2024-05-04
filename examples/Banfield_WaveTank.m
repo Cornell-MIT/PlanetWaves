@@ -3,12 +3,22 @@ clear
 close all
 
 % checking model against Banfield+2015 wave tank experiments
-
 addpath(fullfile('..','planetwaves'))  
-
 addpath(fullfile('..','data','Mars'))
 
+% TABLE 1
 WaveTank = readtable('Banfield2015_table1.xlsx'); % [atm_pressure wind_speed sigH]
+
+% TABLE 2
+OceanA.rho_liquid = 1010;
+OceanA.nu_liquid = 0.0018/OceanA.rho_liquid;
+OceanA.surface_tension = 0.0722;
+OceanB.rho_liquid = 1180;
+OceanB.nu_liquid = 0.0220/OceanA.rho_liquid;
+OceanB.surface_tension = 0.0810;
+OceanC.rho_liquid = 1360;
+OceanC.nu_liquid = 0.0420/OceanA.rho_liquid;
+OceanC.surface_tension = 0.0900;
 
 figure;
 scatter(WaveTank.wind_speed_m_s,WaveTank.sig_H_mm./1000,50,WaveTank.atm_pressure_mbar.*1000,'filled')
@@ -50,7 +60,7 @@ Model.gridY = 1;                                                           % Gri
 Model.mindelt = 0.0001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 500;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 5;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -68,7 +78,7 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = sort(unique(WaveTank.wind_speed_m_s'));                             % magnitude of incoming wind [m/s]
+test_speeds = 3;%sort(unique(WaveTank.wind_speed_m_s'));                             % magnitude of incoming wind [m/s]
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
@@ -108,7 +118,7 @@ parfor i = 1:numel(test_speeds)
     [myHsig{i}, htgrid{i}, E_spec{i}, ~] = makeWaves(planet_to_run, Model, Wind_local, Uniflow, Etc);   % run model
     
 end
-disp('run finished')
+disp('all winds completed ')
 
 % plot results
 
@@ -124,117 +134,6 @@ xlabel('model time step [$\Delta$ t]','interpreter','latex')
 ylabel('significant wave height [m]','interpreter','latex')
 
 
-for k = 1:numel(test_speeds)
-    buoy_waves(k) = htgrid{k}{end}(Model.long,Model.lat);
-end
 
-figure('units','normalized','outerposition',[0 0 1 1])
-for speed = 1:numel(test_speeds)
-    
-    subplot(1,3,3)
-    plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
-    hold on
-    plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',1,'MarkerFaceColor','r')
-    hold off;
-    xlabel('u [m/s]')
-    ylabel('H_{sig} [m]')
-    grid on;
-    
-    plot_grid = htgrid{speed}{end}';
-    plot_grid(isnan(plot_grid)) = 0;
-    plot_alpha_data = ones(size(plot_grid));
-    plot_alpha_data(plot_grid==0) = 0;
-
-    ax1 = subplot(1,3,[1,2]);
-    h1 = imagesc(plot_grid);
-    colormap linspecer
-    xlabel('longitude [km]')
-    ylabel('latitude [km]')
-    title(sprintf('u = %i m/s',test_speeds(speed)))
-    c1 = colorbar;
-    c1.Label.String = 'H_{sig} [m]';
-    set(h1, 'AlphaData', plot_alpha_data);
-    hold on;
-    
-    contour(plot_grid,'-k','LineWidth',2)
-
-    grid on
-    new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
-    new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
-    set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
-    set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
-    
-    
-    [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
-
-    for i = 1:Model.LonDim
-        for j = 1:Model.LatDim
-            quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'k', 'MaxHeadSize', 1);
-        end
-    end
-    set(ax1,'Ydir','reverse')
-    %set(ax1,'Xdir','reverse')
-    drawnow
-    if speed == 1
-        gif('BanfieldWaveTank.gif','DelayTime',1)
-    else
-        gif
-    end
-end
-
-figure('units','normalized','outerposition',[0 0 1 1])
-for speed = 1:numel(test_speeds)
-    
-    subplot(1,3,3)
-    plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
-    hold on
-    plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',1,'MarkerFaceColor','r')
-    hold off;
-    xlabel('u [m/s]')
-    ylabel('H_{sig} [m]')
-    grid on;
-    
-    plot_grid = htgrid{speed}{end}';
-    plot_grid(isnan(plot_grid)) = 0;
-    plot_alpha_data = ones(size(plot_grid));
-    plot_alpha_data(plot_grid==0) = 0;
-
-    ax1 = subplot(1,3,[1,2]);
-    h1 = imagesc(plot_grid./Model.bathy_map);
-    colormap linspecer
-    xlabel('longitude [km]')
-    ylabel('latitude [km]')
-    title(sprintf('H/D at u = %i m/s',test_speeds(speed)))
-    c1 = colorbar;
-    clim([0 1])
-    c1.Label.String = 'H_{sig}/Depth';
-    set(h1, 'AlphaData', plot_alpha_data);
-    hold on;
-   
-    grid on
-    new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
-    new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
-    set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
-    set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
-    
-    
-    [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
-
-    for i = 1:Model.LonDim
-        for j = 1:Model.LatDim
-            quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'k', 'MaxHeadSize', 1);
-        end
-    end
-    set(ax1,'Ydir','reverse')
-    %set(ax1,'Xdir','reverse')
-    drawnow
-    if speed == 1
-        gif('BanfieldWaveTank_HoverD.gif','DelayTime',1)
-    else
-        gif
-    end
-end
 
 
