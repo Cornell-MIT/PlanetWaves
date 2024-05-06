@@ -21,6 +21,7 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 *.out
 .pRUN_Parallel_Stub_testWaves_cluster_temp
 *.svg
-/myenv
+/venv
 *.bak
 !PLANETWAVES_README.txt
+/docs/venv

@@ -4,6 +4,9 @@ PLANETWAVES is a four dimensional spectral wave model adapted from the Universit
 To run:
 Create a copy of EXAMPLE_RUN.m and edit as needed. The result includes the significant wave height along the grid, the wave energy spectrum in space and frequency/direction space as well as the mean slope of the liquid surface along the grid. Note, the depth values should be reported as positive values such that a lake of depth 80 m should be +80 and not -80. All negative values will be considered sub-aerial.
 
+To create bathymetric maps:
+The python virtual enviroment is contained within the requirements.txt. Edit find_fetch.py with the lake and buoy of interest.
+
 =============================================================================================================================================================================================================================================================================
 EXAMPLE_RUN.m creates model parameters as groups:
 (1) Planet Condition : description of the surface, atmospheric, and liquid properties for the planet

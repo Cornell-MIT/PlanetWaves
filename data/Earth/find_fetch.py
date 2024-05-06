@@ -652,19 +652,21 @@ def main(depth_file_name, csv_filename) -> None:
         return
 
     bx, by, dd, geo_trs, LS, LSm, LSt, main_shore, ii = loop_thru_direction(depth_file, deepwater_buoy)
+    save_bathymetry_as_mat(LS)
     print(return_grid_cell_size(LSm))
     # wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
     # csv_filename = os.path.join(here, csv_filename)
     # write_to_csv(csv_filename,wind_fetch)
 
-    plot_lake(LS, LSt, deepwater_buoy, main_shore, ii, [flon, flat], round(fetch_dist / 1000, 2), winds)
+    #plot_lake(LS, LSt, deepwater_buoy, main_shore, ii, [flon, flat], round(fetch_dist / 1000, 2), winds)
 
 
 # TO RUN: >> python find_fetch.py
 if __name__ == '__main__':
 
     # bathymetry profile tiff
-    depth_file_name = 'LS.tiff'
+    dirname = os.path.dirname(__file__)
+    depth_file_name = os.path.join(dirname, 'GreatLakes','LakeSuperior','BathyData','LS.tiff')
     # name of csv to save the fetches list for each direction
     csv_filename = 'WindFetchLS_45004.csv'
 
