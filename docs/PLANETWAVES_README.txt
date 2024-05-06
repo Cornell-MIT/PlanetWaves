@@ -4,8 +4,11 @@ PLANETWAVES is a four dimensional spectral wave model adapted from the Universit
 To run:
 Create a copy of EXAMPLE_RUN.m and edit as needed. The result includes the significant wave height along the grid, the wave energy spectrum in space and frequency/direction space as well as the mean slope of the liquid surface along the grid. Note, the depth values should be reported as positive values such that a lake of depth 80 m should be +80 and not -80. All negative values will be considered sub-aerial.
 
+RESULTS:
+Results of wave model will be stored in 'results' directory with sub-directories labeled with the format 'wind_speed_%%'. The 'results' directory will be overwritten for every new run. The log files for runs will be stored in a separate folder 'log_files' that is not overwritten for new model runs.
+
 To create bathymetric maps:
-The python virtual enviroment is contained within the requirements.txt. Edit find_fetch.py with the lake and buoy of interest.
+The python virtual environment is contained within the requirements.txt. Edit find_fetch.py with the lake and buoy of interest.
 
 =============================================================================================================================================================================================================================================================================
 EXAMPLE_RUN.m creates model parameters as groups:
@@ -19,7 +22,7 @@ corresponds to wind traveling from top of grid to bottom of grid.
 =============================================================================================================================================================================================================================================================================
 Full description of model parameters:
 
-MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
+MARKOV'S calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
 interaction term that shifts energy conservatively within the wave spectrum
 The equation to solve is:
    E_{n+1} = E_{n} + del*(-Cg*cos(theta)*dE/dx - Cg*sin(theta)*dE/dy] + Sin + Snl - Sds
