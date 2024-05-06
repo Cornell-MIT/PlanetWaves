@@ -98,3 +98,10 @@ for each frequency by solving iteratively for the function zeros using a Newton-
 complex bathymetries. This warning allows the model to continue running if the tolerance threshold is not reached in 1e8 iterations
  for each frequency.
 ```
+## To do
+```
+(1) Add shallow buoy for Lake Superior
+(2) Add shallow and deep buoy for Lake Erie(?)
+(3) Finish comparison with Banfield+2015 for changing environmental conditions
+(4) Run for Titan lakes (Note: no growth currently for cd saturation set to Earth values)
+```
