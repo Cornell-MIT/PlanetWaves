@@ -25,3 +25,4 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 *.bak
 !PLANETWAVES_README.txt
 /docs/venv
+!requirements.txt

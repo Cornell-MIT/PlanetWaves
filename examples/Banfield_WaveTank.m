@@ -20,7 +20,7 @@ OceanC.rho_liquid = 1360;
 OceanC.nu_liquid = 0.0420/OceanA.rho_liquid;
 OceanC.surface_tension = 0.0900;
 
-figure;
+figure('units','normalized','outerposition',[0 0 1 1])
 scatter(WaveTank.wind_speed_m_s,WaveTank.sig_H_mm./1000,50,WaveTank.atm_pressure_mbar.*1000,'filled')
 grid on;
 title('Banfield+2015 Wave Tank Measurements for different atmospheres [bar] (table 1)')
@@ -45,8 +45,8 @@ Earth.name = 'Earth';
 %   (c) Paleo-Mars
 Mars = Earth;                      
 Mars.gravity = 3.71;
-Mars.surface_temp = NaN;
-Mars.surface_pressure = NaN;
+Mars.surface_temp = 288;
+Mars.surface_pressure = 1*101300;
 Mars.name = 'Mars';
 % (2a) MODEL GEOMETRY
 Model.LonDim = 10;                                                         % Number of Grid Cells in X-Dimension (col count)
@@ -58,9 +58,9 @@ Model.lat = 6;                                                             % lat
 Model.gridX = 1;                                                           % Grid size in X-dimension [m]
 Model.gridY = 1;                                                           % Grid size in Y-dimension [m]
 Model.mindelt = 0.0001;                                                    % minimum time step
-Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 5;                                                % Length of model run (in terms of # of time steps)
+Model.maxdelt = 1;                                                    % maximum time step
+Model.time_step = 0.1;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+Model.num_time_steps = 200;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -98,7 +98,6 @@ colorbar
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % RUN THE MODEL
 planet_to_run = Earth;
-
 
 % Preallocate cell arrays to store results
 myHsig = cell(1, numel(test_speeds));

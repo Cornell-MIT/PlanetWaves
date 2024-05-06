@@ -76,7 +76,7 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [8];                                                      % magnitude of incoming wind [m/s] [e.g.
+test_speeds = [7 8];                                                      % magnitude of incoming wind [m/s] [e.g.
 Wind.dir = (3*pi)/2;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]

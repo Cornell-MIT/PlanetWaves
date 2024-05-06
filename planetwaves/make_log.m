@@ -4,6 +4,7 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
     
     % -- create output directory for results 
     ResultsParent = 'results';
+    DiaryParent = 'model_logs';
     TitanResults = strcat('wind_speed_',num2str(wind.speed)); 
     TitanResults = fullfile(ResultsParent,TitanResults);
 
@@ -12,6 +13,10 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
         disp(['Creating folder ' ResultsParent ' to store model output'])
         mkdir(ResultsParent);
     end
+    if exist(DiaryParent,'dir') ~= 7 
+        disp(['Creating folder ' DiaryParent ' to store log files for model runs'])
+        mkdir(DiaryParent);
+    end    
     if exist(TitanResults, 'dir') == 7  && Etc.savedata                        
        oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
        oldmatloc = dir(oldmatfiles);
@@ -37,7 +42,7 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
     
         % -- prepare log file for commands 
     dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_wind_speed_',num2str(wind.speed),'_RunLog.txt');
-    diary(fullfile(ResultsParent,dfile));
+    diary(fullfile(DiaryParent,dfile));
     RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
 
 % adds run details to console and saves to log file 
