@@ -609,6 +609,9 @@ for t = 1:model.num_time_steps                                                  
        Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan+2012)
        Cd_sat = 3.01e-3;                                                                                                                    % drag coefficient saturates at around U_10 = 25 m/s on Earth (Curcic+2020)
        max_Cd = Cd_sat*(planet.surface_press/(1*101300));                                                                                   % scale drag coefficient to planetary conditions given all drag force is from surface pressure
+       if ~strcmp(planet.name,'Earth')
+        warning('Saturated Cd %d is being scaled to surface pressure of planet relative to Earth: %.d',[Cd_sat max_Cd])
+       end
        Cd = clip(Cd,0,max_Cd);                                                                                                              % put a cap here on the absolute size of the drag coefficient so U at lambda/2 doesn't go negative and become unphysical
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

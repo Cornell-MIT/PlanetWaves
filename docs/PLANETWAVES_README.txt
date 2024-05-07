@@ -168,6 +168,13 @@ error tolerance to break out of the loop and accept the wavenumber is 1e-4,
 which can be difficult to reach in a reasonable time for complex bathymetries. 
 This warning allows the model to continue running if the tolerance threshold is 
 not reached in 1e8 iterations for each frequency.
+(3) 'Saturated Cd is _VALUE_ is being scaled to surface pressure of planet 
+relative to EarthL _VALUE_' On Earth the drag coefficient saturates around 3e-3 
+(Curic & Haus 2020). To mimic this behaviour on other planets, we scale the 
+saturation drag coefficient value as Cd_max*(Surface Pressure @ Planet / 
+Surface Pressure @ Earth). This produces a larger saturation value as the 
+surface pressure increases that only depends on the value of the surface 
+pressure.
 ================================================================================
 ================================================================================
 ================================================================================
