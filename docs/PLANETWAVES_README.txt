@@ -168,3 +168,10 @@ error tolerance to break out of the loop and accept the wavenumber is 1e-4,
 which can be difficult to reach in a reasonable time for complex bathymetries. 
 This warning allows the model to continue running if the tolerance threshold is 
 not reached in 1e8 iterations for each frequency.
+================================================================================
+================================================================================
+================================================================================
+======================================================================Possible 
+fixes if the waves are not growing:
+(1) Sub-time steps are so small it takes a huge amount of time to evolve 
+through time. Try increasing the size of mindelt.
