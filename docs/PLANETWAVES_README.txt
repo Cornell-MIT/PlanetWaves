@@ -52,10 +52,10 @@ to save data from each time step
 =============================
 Full description of model parameters:
 
-MARKOV'S calculates E(x,y,k,theta) for wave field using an energy balance 
+PLANETWAVES calculates E(x,y,k,theta) for wave field using an energy balance 
 between wind input and multiple dissipation terms including turbulent 
 dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling 
-breakers (Ssb) as well as a non-linear
+breakers (Ssb) as well as a non-linear (Snl)
 interaction term that shifts energy conservatively within the wave spectrum
 The equation to solve is:
    E_{n+1} = E_{n} + del*(-Cg*cos(theta)*dE/dx - Cg*sin(theta)*dE/dy] + Sin + 
