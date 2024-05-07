@@ -5,5 +5,5 @@
 (1) Add shallow buoy for Lake Superior
 (2) Add shallow and deep buoy for Lake Erie(?)
 (3) Finish comparison with Banfield+2015 for changing environmental conditions
-(4) Run for Titan lakes (Note: no growth currently for cd saturation set to Earth values)
+(4) Run for Titan lakes
 ```
