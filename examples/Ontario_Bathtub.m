@@ -38,8 +38,8 @@ Model.gridX = 10*10000;                                               % Grid siz
 Model.gridY = 10*1000;                                               % Grid size in Y-dimension [m]
 Model.mindelt = 0.001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
-Model.time_step = 100;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 100;                                                % Length of model run (in terms of # of time steps)
+Model.time_step = 50;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -160,11 +160,11 @@ for speed = 1:numel(test_speeds)
     set(ax1,'Ydir','reverse')
     %set(ax1,'Xdir','reverse')
     drawnow
-    % if speed == 1
-    %     gif('LakeSuperior_largegrid.gif','DelayTime',1)
-    % else
-    %     gif
-    % end
+    if speed == 1
+        gif('troubleshooting_titan.gif','DelayTime',1)
+    else
+        gif
+    end
 end
 
 figure('units','normalized','outerposition',[0 0 1 1])
@@ -214,10 +214,10 @@ for speed = 1:numel(test_speeds)
     set(ax1,'Ydir','reverse')
     %set(ax1,'Xdir','reverse')
     drawnow
-    % if speed == 1
-    %     gif('LakeSuperior_largegrid_H_D.gif','DelayTime',1)
-    % else
-    %     gif
-    % end
+    if speed == 1
+        gif('troubleshooting_titan_Hd.gif','DelayTime',1)
+    else
+        gif
+    end
 end
 
