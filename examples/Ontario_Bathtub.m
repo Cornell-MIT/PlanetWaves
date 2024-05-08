@@ -219,6 +219,8 @@ for speed = 1:numel(test_speeds)
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
    
+    contour(Model.bathy_map,'-k','LineWidth',2)
+
     grid on
     new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
     new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
@@ -243,4 +245,12 @@ for speed = 1:numel(test_speeds)
         gif
     end
 end
+
+
+figure('units','normalized','outerposition',[0 0 1 1])
+plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
+xlabel('u [m/s]')
+ylabel('H_{sig} [m]')
+grid on;
+
 

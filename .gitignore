@@ -29,3 +29,7 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 !DATA_README.txt
 *.gif
 *.tiff
+!ol_bathtub_0.002000_slope.mat
+!ol_bathtub_0.000500_slope.mat
+!lm_bathtub_0.002000_slope.mat
+!lm_bathtub_0.005000_slope.mat
