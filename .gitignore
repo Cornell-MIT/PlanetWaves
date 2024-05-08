@@ -28,3 +28,4 @@ EarthAnalysis/GreatLakes/LakeData/us_medium_shoreline.shp
 !requirements.txt
 !DATA_README.txt
 *.gif
+*.tiff

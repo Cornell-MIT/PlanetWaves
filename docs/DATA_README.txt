@@ -2,8 +2,11 @@ SOURCES FOR DATA:
 |
 | - EARTH
 |    |- Lake Superior
-|       |- Bathymetric Data     : https://www.ncei.noaa.gov/products/great-lake-bathymetry
-|       |- 45004 Buoy Data      : https:/www.ndbc.noaa.gov/
+|       |- Bathymetric Data : https://www.ncei.noaa.gov/products/great-lake-bathymetry
+|       |- 45004 Buoy Data : https:/www.ndbc.noaa.gov/
+|    |- Lake Erie
+|       |- Bathymetric Data : https://www.ncei.noaa.gov/products/great-lake-bathymetry 
+|       |- 45132 Buoy Data : https://www.meds-sdmm.dfo-mpo.gc.ca/isdm-gdsi/waves-vagues/data-donnees/index-eng.asp 
 |- MARS
 |    |-Banfield2015_table1.xlsx : "Wind, waves, and Shorelines from Ancient Martian Seas" Banfield+2015 (Icarus)
 |- TITAN

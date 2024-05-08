@@ -5,6 +5,29 @@ close all
 % Testing for Titan conditions
 
 addpath(fullfile('..','planetwaves'))  
+addpath(fullfile('..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
+
+load('..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope.mat','zDep');
+lakedata = zDep;
+lakedata_origin = lakedata;
+
+resizeFactor = 0.02;
+% from find_fetch.py
+blon = 400;
+blat = 800;
+gridcellsizeX = (10*1000)*(1/resizeFactor);
+gridcellsizeY = (10*1000)*(1/resizeFactor);
+pos =  [blon, blat];
+pos_orig = pos;
+
+lakedata = imresize(lakedata, resizeFactor, "bilinear");
+lakedata = round(lakedata);
+
+pos = ceil(pos * resizeFactor);
+size_lake = size(lakedata);
+
+alphaData = ones(size_lake);
+alphaData(lakedata==0) = 0;
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % INPUT PARAMETERS:
@@ -28,25 +51,25 @@ Earth.surface_press = 1*101300;                                            % Ear
 Earth.surface_tension = 0.072;                                             % Water Liquid Surface Tension [N/m]
 Earth.name = 'Earth';
 % (2a) MODEL GEOMETRY
-Model.LonDim = 10;                                                    % Number of Grid Cells in X-Dimension (col count)
-Model.LatDim = 10;                                                    % Number of Grid Cells in Y-Dimension (row count)
+Model.LonDim = size_lake(2);                                                    % Number of Grid Cells in X-Dimension (col count)
+Model.LatDim = size_lake(1);                                                    % Number of Grid Cells in Y-Dimension (row count)
 Model.Fdim = 35;                                                              % Number of Frequency bins
 Model.Dirdim = 72;                                                              % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
-Model.long = 5;                                                       % longitude grid point for sampling during plotting
-Model.lat = 5;                                                        % latitude grid point for sampling during plotting
+Model.long = pos(1);                                                       % longitude grid point for sampling during plotting
+Model.lat = pos(2);                                                        % latitude grid point for sampling during plotting
 Model.gridX = 10*10000;                                               % Grid size in X-dimension [m]
 Model.gridY = 10*1000;                                               % Grid size in Y-dimension [m]
 Model.mindelt = 0.001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 50;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 1000;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 100;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 % (2b) BUOY SPECIFC:
 Model.z_data = 10;                                                        % elevation of wind measurement [m]
-Model.bathy_map = 80.*ones(Model.LonDim,Model.LatDim);
+Model.bathy_map = lakedata;
 % (2c) TUNING PARAMETERS
 Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
 Model.tune_mss_fac = 360;
@@ -69,7 +92,7 @@ imagesc(Model.bathy_map)
 colormap cool; 
 hold on
 contour(Model.bathy_map,'--k')
-plot(Model.long,Model.lat,'or','MarkerFaceColor','r')
+plot(Model.long,Model.lat,'og','MarkerFaceColor','g')
 colorbar
 
 % ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,7 +163,7 @@ for speed = 1:numel(test_speeds)
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
     
-    contour(plot_grid,'-k','LineWidth',2)
+    contour(Model.bathy_map,'-k','LineWidth',2)
 
     grid on
     new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
@@ -161,7 +184,7 @@ for speed = 1:numel(test_speeds)
     %set(ax1,'Xdir','reverse')
     drawnow
     if speed == 1
-        gif('troubleshooting_titan.gif','DelayTime',1)
+        gif('Ontario_Titan_Bathtub.gif','DelayTime',1)
     else
         gif
     end
@@ -215,7 +238,7 @@ for speed = 1:numel(test_speeds)
     %set(ax1,'Xdir','reverse')
     drawnow
     if speed == 1
-        gif('troubleshooting_titan_Hd.gif','DelayTime',1)
+        gif('Ontario_Titan_Bathtub_HD.gif','DelayTime',1)
     else
         gif
     end

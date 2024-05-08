@@ -666,7 +666,7 @@ if __name__ == '__main__':
 
     # bathymetry profile tiff
     dirname = os.path.dirname(__file__)
-    depth_file_name = os.path.join(dirname, 'GreatLakes','LakeSuperior','BathyData','LS.tiff')
+    depth_file_name = os.path.join(dirname, 'GreatLakes','LakeSuperior','BathyData','LakeSuperior.tiff')
     # name of csv to save the fetches list for each direction
     csv_filename = 'WindFetchLS_45004.csv'
 
