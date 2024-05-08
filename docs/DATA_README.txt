@@ -2,7 +2,7 @@ SOURCES FOR DATA:
 |
 | - EARTH
 |    |- Lake Superior
-|       |- Bathymetric Data     : https://www.ncei.noaa.gov/products/great-lake-bathymetry
+|       |- Bathymetric Data     : https://www.ncei.noaa.gov/products/great-lakes-bathymetry
 |       |- 45004 Buoy Data      : https:/www.ndbc.noaa.gov/
 |- MARS
 |    |-Banfield2015_table1.xlsx : "Wind, waves, and Shorelines from Ancient Martian Seas" Banfield+2015 (Icarus)
