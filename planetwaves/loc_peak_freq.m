@@ -1,4 +1,4 @@
-function [peak_freq,loc_peak] = loc_peak_freq(energy_spectrum,gridx,gridy,model)
+function [peak_freq,peak_freq_ind,loc_peak,dir_ind] = loc_peak_freq(energy_spectrum,gridx,gridy,model)
 % location of peak frequency within energy spectrum
 % INPUT: 
 %   energy_spectrum = 4D energy spectrum with dimensions (Xgrid, Ygrid, Freq, Direction)
@@ -6,7 +6,9 @@ function [peak_freq,loc_peak] = loc_peak_freq(energy_spectrum,gridx,gridy,model)
 %   gridy           = location on grid in y dimension where max frequency will be determined
 % OUTPUT:
 %   peak_freq       = value of peak frequency [Hz]
+%   peak_freq_ind   = index where peak frequency occurs in frequency dimension
 %   loc_peak        = direction where peak frequency occurs [radians]
+%   dir_ind         = index where peak frequency occurs in direction dimension
 
                                          
 directions = 0:(2*pi)/model.Dirdim:2*pi;
