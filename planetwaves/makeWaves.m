@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,E_each,mean_slope,wave_train_cg] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
@@ -61,7 +61,8 @@ function [sigH,htgrid,E_each,ms] = makeWaves(planet,model,wind,uniflow,Etc)
 %       sigH                : significant wave height at specified (Model.lat, Model.lon) coordinates [m]
 %       htgrid              : significant wave height for each grid cell [m]
 %       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
-%       ms                  : mean slope of liquid surface
+%       mean_slope          : mean slope of liquid surface
+%       wave_train_cg       : group velocity of wave train with unidirectional currents [m/s]
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % 
@@ -528,7 +529,10 @@ for t = 1:model.num_time_steps                                                  
 % -- Compute advection term -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        advect = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                      % initialize the 4D advection array
        Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                         % group velocity including unidirectional current and wave velocity
-      
+       
+       if nargout > 4
+           wave_train_cg = Ccg;
+       end
        % Upwave advection with account taken of varying delx and dely
        % Note: only long frequencies are advected, short frequencies are assumed to be in equilibrium with
        % the wave and do not need to be advected (model.cutoff_freq defines the cutoff between short and long frequency 
@@ -629,7 +633,10 @@ for t = 1:model.num_time_steps                                                  
         ms = sum(dwn.*wn.^3.*E,4)*dth;                                                                                                                  % slope = angle water surface makes with flat surface
         ms = sum(ms,3);
         ms = sqrt(ms);                                                                                                                                  % standard deviation of water surface = sqrt(variance of water surface)
-
+        
+        if nargout > 3
+            mean_slope = ms;
+        end
        % Integrate spectrum over wavenumber to plot directional plot of 10th wavelength.
        Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);                           % integrating over frequency spectrum for plotting
        Wavel = 2*pi./Wavel;

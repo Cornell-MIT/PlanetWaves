@@ -62,7 +62,7 @@ Model.gridY = 10*1000;                                               % Grid size
 Model.mindelt = 0.001;                                                    % minimum time step
 Model.maxdelt = 2000.0;                                                    % maximum time step
 Model.time_step = 50;                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-Model.num_time_steps = 100;                                                % Length of model run (in terms of # of time steps)
+Model.num_time_steps = 10;                                                % Length of model run (in terms of # of time steps)
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
@@ -78,7 +78,7 @@ Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 % (3) NEAR-SURFACE WIND CONDITIONS
-test_speeds = [1 2 3];                                                      % magnitude of incoming wind [m/s] [e.g.
+test_speeds = 1;%[1 2 3];                                                      % magnitude of incoming wind [m/s] [e.g.
 Wind.dir = 0;                                                              % direction of incoming wind [radians]
 % (4) Unidirectional currents
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
@@ -112,7 +112,7 @@ parfor i = 1:numel(test_speeds)
     Wind_local = Wind;
     Wind_local.speed = test_speeds(i);
     
-    [myHsig{i}, htgrid{i}, E_spec{i}, ~] = makeWaves(planet_to_run, Model, Wind_local, Uniflow, Etc);   % run model
+    [myHsig{i}, htgrid{i}, E_spec{i}, ~, Cg{i}] = makeWaves(planet_to_run, Model, Wind_local, Uniflow, Etc);   % run model
     
 end
 disp('run finished')
