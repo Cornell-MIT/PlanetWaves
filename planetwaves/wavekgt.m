@@ -36,7 +36,7 @@ function k = wavekgt( f, D, g, T, rho, tol )
                 k(n) = k(n) - dk ;
                 numWhile = numWhile + 1;
                 if numWhile > maxWhile
-                    warning(sprintf('stuck in while loop calculating wave number. Using less tuned value with error: %0.5f',dk))
+                    warning('stuck in while loop calculating wave number. Using less tuned value with error: %0.5f',dk)
                     break;
                 end
             end

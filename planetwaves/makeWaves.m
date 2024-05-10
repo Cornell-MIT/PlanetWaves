@@ -679,7 +679,8 @@ for t = 1:model.num_time_steps                                                  
    elseif t > 1
        fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
        if sigH(t-1)/sigH(t) > 1
-            warning('Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.')
+           txt_warn = 'Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.';
+           warning(txt_warn)
        end
    end
 
