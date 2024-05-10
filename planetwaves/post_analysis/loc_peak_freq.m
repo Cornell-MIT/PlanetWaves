@@ -26,24 +26,24 @@ tot_freq = sum(freq_dir,1);                                  % sum along all dir
 loc_peak = directions(dir_ind);
 peak_freq = f(peak_freq_ind);
 
-figure;
-plot(f,tot_freq,'LineWidth',2);
-hold on;
-xline(peak_freq,'-k','LineWidth',2)
-set(gca,'XScale','log')
-xlabel('freq [hz]')
-ylabel('energy spectrum integrated over direction')
-grid on
-
-figure;
-contourf(f,directions,freq_dir)
-hold on;
-xline(peak_freq,'--','LineWidth',2)
-yline(loc_peak,'--','LineWidth',2)
-set(gca,'XScale','log')
-xlabel('freq [hz]')
-ylabel('dir [rad]')
-view(2)
-colorbar
+% figure;
+% plot(f,tot_freq,'LineWidth',2);
+% hold on;
+% xline(peak_freq,'-k','LineWidth',2)
+% set(gca,'XScale','log')
+% xlabel('freq [hz]')
+% ylabel('energy spectrum integrated over direction')
+% grid on
+% 
+% figure;
+% contourf(f,directions,freq_dir)
+% hold on;
+% xline(peak_freq,'--','LineWidth',2)
+% yline(loc_peak,'--','LineWidth',2)
+% set(gca,'XScale','log')
+% xlabel('freq [hz]')
+% ylabel('dir [rad]')
+% view(2)
+% colorbar
 
 end
