@@ -8,7 +8,7 @@ validated using buoy data at the Great Lakes.
 =============================
 
 To run:
-Create a copy of EXAMPLE_RUN.m and edit as needed. The result includes the 
+Create a copy of past run in examples and edit as needed. The result includes the 
 significant wave height along the grid, the wave energy spectrum in space and 
 frequency/direction space as well as the mean slope of the liquid surface along 
 the grid. Note, the depth values should be reported as positive values such 
@@ -30,7 +30,7 @@ find_fetch.py with the lake and buoy of interest.
 ================================================================================
 ================================================================================
 =============================
-EXAMPLE_RUN.m creates model parameters as groups:
+Input files in examples creates model parameters as groups:
 (1) Planet Condition : description of the surface, atmospheric, and liquid 
 properties for the planet
 (2) Model Geometry   : description of the model geometry including bathymetry, 
@@ -167,14 +167,7 @@ iteratively for the function zeros using a Newton-Raphson loop. The default
 error tolerance to break out of the loop and accept the wavenumber is 1e-4, 
 which can be difficult to reach in a reasonable time for complex bathymetries. 
 This warning allows the model to continue running if the tolerance threshold is 
-not reached in 1e8 iterations for each frequency.
-(3) 'Saturated Cd is _VALUE_ is being scaled to surface pressure of planet 
-relative to EarthL _VALUE_' On Earth the drag coefficient saturates around 3e-3 
-(Curic & Haus 2020). To mimic this behaviour on other planets, we scale the 
-saturation drag coefficient value as Cd_max*(Surface Pressure @ Planet / 
-Surface Pressure @ Earth). This produces a larger saturation value as the 
-surface pressure increases that only depends on the value of the surface 
-pressure.
+not reached in 1e8 iterations for each frequency.`
 ================================================================================
 ================================================================================
 ================================================================================
