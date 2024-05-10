@@ -9,7 +9,7 @@ years = 2002:2022;
 data = cell(1, length(years));
 
 cwd = pwd;
-cd('../data/Earth/GreatLakes/LakeSuperior/BuoyData/45004');
+cd('45004_Buoy');
 
 for i = 1:length(years)
     data{i} = analyze_buoy_data(['45004h' num2str(years(i))]);

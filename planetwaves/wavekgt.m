@@ -24,7 +24,7 @@ function k = wavekgt( f, D, g, T, rho, tol )
             if n > 1
                 k(n) = k(n-1);
             end
-            maxWhile = 1e8;
+            maxWhile = 1e4;
             numWhile = 0;
             while ( abs(dk) ) > tol       % Newton-Raphson iteration loop
                 t = 1;                    % tanh(x) -> 1 as x -> infinity 

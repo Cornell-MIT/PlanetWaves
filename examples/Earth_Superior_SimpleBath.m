@@ -15,11 +15,11 @@ zDep = -squeeze(LS);
 
 % MODEL INPUTS
 planet_to_run = 'Earth';
-buoy_loc = [1729 6618];                                                    % grid location [x,y]
+buoy_loc = [6618 1729];                                                    % grid location [x,y]
 % from find_fetch.py
 grid_resolution = [4542.948547909539 92.66280063299297];                   % pixel width and pixel height [m]
-test_speeds = 1:5:20;                                                      % wind speed
-time_to_run = 500;                                                         % time to run model
+test_speeds = [5 10];                                                      % wind speed
+time_to_run = 5;                                                         % time to run model
 wind_direction = 0;                                                        % wind direction
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,7 +99,7 @@ for speed = 1:numel(test_speeds)
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
     
-    contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
+    contour(Model.bathy_map,linspace(min(min(Model.bathy_map)),max(max(Model.bathy_map)),10),':w','LineWidth',2)
 
     grid on
     new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
@@ -109,7 +109,7 @@ for speed = 1:numel(test_speeds)
     
     
     [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
+    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','g','MarkerEdgeColor','k','MarkerSize',20)
 
     for i = 1:Model.LonDim
         for j = 1:Model.LatDim
@@ -121,11 +121,11 @@ for speed = 1:numel(test_speeds)
     set(ax1,'Ydir','reverse')
     %set(ax1,'Xdir','reverse')
     drawnow
-    % if speed == 1
-    %     gif('Ontario_Titan_Bathtub.gif','DelayTime',1,'overwrite',true)
-    % else
-    %     gif
-    % end
+    if speed == 1
+        gif('LakeSuperior_SimpleBath.gif','DelayTime',1,'overwrite',true)
+    else
+        gif
+    end
 end
 
 
@@ -136,3 +136,5 @@ ylim([0 6])
 xlabel('u [m/s]','interpreter','latex')
 ylabel('H_{sig} [m]','interpreter','latex')
 grid on;
+
+%plot_against_lake_superior_45004(test_speeds,buoy_waves)
