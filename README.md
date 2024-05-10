@@ -23,7 +23,9 @@ umwm_titan
 |   └── results : saved results from run
 ├── figures : figures for paper
 └── planetwaves : main model scripts
-    ├── plot_runs : scripts for plotting output of model
+    ├── intermediary_analysis : optional scripts run during the wave model
+    ├── post_analysis : optional scripts run after the wave model
+    ├── pre_analysis : optional scripts run before wave model 
     └── unit_testing : scripts for unit testing model
 ```
 ## To do
