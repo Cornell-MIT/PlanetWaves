@@ -5,15 +5,10 @@ umwm_titan
 ├── data : 
 │   ├── Earth
 │   │   ├── GreatLakes
-│   │   │   ├── LakeErie
-│   │   │   │   ├── 45132_Buoy : Wave height and weather data at deepwater buoy 45132
-│   │   │   │   └── BathyData : Bathymetric sounding data of Lake Erie  
 │   │   │   └── LakeSuperior
 │   │   │       ├── 45004_Buoy : Wave height and weather data at deepwater buoy 45004
 │   │   │       └── BathyData : Bathymetric sounding data of Lake Superior
-│   │   └── OpenOcean
-│   │       └── 41139_Buoy : Wave height and weather data of deepwater (open ocean) buoy 41139
-│   ├── Mars
+│   ├── Mars : Banfield+2015 wave tank experiments
 │   └── Titan
 │       ├── TAMnoTopo : Titan GCM with no topography influence
 │       ├── TAMwTopo : Titan GCM with topography influence
@@ -25,6 +20,7 @@ umwm_titan
 ├── docs
 ├── examples : model run scripts
 │   └── model_logs : log of past runs
+|   └── results : saved results from run
 ├── figures : figures for paper
 └── planetwaves : main model scripts
     ├── plot_runs : scripts for plotting output of model
@@ -33,7 +29,6 @@ umwm_titan
 ## To do
 ```
 (1) Add shallow buoy for Lake Superior
-(2) Add shallow and deep buoy for Lake Erie(?)
 (3) Finish comparison with Banfield+2015 for changing environmental conditions
-(4) Run for Titan lakes
+(4) Add exoplanet and paleomars runs
 ```
