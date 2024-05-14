@@ -135,7 +135,7 @@ Model.lon) coordinates [m]
        E_each              : wave energy spectrum (x,y) in space and in 
 (frequency,direction) space
        ms                  : mean slope of liquid surface
-
+       celerity            : phase speed of components of wave train [m/s]
 ================================================================================
 ================================================================================
 ================================================================================
