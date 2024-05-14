@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each,mean_slope,wave_train_cg] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,E_each,mean_slope,celerity] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
@@ -62,7 +62,7 @@ function [sigH,htgrid,E_each,mean_slope,wave_train_cg] = makeWaves(planet,model,
 %       htgrid              : significant wave height for each grid cell [m]
 %       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %       mean_slope          : mean slope of liquid surface
-%       wave_train_cg       : group velocity of wave train with unidirectional currents [m/s]
+%       celerity            : phase velocity of wave train with unidirectional currents [m/s]
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % 
@@ -256,6 +256,10 @@ Uei = uniflow.North*D + 0.0;                                                    
 %% -- wave speed and group velocity --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 c = (2*pi*f)./wn;                                                                                                            % phase velocity                                                                                                                                                                                            % phase speed
 c(D<=0) = 0;                                                                                                                 % set phase speed on land to zero                                                                                        
+
+if nargout > 4
+   celerity = c;
+end
 
 if Etc.showplots
 
@@ -530,9 +534,7 @@ for t = 1:model.num_time_steps                                                  
        advect = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                      % initialize the 4D advection array
        Ccg = Cg + Uer.*cth + Uei.*sth;                                                                                         % group velocity including unidirectional current and wave velocity
        
-       if nargout > 4
-           wave_train_cg = Ccg;
-       end
+
        % Upwave advection with account taken of varying delx and dely
        % Note: only long frequencies are advected, short frequencies are assumed to be in equilibrium with
        % the wave and do not need to be advected (model.cutoff_freq defines the cutoff between short and long frequency 
