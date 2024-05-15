@@ -620,7 +620,7 @@ def main(depth_file_name, csv_filename) -> None:
     mylog = make_log()
 ##########################################################################
 # MAIN INPUTS
-    last_dir = 1
+    last_dir = 359
     winds = list(range(0, last_dir, 1))
     station = 45004
     # winds = list(range(0, 359, 1))
@@ -652,11 +652,11 @@ def main(depth_file_name, csv_filename) -> None:
         return
 
     bx, by, dd, geo_trs, LS, LSm, LSt, main_shore, ii = loop_thru_direction(depth_file, deepwater_buoy)
-    save_bathymetry_as_mat(LS)
-    print(return_grid_cell_size(LSm))
-    # wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
-    # csv_filename = os.path.join(here, csv_filename)
-    # write_to_csv(csv_filename,wind_fetch)
+    # save_bathymetry_as_mat(LS)
+    # print(return_grid_cell_size(LSm))
+    wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
+    csv_filename = os.path.join(here, csv_filename)
+    write_to_csv(csv_filename,wind_fetch)
 
     #plot_lake(LS, LSt, deepwater_buoy, main_shore, ii, [flon, flat], round(fetch_dist / 1000, 2), winds)
 

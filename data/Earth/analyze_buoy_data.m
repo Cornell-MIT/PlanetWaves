@@ -15,7 +15,8 @@ function RESULTS = analyze_buoy_data(filen)
     RESULTS = [avgu' avgdir' avght'];
     RESULTS = rmmissing(RESULTS);
 
-    dir_fetch = csvread('WindFetchLS.csv', 1, 0);
+    loc = fullfile('..','..','..','WindFetchLS_45004.csv');
+    dir_fetch = csvread(loc, 1, 0);
     dir_fetch = dictionary(dir_fetch(:,1), dir_fetch(:,2));
 
     if ~none_avail
