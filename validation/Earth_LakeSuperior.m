@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-% LAKE SUPERIOR WITH REAL BUT DEGRADED BATHYMETRY
+% MODELED VS OBSERVED 
 
 warning('need to streamline process of moving outputs of find_fetch.py to matlab scripts to run model')
 
@@ -41,13 +41,23 @@ Events.Properties.VariableNames = {'U','F','obs_H'};
 Events = sortrows(Events,'obs_H');
 
 % MODEL INPUTS
+
+
 planet_to_run = 'Earth';
 time_to_run = 100;                                                         
 wind_direction = 0;      
 grid_resolution = [10*1000 10*1000];
-figure;
 
-for k = 1:numel(Events.U)
+figure;
+plot(Events.obs_H,Events.obs_H,'LineWidth',3,'Color','k')
+hold on;
+xlabel('Observed H')
+ylabel('Modelled H')
+grid on;
+
+modelH = NaN(1,numel(Events.U));
+
+for k = 1:50:numel(Events.U)
     num_grids = round(Events.F(k)/grid_resolution(1));
     zDep = 273.5.*ones(2*num_grids,2*num_grids);
     buoy_loc = [num_grids,num_grids];
@@ -74,11 +84,13 @@ for k = 1:numel(Events.U)
     
     end
     
-    
-    scatter(Events.obs_H(k),round(myHsig{1}(end),1),[],"filled")
-    colormap(gca,"winter")
-    hold on;
+    modelH(k) = round(myHsig{1}(end),1);
+    scatter(Events.obs_H(k),modelH(k),[],Events.F(k)/1000,"filled")
+    drawnow
 end
+h = colorbar;
+ylabel(h,'Fetch [km]')
+colororder("reef")
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %  PLOT RESULTS
 % 

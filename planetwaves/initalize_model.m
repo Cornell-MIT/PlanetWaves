@@ -15,43 +15,7 @@ function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_r
 %       Uniflow         : Class object containing unidirectional North and Eastward flow within basin
 %       Etc             : Class object to plot intermediary results and save run data in .mat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-default_planets = {'Titan','Earth','Mars'};
-
-if strcmp(planet_name,default_planets{1})
-    % TITAN CONDITIONS
-    Planet.rho_liquid = 540;                                               % Hydrocarbon Liquid density [kg/m3]
-    Planet.nu_liquid = 3e-7;                                               % Hydrocarbon Liquid Viscosity [m2/s]
-    Planet.nua = 0.0126/1e4;                                               % Titan atmospheric gas viscosity [m2/s]
-    Planet.gravity = 1.352;                                                % Titan Gravity [m/s2]
-    Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
-    Planet.surface_press = 1.5*101300;                                     % Titan Surface Pressure [Pa]
-    Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
-    Planet.name = 'Titan'; 
-
-    Model.mindelt = 0.001;                                                 % minimum time step
-    Model.maxdelt = 2000.0;                                                % maximum time step
-    Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-
-elseif strcmp(planet_name,default_planets{2})
-    % EARTH CONDITIONS
-    Planet.rho_liquid = 997;                                                     
-    Planet.nu_liquid = 1.143e-6;                                           
-    Planet.nua = 1.48e-5;                                                  
-    Planet.gravity = 9.81;                                                 
-    Planet.surface_temp = 288;                                             
-    Planet.surface_press = 1*101300;                                       
-    Planet.surface_tension = 0.072;                                       
-    Planet.name = 'Earth';
-
-    Model.mindelt = 0.0001;                                               
-    Model.maxdelt = 2000.0;                                                   
-    Model.time_step = 100;                                                     
-
-elseif strcmp(planet_name,default_planets{3})
-    error('%s not implemented by default yet',planet_name)
-else
-    error('%s not part of default list: %s',planet_name)
-end
+default_planets = {'Titan','Earth','Mars','CO2'};
 
 size_lake = size(depth_profile);
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
@@ -63,7 +27,6 @@ Model.lat = buoy_loc(2);
 
 
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
-Model.cutoff_freq = 15;                                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 Model.z_data = 10;                                                         % elevation of wind measurement [m]
@@ -85,6 +48,58 @@ Uniflow.North = 0;                                                         % nor
 
 Etc.showplots = 0;
 Etc.savedata = 0;
+
+if strcmp(planet_name,default_planets{1})
+    % TITAN CONDITIONS
+    Planet.rho_liquid = 540;                                               % Hydrocarbon Liquid density [kg/m3]
+    Planet.nu_liquid = 3e-7;                                               % Hydrocarbon Liquid Viscosity [m2/s]
+    Planet.nua = 0.0126/1e4;                                               % Titan atmospheric gas viscosity [m2/s]
+    Planet.gravity = 1.352;                                                % Titan Gravity [m/s2]
+    Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
+    Planet.surface_press = 1.5*101300;                                     % Titan Surface Pressure [Pa]
+    Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
+    Planet.name = default_planets{1}; 
+
+    Model.mindelt = 0.001;                                                 % minimum time step
+    Model.maxdelt = 2000.0;                                                % maximum time step
+    Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+
+elseif strcmp(planet_name,default_planets{2})
+    % EARTH CONDITIONS
+    Planet.rho_liquid = 997;                                                     
+    Planet.nu_liquid = 1.143e-6;                                           
+    Planet.nua = 1.48e-5;                                                  
+    Planet.gravity = 9.81;                                                 
+    Planet.surface_temp = 288;                                             
+    Planet.surface_press = 1*101300;                                       
+    Planet.surface_tension = 0.072;            
+    
+    Planet.name = default_planets{2};
+
+    Model.mindelt = 0.0001;                                               
+    Model.maxdelt = 2000.0;                                                   
+    Model.time_step = 100;                                                     
+    Model.cutoff_freq = (15/35)*Model.Fdim;                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
+
+elseif strcmp(planet_name,default_planets{3})
+    error('%s not implemented by default yet',planet_name)
+elseif strcmp(planet_name,default_planets{4})
+    Planet.rho_liquid = NaN;                                                     
+    Planet.nu_liquid = NaN;                                           
+    Planet.nua = NaN;                                                  
+    Planet.gravity = NaN;                                                 
+    Planet.surface_temp = NaN;                                             
+    Planet.surface_press = NaN;                                       
+    Planet.surface_tension = NaN;                                       
+    Planet.name = default_planets{4};
+    Model.mindelt = 0.0001;                                               
+    Model.maxdelt = 2000.0;                                                   
+    Model.time_step = 100; 
+else
+    error('%s not part of default list: %s',planet_name)
+end
+
+
 
 
 end
