@@ -1,10 +1,10 @@
 
 *.mat
 FetchLaws/main.asv
-*.txt
 !EarthAnalysis/GreatLakes/BuoyData/Superior/DATAREADME.txt
 !EarthAnalysis/GreatLakes/LakeData/DATAREADME.txt
 *.log
+*_RunLog.txt
 !PLANETWAVES_README.txt
 /docs/venv
 !requirements.txt
