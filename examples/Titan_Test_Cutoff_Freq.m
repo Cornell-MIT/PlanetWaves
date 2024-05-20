@@ -13,8 +13,7 @@ load('..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_sl
 planet_to_run = 'Titan';
 buoy_loc = [400 800];                                                      % grid location [x,y]
 grid_resolution = [10*1000 10*1000];                                       % pixel width and pixel height [m]
-test_speeds = [1];                                                   % wind speed
-time_to_run = 500;                                                          % time to run model
+time_to_run = 10;                                                          % time to run model
 wind_direction = 0;                                                        % wind direction
 test_cutoff_freq = 10:20;
 
@@ -29,51 +28,27 @@ zDep = max(max(zDep)).*ones(size(zDep));
 % update grid resolution
 Model.gridX = grid_resolution(1);                                              
 Model.gridY = grid_resolution(2);                                               
-
+Wind.speed = 1;                                                            % wind speed
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
 
-
-% Preallocate cell arrays to store results
-
 figure('units','normalized','outerposition',[0 0 1 1],'Color',[1 1 1])
-cmap = flip(autumn(numel(test_cutoff_freq)),1); % yellow -> red, with 61 colors (for 61 lines)
-set(gca(),'ColorOrder',cmap)
-for i = 1:numel(test_speeds)
 
-    Wind.speed = test_speeds(i);
 
-    for j = 1:numel(test_cutoff_freq)
+for j = 1:numel(test_cutoff_freq)
+    t = (j-1)/(11-1);
+    mycolor = (1-t)*[1,1,0] + t*[0.5,0,0];
 
-        Model.cutoff_freq = test_cutoff_freq(j);
+    Model.cutoff_freq = test_cutoff_freq(j);
 
-        [myHsig{i}{j}, ~,~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+    [myHsig{j}, ~,~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
 
-        plot(myHsig{i}{j},'LineWidth',2,'DisplayName',strcat('cutoff freq index =',num2str(test_cutoff_freq(j))))
-        hold on
-        drawnow;
-    end
-
+    plot(myHsig{j},'LineWidth',2,'DisplayName',strcat('cutoff freq index =',num2str(test_cutoff_freq(j))),'Color',mycolor)
+    hold on
+    drawnow;
 end
+
 legend('show','Location','eastoutside')
 xlabel('model time step [$\Delta$ t]','interpreter','latex')
 ylabel('significant wave height [m]','interpreter','latex')
-title(Planet.name)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %  PLOT RESULTS AS GRADIENT
-
-% figure('units','normalized','outerposition',[0 0 1 1],'Color',[1 1 1])
-% for i = 1:numel(myHsig{1})
-%     t = (i-1)/(11-1);
-%     mycolor = (1-t)*[1,1,0] + t*[0.5,0,0];
-%     if i == numel(myHsig{1})
-%         plot(myHsig{1}{i},'LineWidth',2,'DisplayName',strcat('cutoff freq index =',num2str(test_cutoff_freq(i))),'Color','b')
-%     else
-%          plot(myHsig{1}{i},'LineWidth',0.5,'DisplayName',strcat('cutoff freq index =',num2str(test_cutoff_freq(i))),'Color',mycolor)
-%     end
-%     hold on
-% end
-% legend('show','Location','eastoutside')
-% xlabel('model time step [$\Delta$ t]','interpreter','latex')
-% ylabel('significant wave height [m]','interpreter','latex')
-% title(strcat('Cut-off Frequency on ',Planet.name))
+title(strcat('Cut-off Frequency on ',Planet.name))
