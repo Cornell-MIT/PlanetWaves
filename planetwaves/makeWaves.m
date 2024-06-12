@@ -127,15 +127,15 @@ f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                        % fre
 dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 
-if Etc.showplots
-    figure;
-    plot(1:numel(freqs),freqs,'-','LineWidth',3)
-    hold on
-    xline(model.cutoff_freq,'-','Cutoff Frequency')
-    xlabel('frequency bin')
-    ylabel('frequency [hz]')
-    set(gca, 'YScale', 'log')
-end
+% if Etc.showplots
+%     figure;
+%     plot(1:numel(freqs),freqs,'-','LineWidth',3)
+%     hold on
+%     xline(model.cutoff_freq,'-','Cutoff Frequency')
+%     xlabel('frequency bin')
+%     ylabel('frequency [hz]')
+%     set(gca, 'YScale', 'log')
+% end
 
 % Frequency bins:
 ol = 1:model.cutoff_freq;                                                  % bins for long frequencies (that will advect)
@@ -186,19 +186,19 @@ D = model.bathy_map;                                                       % dep
 D(D<=0) = 0;                                                               % limit land elevations to 0 to avoid dD/dx, dD/dy errors in refraction calculation    
 D(1, :) = 0;D(end, :) = 0;D(:, 1) = 0;D(:, end) = 0;                       % set depth array boundary to 0 (absorptive boundary condition)
 % plot the bathymetry
-[xplot,yplot] = meshgrid(1:model.LonDim,1:model.LatDim);
-if Etc.showplots
-    figure;
-    h1 = surf(xplot,yplot,D','EdgeColor','k','FaceColor','interp','FaceAlpha',0.5);
-    myc = colorbar;
-    myc.Label.String = 'Liquid Depth [m]';
-    title('Lake Model Bathymetry')
-    view(2)
-    hold on
-    h2 = quiver(model.long,model.lat,cos(wind.dir),sin(wind.dir),'r','LineWidth',2,'MaxHeadSize', 1);
-    legend(h2,'Wind Direction', 'Location', 'northwest','interpreter','latex');
-    hold off
-end
+% [xplot,yplot] = meshgrid(1:model.LonDim,1:model.LatDim);
+% if Etc.showplots
+%     figure;
+%     h1 = surf(xplot,yplot,D','EdgeColor','k','FaceColor','interp','FaceAlpha',0.5);
+%     myc = colorbar;
+%     myc.Label.String = 'Liquid Depth [m]';
+%     title('Lake Model Bathymetry')
+%     view(2)
+%     hold on
+%     h2 = quiver(model.long,model.lat,cos(wind.dir),sin(wind.dir),'r','LineWidth',2,'MaxHeadSize', 1);
+%     legend(h2,'Wind Direction', 'Location', 'northwest','interpreter','latex');
+%     hold off
+% end
 %% -- wavemumber and Power of Sds ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % initalize 4D arrays to be filled 
 wn = ones(model.LonDim,model.LatDim,model.Fdim);
@@ -224,22 +224,22 @@ wn = repmat(wn,[1 1 1 model.Dirdim]);
 nnn = repmat(nnn,[1 1 1 model.Dirdim]);
 ann = repmat(ann,[1 1 1 model.Dirdim]);
 
-if Etc.showplots
-
-    surf_extrema(wn,'wn',model,'tallest')
-    surf_extrema(wn,'wn',model,'smallest')
-    plot_freq_depend(wn,'wn',D,freqs,model) 
-
-
-    surf_extrema(nnn,'n',model,'tallest')
-    surf_extrema(nnn,'n',model,'smallest')
-    plot_freq_depend(nnn,'n',D,freqs,model)
-
-    surf_extrema(ann,'an',model,'tallest')
-    surf_extrema(ann,'an',model,'smallest')
-    plot_freq_depend(ann,'an',D,freqs,model)
-
-end
+% if Etc.showplots
+% 
+%     surf_extrema(wn,'wn',model,'tallest')
+%     surf_extrema(wn,'wn',model,'smallest')
+%     plot_freq_depend(wn,'wn',D,freqs,model) 
+% 
+% 
+%     surf_extrema(nnn,'n',model,'tallest')
+%     surf_extrema(nnn,'n',model,'smallest')
+%     plot_freq_depend(nnn,'n',D,freqs,model)
+% 
+%     surf_extrema(ann,'an',model,'tallest')
+%     surf_extrema(ann,'an',model,'smallest')
+%     plot_freq_depend(ann,'an',D,freqs,model)
+% 
+% end
 
 % conversions for nnn?
 nnn = (2.53/2.5).*nnn;
@@ -261,36 +261,36 @@ if nargout > 4
    celerity = c;
 end
 
-if Etc.showplots
-
-    surf_extrema(c,'c',model,'tallest')
-    surf_extrema(c,'c',model,'smallest')
-    plot_freq_depend(c,'c',D,freqs,model)
-
-end
+% if Etc.showplots
+% 
+%     surf_extrema(c,'c',model,'tallest')
+%     surf_extrema(c,'c',model,'smallest')
+%     plot_freq_depend(c,'c',D,freqs,model)
+% 
+% end
 
 Cg = zeros(size(c));                                                                                                                                                                                                 % initialize group speed
 Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*planet.surface_tension.*wn(D>0)./planet.rho_liquid./(planet.gravity./wn(D>0) ...
     + planet.surface_tension.*wn(D>0)./planet.rho_liquid));        % Group velocity for all waves (Kinsman)
 
-if Etc.showplots
-
-    surf_extrema(Cg,'Cg',model,'tallest')
-    surf_extrema(Cg,'Cg',model,'smallest')
-    plot_freq_depend(Cg,'Cg',D,freqs,model)
-
-end
+% if Etc.showplots
+% 
+%     surf_extrema(Cg,'Cg',model,'tallest')
+%     surf_extrema(Cg,'Cg',model,'smallest')
+%     plot_freq_depend(Cg,'Cg',D,freqs,model)
+% 
+% end
 
 dwn = ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                       % initialize dominant wavenumber (c = dw/dk)
 dwn(D>0) = dom(D>0)./abs(Cg(D>0));                                                                                                                                                                                   % remove any values on land for dominant wavenumber (c = dw/dk)
 
-if Etc.showplots
-
-    surf_extrema(dwn,'dwn',model,'tallest')
-    surf_extrema(dwn,'dwn',model,'smallest')
-    plot_freq_depend(dwn,'dwn',D,freqs,model)
-
-end
+% if Etc.showplots
+% 
+%     surf_extrema(dwn,'dwn',model,'tallest')
+%     surf_extrema(dwn,'dwn',model,'smallest')
+%     plot_freq_depend(dwn,'dwn',D,freqs,model)
+% 
+% end
 
 % length-scales of interest                                                                                                                                                                                          
 l2=abs(c)./(2.*f);                                                                                                                                                                                                  % half the wavelength
@@ -299,17 +299,17 @@ lz=abs(c)./(2*pi.*f);                                                           
 l2(l2 > zref) = zref;
 lz(lz > zref) = zref;
 
-if Etc.showplots
-
-    surf_extrema(l2,'l2',model,'tallest')
-    surf_extrema(l2,'l2',model,'smallest')
-    plot_freq_depend(l2,'l2',D,freqs,model)
-
-    surf_extrema(lz,'lz',model,'tallest')
-    surf_extrema(lz,'lz',model,'smallest')
-    plot_freq_depend(lz,'lz',D,freqs,model)
-
-end
+% if Etc.showplots
+% 
+%     surf_extrema(l2,'l2',model,'tallest')
+%     surf_extrema(l2,'l2',model,'smallest')
+%     plot_freq_depend(l2,'l2',D,freqs,model)
+% 
+%     surf_extrema(lz,'lz',model,'tallest')
+%     surf_extrema(lz,'lz',model,'smallest')
+%     plot_freq_depend(lz,'lz',D,freqs,model)
+% 
+% end
 
 E = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);                                                                                                                                                        % initializing the energy term in x,y,k,theta with zeros
 cgmax = max(max(max(max(Cg))));                                                                                                                                                                                      % fastest group velocity
@@ -354,10 +354,14 @@ disp('================================================================')
 
 ks = eps(1); % start with still surface but can't be exactly zero to define the rough boundary lengthscale
 
+if Etc.showplots
+   figure;
+end
 for t = 1:model.num_time_steps                                                                                                                                   % loop through time
   
    sumt = 0;                                                                                                                                                     % initialize total time within time-step t
    tplot = - 1; 
+
    while ((model.time_step - sumt) > 0)                                                                                                                          % each time step is determined as min[max(0.1/(Sin-Sds) 0.0001) 2000 UserDefinedTime CourantGrid], iterate until the user-defined time is larger than the time passed within time-step t
       
        if gust > 0
@@ -379,40 +383,39 @@ for t = 1:model.num_time_steps                                                  
        % wind speed scaled to half the wavelength above the surface (function of freq)
        Ul = (1/kappa).*Ustar.*log(l2/model.z_data) + U;                                                                                                           % U(z2)/U(z1) = ln(z2/z0)/ln(z1/z0)
        
-       if Etc.showplots% && sum(sum(sum(sum(any(Ul<0))))) > 0 && sumt > 0  
-           close all
-           plot_freq_depend(Ul,'U_{L/2}',D,freqs,model)
-           plot_freq_depend(Ustar,'U_*',D,freqs,model)
-           plot_freq_depend(log(l2/model.z_data),'log(l2/z)',D,freqs,model)
-           %error('makeWaves: Wind velocity at lambda/2 is negative after model has spun up. Try a different frequency range or resolution.')
-           laminar_sublayer_thickness = (Ustar.*ks)./planet.nu_liquid;
-           z0_smooth = (planet.nu_liquid)./(9.*Ustar);
-           z0_rough = ks./30;
-           
-           plot_freq_depend(log(l2./z0_smooth),'log(l2/z_0,smooth)',D,freqs,model)
-           plot_freq_depend(log(l2./z0_rough),'log(l2/z_0,rough)',D,freqs,model)
-           plot_freq_depend(laminar_sublayer_thickness,'laminar sublayer thickness: u*epsilon/nu',D,freqs,model)
-            
-           pos_range = find(l2>=z0_rough & l2<model.z_data);
-           l2_plot = NaN(size(l2));
-           l2_plot(pos_range) = l2(pos_range);
-           l2_plot = reshape(l2_plot,size(l2));
-           test_me_rough = (Ustar./kappa).*log(l2_plot./model.z_data) + U;
-
-           pos_range = find(l2>=z0_smooth & l2<model.z_data);
-           l2_plot = NaN(size(l2));
-           l2_plot(pos_range) = l2(pos_range);
-           l2_plot = reshape(l2_plot,size(l2));
-           test_me_smooth = (Ustar./kappa).*log(l2_plot./model.z_data) + U;
-
-           plot_freq_depend(test_me_rough,'(Ustar./kappa).*log(l2_r./model.z_data) + U',D,freqs,model)
-           plot_freq_depend(test_me_smooth,'(Ustar./kappa).*log(l2_s./model.z_data) + U',D,freqs,model)
-
-
-       end
+       % if Etc.showplots% && sum(sum(sum(sum(any(Ul<0))))) > 0 && sumt > 0  
+       %     close all
+       %     plot_freq_depend(Ul,'U_{L/2}',D,freqs,model)
+       %     plot_freq_depend(Ustar,'U_*',D,freqs,model)
+       %     plot_freq_depend(log(l2/model.z_data),'log(l2/z)',D,freqs,model)
+       %     %error('makeWaves: Wind velocity at lambda/2 is negative after model has spun up. Try a different frequency range or resolution.')
+       %     laminar_sublayer_thickness = (Ustar.*ks)./planet.nu_liquid;
+       %     z0_smooth = (planet.nu_liquid)./(9.*Ustar);
+       %     z0_rough = ks./30;
+       % 
+       %     plot_freq_depend(log(l2./z0_smooth),'log(l2/z_0,smooth)',D,freqs,model)
+       %     plot_freq_depend(log(l2./z0_rough),'log(l2/z_0,rough)',D,freqs,model)
+       %     plot_freq_depend(laminar_sublayer_thickness,'laminar sublayer thickness: u*epsilon/nu',D,freqs,model)
+       % 
+       %     pos_range = find(l2>=z0_rough & l2<model.z_data);
+       %     l2_plot = NaN(size(l2));
+       %     l2_plot(pos_range) = l2(pos_range);
+       %     l2_plot = reshape(l2_plot,size(l2));
+       %     test_me_rough = (Ustar./kappa).*log(l2_plot./model.z_data) + U;
+       % 
+       %     pos_range = find(l2>=z0_smooth & l2<model.z_data);
+       %     l2_plot = NaN(size(l2));
+       %     l2_plot(pos_range) = l2(pos_range);
+       %     l2_plot = reshape(l2_plot,size(l2));
+       %     test_me_smooth = (Ustar./kappa).*log(l2_plot./model.z_data) + U;
+       % 
+       %     plot_freq_depend(test_me_rough,'(Ustar./kappa).*log(l2_r./model.z_data) + U',D,freqs,model)
+       %     plot_freq_depend(test_me_smooth,'(Ustar./kappa).*log(l2_s./model.z_data) + U',D,freqs,model)
+       % 
+       % 
+       % end
        
        
-
        ustw = repmat(ustarw,[1 1 model.Fdim model.Dirdim]);
        Ud = - ustw./kappa.*log(lz/model.z_data);                                                                                                                   % drift speed (scaled to 1/wavenumber (function of frequency))
       
@@ -424,7 +427,9 @@ for t = 1:model.num_time_steps                                                  
 
        Ul_term = abs(Ul_term).*(Ul_term);                                                                                                                          % Sin = A1*[Ul]*((k*wn)/g)*(rhoa/rhow)*E  [eqn. 4, Donelan+2012]
          
-       % Adjust input to lower value when waves overrun the wind because as wave speed approaches wind speed, energy extraction becomes less efficient
+       % Adjust input to lower value when waves overrun the wind because 
+       % as wave speed approaches wind speed, energy extraction becomes 
+       % less efficient
        Ul_term(Ul_term>0) = model.tune_A1*Ul_term(Ul_term>0);                                                                                                      % wind outruns waves [A1 = 0.11, eqn. 12, Donelan+2012]
        Ul_term(Ul_term<=0) = (model.tune_A1*0.09)*Ul_term(Ul_term<=0);                                                                                             % waves outrun wind [A1 = 0.01, eqn. 12, Donelan+2012]
        Ul_term(cos(windir-waveang)<0) = (model.tune_A1*0.9)*Ul_term(cos(windir-waveang)<0);                                                                        % waves move against wind [A1 = 0.10, eqn. 12, Donelan+2012]
@@ -444,7 +449,9 @@ for t = 1:model.num_time_steps                                                  
        % Set Sin = 0 on land boundaries to avoid newdelt --> 0.
        Sin(D<=0) = 0;
       
-       
+       if Etc.showplots
+            plot_Sin = Sin;
+       end
        for tj = 1:model.Dirdim
            short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:model.Dirdim)-tj+model.Dirdim,model.Dirdim)+1),4)*dth;                                                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan+2012)
        end
@@ -455,11 +462,9 @@ for t = 1:model.num_time_steps                                                  
        % Calculate turbulent dissipation: Sdt = 4 nu_t k^2.
        Sdt(:,:,:,:) = Ustar;
        Sdt = model.tune_Sdt_fac*sqrt(rhorat).*Sdt.*wn;                                                                                                              % eqn 20, Donelan+2012
-
        %-- Sbf -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        Sbf = zeros(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
        Sbf(D>0) = model.tune_Sbf_fac*wn(D>0)./sinh(2*wn(D>0).*D(D>0));                                                                                              % eqn. 22, Donelan+2012
-
 % -- Sds ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        Sds = zeros(size(Sin));
        Sds(D>0)=abs(ann(D>0)*2*pi.*f(D>0).*(1+model.tune_mss_fac*short(D>0)).^2.*(wn(D>0).^4.*E(D>0)).^(nnn(D>0)));                              % LH p 712. vol 1 [eqn. 17, Donelan+2012]
@@ -477,12 +482,17 @@ for t = 1:model.num_time_steps                                                  
        % Remove downshifted energy
        Snl(:,:,:,:) = Snl(:,:,:,:) - Snl_fac*(Sds(:,:,:,:).*E(:,:,:,:));                                                                         % eqn. 21, Donelan+2012 (last part of sum)
        Snl(D <= 0) = 0;                                                                                                                          % set dissipation to zero on land
-
+       if Etc.showplots
+            plot_Snl = Snl;
+       end
 % -- Sds_wc ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % Integrate source functions
        Sds_wc = Sds;                                                                                                                             % Keep white-capping (wc) only dissipation for calculating snl growth.
-       Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                     % Add viscous, turbulent and plunging dissipation after calculation of Snl
-
+       Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0); 
+       Sds(D>0) = Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                                                             % Add viscous, turbulent and plunging dissipation after calculation of Snl
+       if Etc.showplots 
+            plot_Sds_full = -Sds;
+       end
        % aa = input - dissipation
        aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                                       % ol = long wavelength waves (that will advect)
        aa = aa(D(:,:,ol,:)>0);                                                                                                    
@@ -587,7 +597,9 @@ for t = 1:model.num_time_steps                                                  
 
        % Make all land points = 0 and upstream values equal to coarse grid
        E(D <= 0) = 0;
-                
+       if Etc.showplots 
+            plot_E = E;
+       end    
        % Compute form stress spectrum.
        tauE = sum(wn.*E.*Sin.*cth./c,4)*dth;                                                                                               % eastward wind stress (eqn. 5, Donelan 2012)
        tauN = sum(wn.*E.*Sin.*sth./c,4)*dth;                                                                                               % northward wind stress (eqn. 5, Donelan 2012)
@@ -639,23 +651,60 @@ for t = 1:model.num_time_steps                                                  
         if nargout > 3
             mean_slope = ms;
         end
-       % Integrate spectrum over wavenumber to plot directional plot of 10th wavelength.
-       Wavel = sum(squeeze(wn(:,:,10,:)).*squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3)./sum(squeeze(E(:,:,10,:).*dwn(:,:,10,:)),3);                           % integrating over frequency spectrum for plotting
-       Wavel = 2*pi./Wavel;
-       Wavel = Wavel.^(0.25); 
-       % Direction of one wavelength.
-       KD = squeeze(sum(dwn(:,:,10,:).*E(:,:,10,:),3));                                                                                                 % direction vector of wave at 10th frequency bin (near center for o = 25)
-       Dir_sin = sum(KD.*squeeze(sin(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % x-component of wave at 10th frequency bin
-       Dir_cos = sum(KD.*squeeze(cos(waveang(:,:,10,:))),3)./sum(KD,3);                                                                                 % y-component of wave at 10th frequency bin
-       mdir = atan2(Dir_sin,Dir_cos);                                                                                                                   % average wave direction [-pi to pi]
+                                                                                                             % average wave direction [-pi to pi]
       
        cgmax = max(max(max(max((E>1e-320).*Cg))));                                                                                                      % Adjust cgmax for active energy components.
       
+     if Etc.showplots
+        
+        if sumt == model.time_step
+        
+        
+        cmap = flip(autumn(model.num_time_steps),1); % yellow -> red, with 61 colors (for 61 lines)
+        set(gca(),'ColorOrder',cmap)
+        hold on;
+        subplot(2,2,1)
+        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3);
+        xlabel('k [m^-1]')
+        ylabel('k x Input [m2/s]')
+        grid on
+        title('k x Input')
+        set(gca(),'ColorOrder',cmap)
+        hold on;
+        subplot(2,2,2)
+        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        xlabel('k [m^-1]')
+        ylabel('k x Loss [m2/s]')
+        grid on
+        title('k x Loss')
+        set(gca(),'ColorOrder',cmap)
+        hold on;
+        subplot(2,2,3)
+        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        xlabel('k [m^-1]')
+        ylabel('k x Non-Linear[m2/s]')
+        grid on
+        title('k x Non-Linear')
+        set(gca(),'ColorOrder',cmap)
+        hold on;
+        subplot(2,2,4)
+        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        xlabel('k [m^-1]')
+        ylabel('k x Full Spectrum[m2/s]')
+        title('k x Full Spectrum')
+        grid on
+        xlabel('k [m^-1]')
+       
+        sgtitle(['u = ', num2str(UU), ' m/s'])
+        end
+    end
 
    end % end while loop for sub-time steps
   
+
    fraction_time_completed = t/model.num_time_steps;
    fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
+    
 
   if nargout > 2
     % if t == model.num_time_steps
@@ -675,15 +724,18 @@ for t = 1:model.num_time_steps                                                  
   end
    
    
-   if t > 100 && sigH(t-1)/sigH(t) < model.tolH                                                                                                          % will break out of wind speed loop if waves haven't changed by more than the tolerance level tolH 
-       disp('Waves have reached 99% of maturity.')
+   if t > 100 && sigH(t-1)/sigH(t) >= model.tolH                                                                                                          % will break out of wind speed loop if waves haven't changed by more than the tolerance level tolH 
+       disp('Waves have reached maturity.')
        break
-   elseif t > 1
+   elseif t > 1 && ~isnan(sigH(t-1)/sigH(t)) 
        fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
        if sigH(t-1)/sigH(t) > 1
            txt_warn = 'Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.';
            warning(txt_warn)
        end
+   elseif t > 1 && isnan(sigH(t-1)/sigH(t))
+       disp('wind below wave threshold')
+       break
    end
 
    
