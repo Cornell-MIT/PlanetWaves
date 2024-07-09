@@ -69,7 +69,6 @@ if strcmp(planet_name,default_planets{1})
     Planet.name = default_planets{1}; 
 
     Model.mindelt = 0.001;                                                 % minimum time step
-    Model.maxdelt = 2000.0;                                                % maximum time step
     Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
    
 
@@ -98,12 +97,10 @@ elseif strcmp(planet_name,default_planets{3})
     Planet.surface_press = 50000;                                       
     Planet.surface_tension = 0.072;            
     Planet.name = default_planets{3};
+                                                                                               
+    Model.time_step = 50;
 
-    Model.mindelt = 0.001;                                              
-    %Model.maxdelt = 2000.0;                                                   
-    Model.time_step = 50; 
-
-    Model.cutoff_freq = round((22/35)*Model.Fdim);
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,default_planets{4}) 
     % LIQUID CO2
