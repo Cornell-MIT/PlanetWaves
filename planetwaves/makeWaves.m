@@ -219,6 +219,7 @@ for ii = 1:model.LatDim
    end
 end
 
+
 % reshape the matrix by repeating over the angle dimension p (dimensions of [n m o p])
 wn = repmat(wn,[1 1 1 model.Dirdim]);
 nnn = repmat(nnn,[1 1 1 model.Dirdim]);
@@ -491,7 +492,7 @@ for t = 1:model.num_time_steps                                                  
        Sds(D>0) = coth(model.tune_cotharg*wn(D>0).*D(D>0)).*Sds(D>0); 
        Sds(D>0) = Sds(D>0) + Sdt(D>0) + Sbf(D>0) + 4*planet.nu_liquid *wn(D>0).^2;                                                             % Add viscous, turbulent and plunging dissipation after calculation of Snl
        if Etc.showplots 
-            plot_Sds_full = -Sds;
+            plot_Sds_full = Sds;
        end
        % aa = input - dissipation
        aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                                       % ol = long wavelength waves (that will advect)
@@ -661,31 +662,41 @@ for t = 1:model.num_time_steps                                                  
         
         
         cmap = flip(autumn(model.num_time_steps),1); % yellow -> red, with 61 colors (for 61 lines)
+        % INPUT
         set(gca(),'ColorOrder',cmap)
         hold on;
         subplot(2,2,1)
-        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3);
+        loglog(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3);
+        hold on;
+        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
         ylabel('k x Input [m2/s]')
         grid on
         title('k x Input')
         set(gca(),'ColorOrder',cmap)
         hold on;
+        % LOSS
         subplot(2,2,2)
-        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        loglog(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        hold on;
+        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
         ylabel('k x Loss [m2/s]')
         grid on
         title('k x Loss')
         set(gca(),'ColorOrder',cmap)
         hold on;
+        % NON-LINEAR
         subplot(2,2,3)
         semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        hold on;
+        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
         ylabel('k x Non-Linear[m2/s]')
         grid on
         title('k x Non-Linear')
         set(gca(),'ColorOrder',cmap)
+        % FULL
         hold on;
         subplot(2,2,4)
         semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)

@@ -15,34 +15,26 @@ function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_r
 %       Uniflow         : Class object containing unidirectional North and Eastward flow within basin
 %       Etc             : Class object to plot intermediary results and save run data in .mat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-default_planets = {'Titan','Earth','Mars','Exo-CO2'};
+default_planets = {'Titan','Earth','Mars','Exo-CO2','Exo-NH3'};
 
 ATM_2_PASCAL = 101325;
 
 size_lake = size(depth_profile);
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
 Model.LatDim = size_lake(1);                                               % Number of Grid Cells in Y-Dimension (row count)
-Model.Fdim = 35;                                                           % Number of Frequency bins
+Model.Fdim = 50;                                                           % Number of Frequency bins
 Model.Dirdim = 72;                                                         % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = buoy_loc(1);                                                  % longitude grid point for sampling during plotting
 Model.lat = buoy_loc(2); 
 
-Model.cutoff_freq = (20/35)*Model.Fdim;                                    % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
+Model.cutoff_freq = round((20/35)*Model.Fdim);                             % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 
-Model.tolH = NaN;                                                          % tolerance threshold for maturity
+Model.tolH = 1.0;                                                          % tolerance threshold for maturity
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 Model.z_data = 10;                                                         % elevation of wind measurement [m]
 Model.bathy_map = depth_profile;
- 
-Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
-Model.tune_mss_fac = 360;
-Model.tune_Sdt_fac = 0.001;
-Model.tune_Sbf_fac = 0.002;
-Model.tune_cotharg = 0.2;
-Model.tune_n = 2.4;
-
-Model.num_time_steps = time_to_run;                                              
+Model.num_time_steps = time_to_run;  
 
 Wind.dir = wind_dir;
 
@@ -51,6 +43,19 @@ Uniflow.North = 0;                                                         % nor
 
 Etc.showplots = 0;
 Etc.savedata = 0;
+
+% Empirical-ish values for wave equations
+Model.tune_A1 = 0.11;                                                      % wind sea (eq. 12 Donelan+2012)
+Model.tune_mss_fac = 360;
+Model.tune_Sdt_fac = 0.001;
+Model.tune_Sbf_fac = 0.002;
+Model.tune_cotharg = 0.2;
+Model.tune_n = 2.4;
+
+% sub-time step parameters for time evolution (can be optimized for particular planet condition)
+Model.mindelt = 0.0001;                                               
+Model.maxdelt = 2000.0;                                                   
+Model.time_step = 100;       
 
 if strcmp(planet_name,default_planets{1})
     % TITAN CONDITIONS
@@ -79,14 +84,29 @@ elseif strcmp(planet_name,default_planets{2})
     Planet.surface_tension = 0.072;            
     Planet.name = default_planets{2};
 
-    Model.mindelt = 0.0001;                                               
-    Model.maxdelt = 2000.0;                                                   
-    Model.time_step = 100;                                                     
+    % Model.mindelt = 0.0001;                                               
+    % Model.maxdelt = 2000.0;                                                   
+    % Model.time_step = 100;                                                     
 
 elseif strcmp(planet_name,default_planets{3})
-    error('%s not implemented by default yet',planet_name)
+    % MARS CONDITIONS AT JEZERO
+    Planet.rho_liquid = 997;                                                     
+    Planet.nu_liquid = 1e-6;                                           
+    Planet.nua = 1.4e-5;                                                  
+    Planet.gravity = 3.71;                                                 
+    Planet.surface_temp = 288;                                             
+    Planet.surface_press = 50000;                                       
+    Planet.surface_tension = 0.072;            
+    Planet.name = default_planets{3};
+
+    Model.mindelt = 0.001;                                              
+    %Model.maxdelt = 2000.0;                                                   
+    Model.time_step = 50; 
+
+    Model.cutoff_freq = round((22/35)*Model.Fdim);
+
 elseif strcmp(planet_name,default_planets{4}) 
-    
+    % LIQUID CO2
     Planet.rho_liquid = 1037;                                              % Quinn1927     
     Planet.nu_liquid = 0.115e-6;                                           % https://www.engineeringtoolbox.com/carbon-dioxide-d_1000.html
     Planet.nua = 5.95e-6;                                                  % https://www.engineeringtoolbox.com/carbon-dioxide-dynamic-kinematic-viscosity-temperature-pressure-d_2074.html                       
@@ -100,7 +120,22 @@ elseif strcmp(planet_name,default_planets{4})
     Model.maxdelt = 2000.0;                                                   
     Model.time_step = 100; 
 
-    %Model.cutoff_freq = (25/35)*Model.Fdim;
+    Model.cutoff_freq = (25/35)*Model.Fdim;
+elseif strcmp(planet_name,default_planets{5}) 
+    % LIQUID AMMONIA
+    Planet.rho_liquid = 1037;                                                  
+    Planet.nu_liquid = 0.115e-6;                                           
+    Planet.nua = 5.95e-6;                                                  
+    Planet.gravity = 10*9.81;                                                 
+    Planet.surface_temp = 251.45;                                          
+    Planet.surface_press = 50*ATM_2_PASCAL;                                     
+    Planet.surface_tension = 0.00905;                                      
+    Planet.name = default_planets{4};
+
+    Model.mindelt = 0.0001;                                               
+    Model.maxdelt = 2000.0;                                                   
+    Model.time_step = 100; 
+    Model.cutoff_freq = (25/35)*Model.Fdim;
 else
     error('%s not part of default list: %s',planet_name)
 end
