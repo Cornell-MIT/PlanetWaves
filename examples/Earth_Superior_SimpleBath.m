@@ -17,9 +17,10 @@ zDep = -squeeze(LS);
 planet_to_run = 'Earth';
 buoy_loc = [6618 1729];                                                    % grid location [x,y]
 % from find_fetch.py
-grid_resolution = [4542.948547909539 92.66280063299297];                   % pixel width and pixel height [m]
-test_speeds = [5 10];                                                      % wind speed
-time_to_run = 5;                                                         % time to run model
+%grid_resolution = [4542.948547909539 92.66280063299297];                   % pixel width and pixel height [m]
+grid_resolution = [45.42948547909539 92.66280063299297];
+test_speeds = [6];                                                      % wind speed
+time_to_run = 500;                                                         % time to run model
 wind_direction = 0;                                                        % wind direction
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,13 +29,27 @@ wind_direction = 0;                                                        % win
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.02);
 % populate model classes
 [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,0,zDep,buoy_loc);
+cleaned_z = round(zDep,-1);
+cleaned_z = clip(zDep,10,max(max(zDep)));
+cleaned_z(zDep == 0) = 0;
+zDep = cleaned_z;
+
 % adjust anenometer height to buoy
 Model.z_data = 3.6;
 
 % update grid resolution
 Model.gridX = grid_resolution(1);                                              
 Model.gridY = grid_resolution(2);                                               
-                        
+ 
+figure
+imagesc(zDep);
+new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
+new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
+set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%.2f', x), new_xtick, 'UniformOutput', false));
+set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%.2f', y), new_ytick, 'UniformOutput', false));
+xlabel('longitude [km]')
+ylabel('latitude [km]')
+title('model input')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
 
@@ -49,7 +64,7 @@ for i = 1:numel(test_speeds)
     Wind.speed = test_speeds(i);
     
     [myHsig{i}, htgrid{i}, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
-
+    save('EarthStuff.mat','myHsig','htgrid')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  PLOT RESULTS
@@ -95,7 +110,7 @@ for speed = 1:numel(test_speeds)
     title(sprintf('u = %i m/s',test_speeds(speed)))
     c1 = colorbar;
     c1.Label.String = 'H_{sig} [m]';
-    clim([0 6])
+    %clim([0 6])
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
     

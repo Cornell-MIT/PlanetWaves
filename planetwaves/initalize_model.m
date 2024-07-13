@@ -29,7 +29,7 @@ Model.lat = buoy_loc(2);
 
 Model.cutoff_freq = round((20/35)*Model.Fdim);                             % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 
-Model.tolH = 1.0;                                                          % tolerance threshold for maturity
+Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 Model.z_data = 10;                                                         % elevation of wind measurement [m]
