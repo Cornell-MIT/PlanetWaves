@@ -2,131 +2,100 @@ clc
 clear
 close all
 
-% ONTARIO LACUS DEPTH BUT UNIFORM SQUARE BATHYMETRY
+% MARS JEZERO CRATER
 
 addpath(fullfile('..','planetwaves'))  
-addpath(fullfile('..','planetwaves','pre_analysis'))
-addpath(fullfile('..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
-load('..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope.mat','zDep');
 
-% MODEL INPUTS
-planet_to_run = 'Titan';
-buoy_loc = [400 800];                                                      % grid location [x,y]
-grid_resolution = [10*1000 10*1000];                                       % pixel width and pixel height [m]
-test_speeds = 0.1:0.5:4;                                                   % wind speed
-time_to_run = 10;                                                          % time to run model
-wind_direction = 0;                                                        % wind direction
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FILL MODEL
-% degrade depth profile so model doesnt take as long to run
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.02);
-% replace with uniform cube of depth equal to deepest part of Ontario
-zDep = max(max(zDep)).*ones(size(zDep));
-% populate model classes
-[Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,0,zDep,buoy_loc);
-% update grid resolution
-Model.gridX = grid_resolution(1);                                              
-Model.gridY = grid_resolution(2);                                               
-                        
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
+test_speeds = 0.1:0.1:4.0;
+planet_to_run = 'Titan';
+time_to_run = 720;   
+wind_direction = 0;      
+grid_resolution = [20*1000 20*1000];
+zDep = 80.*ones(10,10);
+buoy_loc = [5 5];
+[Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
+Model.z_data = 10;
+Model.gridX = grid_resolution(1);                                              
+Model.gridY = grid_resolution(2);   
 
-% Preallocate cell arrays to store results
-myHsig = cell(1, numel(test_speeds));
-htgrid = cell(1, numel(test_speeds));
-E_spec = cell(1, numel(test_speeds));
-Cg = cell(1,numel(test_speeds));
+figure
+surf(zDep);
+view(2)
+new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
+new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
+colorbar
+set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%.2f', x), new_xtick, 'UniformOutput', false));
+set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%.2f', y), new_ytick, 'UniformOutput', false));
+xlabel('longitude [km]')
+ylabel('latitude [km]')
+title('model input')
 
+figure;
+sigH_ax = axes;
+xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
+ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
+title('Titan: Ontario Lacus')
+grid on
+box on;
+xlim([0 max(test_speeds)+1])
+set(gca,'FontSize',16)
+set(gca,'FontWeight','bold')
+hold on;
+
+figure;
+time_evolve_ax = axes;
+grid on;
+legend('show', 'Location', 'northwest','interpreter','latex');
+title(['Waves on',' ',Planet.name,' at ',num2str(Planet.surface_press/1000), ' kPa'],'interpreter','latex');
+xlabel('model time step [$\Delta$ t]','interpreter','latex')
+ylabel('significant wave height [m]','interpreter','latex')
+hold on;
+
+time_vs_wave = NaN(numel(test_speeds),time_to_run);
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
-    
-    [myHsig{i}, htgrid{i}, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
 
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  PLOT RESULTS
-
-figure
-for i = 1:numel(test_speeds)
-    plot(myHsig{i}, '-', 'LineWidth', 3, 'DisplayName', num2str(test_speeds(i)))
-    hold on
-end
-grid on;
-legend('show', 'Location', 'northwest','interpreter','latex');
-title(['Waves on',' ',Planet.name],'interpreter','latex');
-xlabel('model time step [$\Delta$ t]','interpreter','latex')
-ylabel('significant wave height [m]','interpreter','latex')
-
-
-for k = 1:numel(test_speeds)
-    buoy_waves(k) = htgrid{k}{end}(Model.long,Model.lat);
-end
-
-figure('units','normalized','outerposition',[0 0 1 1],'Color',[1 1 1])
-for speed = 1:numel(test_speeds)
-    
-    subplot(1,3,3)
-    plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
-    hold on
-    plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',1,'MarkerFaceColor','r')
-    hold off;
-    xlabel('u [m/s]')
-    ylabel('H_{sig} [m]')
-    grid on;
-    
-    plot_grid = htgrid{speed}{end}';
-    plot_grid(isnan(plot_grid)) = 0;
-    plot_alpha_data = ones(size(plot_grid));
-    plot_alpha_data(plot_grid==0) = 0;
-
-    ax1 = subplot(1,3,[1,2]);
-    h1 = imagesc(plot_grid);
-    colormap linspecer
-    xlabel('longitude [km]','interpreter','latex')
-    ylabel('latitude [km]','interpreter','latex')
-    title(sprintf('u = %i m/s',test_speeds(speed)))
-    c1 = colorbar;
-    c1.Label.String = 'H_{sig} [m]';
-    clim([0 3])
-    set(h1, 'AlphaData', plot_alpha_data);
-    hold on;
-    
-    contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
-
-    grid on
-    new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
-    new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
-    set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
-    set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
-    
-    
-    [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
-
-    for i = 1:Model.LonDim
-        for j = 1:Model.LatDim
-            if Model.bathy_map(j,i) <=0
-                quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'k', 'MaxHeadSize', 1);
-            end
-        end
+    [avgHsig, ~, E_spec, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
+    time_vs_wave(i,:) = avgHsig;
+    save_avgHsig = avgHsig;
+    save_avgHsig(avgHsig==0) = [];
+    save_E_spec = E_spec(~cellfun('isempty',E_spec));
+    if sum(avgHsig) ~= 0
+        spectrogram.wave_height(i) = save_avgHsig(end);
+        plot(time_evolve_ax,1:numel(avgHsig),avgHsig,'-','DisplayName',num2str(Wind.speed))
+        drawnow;
+        hold on;
+        yline(time_evolve_ax,spectrogram.wave_height(i),'--k',num2str(Wind.speed),'DisplayName',['H at ' num2str(Wind.speed)])
+        drawnow;
+    else
+        spectrogram.wave_height(i) = 0;
     end
-    set(ax1,'Ydir','reverse')
-    %set(ax1,'Xdir','reverse')
-    drawnow
-    % if speed == 1
-    %     gif('Ontario_Titan_Uniform.gif','DelayTime',1,'overwrite',true)
-    % else
-    %     gif
-    % end
+    spectrogram.energy{i} = save_E_spec{end};
+    spectrogram.wind(i) = test_speeds(i);
+
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % PLOT MODEL
+    if spectrogram.wave_height(i) > 0
+        plot(sigH_ax,test_speeds(i), spectrogram.wave_height(i),'--s','LineWidth',1,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','Color','#FF6F59')
+        drawnow;
+    end
+
 end
 
 
 
-figure('units','normalized','outerposition',[0 0 1 1])
-plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
-ylim([0 3])
-xlabel('u [m/s]','interpreter','latex')
-ylabel('H_{sig} [m]','interpreter','latex')
-grid on;
+% add dashed line between points
+p1 = plot(sigH_ax,test_speeds, spectrogram.wave_height,'--s','LineWidth',2,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','MarkerEdgeColor','#FF6F59','Color','#FF6F59');
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function rgb = hex2rgb(hex)
+    hex = reshape(hex, [], 6);
+    rgb = reshape(sscanf(hex.', '%2x'), [], 3) / 255;
+end

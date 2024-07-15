@@ -68,9 +68,8 @@ if strcmp(planet_name,default_planets{1})
     Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
     Planet.name = default_planets{1}; 
 
-    Model.mindelt = 0.001;                                                 % minimum time step
     Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-   
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,default_planets{2})
     % EARTH CONDITIONS
