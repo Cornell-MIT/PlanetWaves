@@ -3,7 +3,7 @@ function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_r
 % Function will populate model parameters with default values 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   INPUT:
-%       planet_name     :   name of planet [string] options = ['Titan','Earth','Mars']
+%       planet_name     :   name of planet [string] e.g. = 'Titan'
 %       time_to_run     :   number of time steps [#]
 %       wind_dir        :   direction of wind [radians]
 %       depth_profile   :   2D array of depths [m]
@@ -15,9 +15,10 @@ function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_r
 %       Uniflow         : Class object containing unidirectional North and Eastward flow within basin
 %       Etc             : Class object to plot intermediary results and save run data in .mat
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-default_planets = {'Titan','Earth','Mars','Exo-CO2','Exo-NH3'};
 
 ATM_2_PASCAL = 101325;
+
+Planet.name = planet_name;
 
 size_lake = size(depth_profile);
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
@@ -57,7 +58,7 @@ Model.mindelt = 0.0001;
 Model.maxdelt = 2000.0;                                                   
 Model.time_step = 100;       
 
-if strcmp(planet_name,default_planets{1})
+if strcmp(planet_name,'Titan')
     % TITAN CONDITIONS
     Planet.rho_liquid = 540;                                               % Hydrocarbon Liquid density [kg/m3]
     Planet.nu_liquid = 3e-7;                                               % Hydrocarbon Liquid Viscosity [m2/s]
@@ -66,13 +67,11 @@ if strcmp(planet_name,default_planets{1})
     Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
     Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Titan Surface Pressure [Pa]
     Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
-    Planet.name = default_planets{1}; 
 
-    Model.mindelt = 0.001;                                                 % minimum time step
     Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+   Model.cutoff_freq = round((15/35)*Model.Fdim);
    
-
-elseif strcmp(planet_name,default_planets{2})
+elseif strcmp(planet_name,'Earth')
     % EARTH CONDITIONS
     Planet.rho_liquid = 997;                                                     
     Planet.nu_liquid = 1.143e-6;                                           
@@ -81,13 +80,8 @@ elseif strcmp(planet_name,default_planets{2})
     Planet.surface_temp = 288;                                             
     Planet.surface_press = 1*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.072;            
-    Planet.name = default_planets{2};
-
-    % Model.mindelt = 0.0001;                                               
-    % Model.maxdelt = 2000.0;                                                   
-    % Model.time_step = 100;                                                     
-
-elseif strcmp(planet_name,default_planets{3})
+    
+elseif strcmp(planet_name,'Mars')
     % MARS CONDITIONS AT JEZERO
     Planet.rho_liquid = 997;                                                     
     Planet.nu_liquid = 1e-6;                                           
@@ -96,43 +90,23 @@ elseif strcmp(planet_name,default_planets{3})
     Planet.surface_temp = 288;                                             
     Planet.surface_press = 50000;                                       
     Planet.surface_tension = 0.072;            
-    Planet.name = default_planets{3};
                                                                                                
     Model.time_step = 50;
-
     Model.cutoff_freq = round((15/35)*Model.Fdim);
 
-elseif strcmp(planet_name,default_planets{4}) 
-    % LIQUID CO2
-    Planet.rho_liquid = 1037;                                              % Quinn1927     
-    Planet.nu_liquid = 0.115e-6;                                           % https://www.engineeringtoolbox.com/carbon-dioxide-d_1000.html
-    Planet.nua = 5.95e-6;                                                  % https://www.engineeringtoolbox.com/carbon-dioxide-dynamic-kinematic-viscosity-temperature-pressure-d_2074.html                       
-    Planet.gravity = 10*9.81;                                                 
-    Planet.surface_temp = 251.45;                                          % Quinn1927   
-    Planet.surface_press = 50*ATM_2_PASCAL;                                     
-    Planet.surface_tension = 0.00905;                                      % Quinn1927 
-    Planet.name = default_planets{4};
-
-    Model.mindelt = 0.0001;                                               
-    Model.maxdelt = 2000.0;                                                   
-    Model.time_step = 100; 
-
-    Model.cutoff_freq = (25/35)*Model.Fdim;
-elseif strcmp(planet_name,default_planets{5}) 
-    % LIQUID AMMONIA
-    Planet.rho_liquid = 1037;                                                  
-    Planet.nu_liquid = 0.115e-6;                                           
-    Planet.nua = 5.95e-6;                                                  
-    Planet.gravity = 10*9.81;                                                 
-    Planet.surface_temp = 251.45;                                          
-    Planet.surface_press = 50*ATM_2_PASCAL;                                     
-    Planet.surface_tension = 0.00905;                                      
-    Planet.name = default_planets{4};
-
-    Model.mindelt = 0.0001;                                               
-    Model.maxdelt = 2000.0;                                                   
-    Model.time_step = 100; 
-    Model.cutoff_freq = (25/35)*Model.Fdim;
+elseif strcmp(planet_name,'Exo-Venus') 
+    % Sulfuric Acid
+    Planet.rho_liquid = 790.03;                                                     
+    Planet.nu_liquid = 1.26e-4;                                           
+    Planet.nua = 1.24e-5;                                                  
+    Planet.gravity = 8.87;                                                 
+    Planet.surface_temp = 293.15;                                             
+    Planet.surface_press = 1*ATM_2_PASCAL;                                       
+    Planet.surface_tension = 0.012322;            
+    % 
+    % Model.mindelt = 0.001;                                                 % minimum time step
+    % Model.time_step = 50;
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
 else
     error('%s not part of default list: %s',planet_name)
 end

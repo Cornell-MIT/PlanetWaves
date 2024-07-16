@@ -11,7 +11,7 @@ addpath(fullfile('..','planetwaves'))
 % RUN MODEL
 test_speeds = 3;
 planet_to_run = 'Earth';
-time_to_run = 10;   
+time_to_run = 720;   
 wind_direction = 0;      
 grid_resolution = [20*1000 20*1000];
 zDep = 273.5.*ones(12,12);
@@ -27,9 +27,21 @@ for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
 
-    [avgHsig, ~, E_spec, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
+    [avgHsig, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
 
  
 end
-
-
+print('-vectpr', '-dpdf', 'Decomposed_Model')
+x = 1:numel(avgHsig);
+y = avgHsig;
+z = zeros(size(avgHsig));
+col = flip(autumn(time_to_run),1); % yellow -> red, with 61 colors (for 61 lines)
+figure;
+for ii = 1:numel(avgHsig)
+    plot(x(ii),y(ii),'.','Color',col(ii,:),'MarkerSize',30)
+    hold on;
+end
+grid on;
+xlabel('model time step [$\Delta$ t]','interpreter','latex')
+ylabel('significant wave height [m]','interpreter','latex')
+print('-vector', '-dpdf', 'Decomposed_Waveheight')

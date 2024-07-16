@@ -662,11 +662,13 @@ for t = 1:model.num_time_steps                                                  
         
         
         cmap = flip(autumn(model.num_time_steps),1); % yellow -> red, with 61 colors (for 61 lines)
+        xx = squeeze(wn(model.long,model.lat,:,model.Dirdim/2));
         % INPUT
         set(gca(),'ColorOrder',cmap)
         hold on;
         subplot(2,2,1)
-        loglog(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3);
+        aa = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)';
+        semilogx(xx,aa,'-','LineWidth',3);
         hold on;
         xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
@@ -677,7 +679,8 @@ for t = 1:model.num_time_steps                                                  
         hold on;
         % LOSS
         subplot(2,2,2)
-        loglog(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        bb = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)';
+        semilogx(xx,bb,'-','LineWidth',3)
         hold on;
         xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
@@ -688,7 +691,7 @@ for t = 1:model.num_time_steps                                                  
         hold on;
         % NON-LINEAR
         subplot(2,2,3)
-        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
         hold on;
         xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
         xlabel('k [m^-1]')
@@ -699,7 +702,7 @@ for t = 1:model.num_time_steps                                                  
         % FULL
         hold on;
         subplot(2,2,4)
-        semilogx(squeeze(wn(model.long,model.lat,:,model.Dirdim/2)),squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+        semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
         xlabel('k [m^-1]')
         ylabel('k x Full Spectrum[m2/s]')
         title('k x Full Spectrum')
