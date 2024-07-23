@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each,mean_slope,celerity] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,E_each,mean_slope,celerity,wave_age] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
@@ -63,6 +63,7 @@ function [sigH,htgrid,E_each,mean_slope,celerity] = makeWaves(planet,model,wind,
 %       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
 %       mean_slope          : mean slope of liquid surface
 %       celerity            : phase velocity of wave train with unidirectional currents [m/s]
+%       wave_age            : phase speed of peak frequency / wind speed (mature waves have an age > 0.83 ; Young1999) 
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % 
@@ -258,9 +259,7 @@ Uei = uniflow.North*D + 0.0;                                                    
 c = (2*pi*f)./wn;                                                                                                            % phase velocity                                                                                                                                                                                            % phase speed
 c(D<=0) = 0;                                                                                                                 % set phase speed on land to zero                                                                                        
 
-if nargout > 4
-   celerity = c;
-end
+
 
 % if Etc.showplots
 % 
@@ -274,6 +273,9 @@ Cg = zeros(size(c));                                                            
 Cg(D>0) = c(D>0)./2.*(1 + 2*wn(D>0).*D(D>0)./sinh(2*wn(D>0).*D(D>0)) + 2*planet.surface_tension.*wn(D>0)./planet.rho_liquid./(planet.gravity./wn(D>0) ...
     + planet.surface_tension.*wn(D>0)./planet.rho_liquid));        % Group velocity for all waves (Kinsman)
 
+if nargout > 4
+   celerity = Cg;
+end
 % if Etc.showplots
 % 
 %     surf_extrema(Cg,'Cg',model,'tallest')
@@ -632,15 +634,15 @@ for t = 1:model.num_time_steps                                                  
 
 % -- Sig wave height -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       % integrate spectrum to find significant height  
-            ht = sum(dwn.*wn.*E,4)*dth;                                                                                                     % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
-            ht = sum(ht,3);                                                                                                                 % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
-            ht = 4*sqrt(abs(ht));                                                                                                           % significant wave height (from zeroth order moment of surface)
-            ks = ht;
-            sigH(t) = ht(model.long,model.lat);                                                                                             % return significant wave height at specified lat,lon coordinates 
+       ht = sum(dwn.*wn.*E,4)*dth;                                                                                                         % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
+       ht = sum(ht,3);                                                                                                                     % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
+       ht = 4*sqrt(abs(ht));                                                                                                               % significant wave height (from zeroth order moment of surface)
+       ks = ht;
+       sigH(t) = ht(model.long,model.lat);                                                                                                 % return significant wave height at specified lat,lon coordinates 
 
-            if nargout > 1
-                htgrid{t} = ht;                                                                                                             % return significant wave height at each spatial point (m,n) on the grid
-            end
+       if nargout > 1
+           htgrid{t} = ht;                                                                                                                 % return significant wave height at each spatial point (m,n) on the grid
+       end
           
 
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -733,6 +735,27 @@ for t = 1:model.num_time_steps                                                  
     E_each{t} = E;    % return energy spectrum for each wind speed  at each time step t
   end
 
+  if nargout > 5
+    wave_age = NaN(size(model.bathy_map));
+    if t == model.num_time_steps 
+        addpath(fullfile('..','planetwaves','post_analysis')) 
+        c_peak = NaN(size(model.bathy_map));
+        for xx = 1:model.LonDim
+            for yy = 1:model.LatDim
+                if model.bathy_map(yy,xx) > 0
+                    [~,peak_freq_ind,~,~] = loc_peak_freq(E,xx,yy,model);
+                    all_c = abs(squeeze(c(xx,yy,peak_freq_ind,:)));
+                    all_c = all_c(~isnan(all_c));
+                    c_peak(xx,yy) = max(all_c);
+                else
+                    c_peak(xx,yy) = 0;
+                end
+                wave_age = c_peak./wind.speed;
+            end
+        end
+    end
+  end
+
   if Etc.savedata
     save([TitanResults,'/New_',int2str(file),'_',int2str(t)],'E','ht','freqs','oa','Cd','Cdf','Cds','Sds','Sds_wc','Sin','Snl','Sdt','Sbf','ms')
   end
@@ -787,4 +810,5 @@ end
 % 3. Kinsman      : Kinsman, Blair 1965 "Wind Waves: Their Generation and Propagation on the Ocean Surface"
 % 4. Donelan+2004 : Donelan et al. 2004 "Aerodynamic Roughness of the Ocean in Strong Winds" (GRL)
 % 5. Curcic+2020  : Curcic & Haus 2020 "Revised Estimates of Ocean Surface Drag in Strong Winds" (GRL)
+% 6. Young1999    : Young, Ian 1999 "Wind Generated Ocean Waves" (Ch. 5 -- Fetch and Duration Limited Growth) (Elsevier Ocean Engineering Series)
 % ==============================================================================================================================================================================================================================================================

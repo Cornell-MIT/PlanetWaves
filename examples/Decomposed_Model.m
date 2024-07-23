@@ -27,7 +27,7 @@ for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
 
-    [avgHsig, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
+    [avgHsig, ~, ~, ~, ~,~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
 
  
 end

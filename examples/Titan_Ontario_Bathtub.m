@@ -7,26 +7,44 @@ close all
 addpath(fullfile('..','planetwaves'))  
 addpath(fullfile('..','planetwaves','pre_analysis'))
 addpath(fullfile('..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
-load('..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope.mat','zDep');
+load('..\data\Titan\TitanLakes\Bathymetries\SAR_bathy_cleaned\ol_main_basin.mat','smoothed_ol');
+
+zDep = smoothed_ol;
+zDep = imrotate(zDep,180);
+zDep = imrotate(zDep,-90);
+zDep(:,80:end) = [];
+zDep(1:95,:) = [];
+zDep(90:end,:) = [];
+
 
 % MODEL INPUTS
 planet_to_run = 'Titan';
-buoy_loc = [400 800];                                                      % grid location [x,y]
-grid_resolution = [10*1000 10*1000];                                       % pixel width and pixel height [m]
-test_speeds = 0.1:0.1:3.0;                                                 % wind speed
-time_to_run = 1000;                                                        % time to run model
-wind_direction = 0;                                                        % wind direction
+buoy_loc = [60 30];                                                        % grid location [x,y]
+grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
+test_speeds = 1;                                                     % wind speed
+time_to_run = 720;                                                          % time to run model
+wind_direction = pi/2;                                                        % wind direction
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
 % degrade depth profile so model doesnt take as long to run
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.02);
+[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,1);
 % populate model classes
-[Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,0,zDep,buoy_loc);
+[Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
 % update grid resolution
 Model.gridX = grid_resolution(1);                                              
 Model.gridY = grid_resolution(2);                                               
-                        
+          
+figure;
+imagesc(zDep)
+hold on;
+plot(buoy_loc(1),buoy_loc(2),'or','MarkerFaceColor','r')
+colorbar;
+hold off;
+title('input bathymetry')
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
 
@@ -40,7 +58,7 @@ for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
     
-    [myHsig{i}, htgrid{i}, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+    [myHsig{i}, htgrid{i}, ~, ~, ~,wave_age{i}] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,7 +105,7 @@ for speed = 1:numel(test_speeds)
     title(sprintf('u = %i m/s',test_speeds(speed)))
     c1 = colorbar;
     c1.Label.String = 'H_{sig} [m]';
-    clim([0 3])
+    clim([0 2])
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
     
@@ -106,25 +124,39 @@ for speed = 1:numel(test_speeds)
     for i = 1:Model.LonDim
         for j = 1:Model.LatDim
             if Model.bathy_map(j,i) <=0
-                quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'k', 'MaxHeadSize', 1);
+                quiver(i, j, (speed/5)*wx, (speed/5)*wy, 'r', 'MaxHeadSize', 1);
             end
         end
     end
     set(ax1,'Ydir','reverse')
-    %set(ax1,'Xdir','reverse')
+    
     drawnow
-    % if speed == 1
-    %     gif('Ontario_Titan_Bathtub.gif','DelayTime',1,'overwrite',true)
-    % else
-    %     gif
-    % end
+    if speed == 1
+        gif('Ontario_Titan_Bathtub.gif','DelayTime',1,'overwrite',true)
+    else
+        gif
+    end
 end
 
 
 
 figure('units','normalized','outerposition',[0 0 1 1])
 plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
-ylim([0 3])
-xlabel('u [m/s]','interpreter','latex')
-ylabel('H_{sig} [m]','interpreter','latex')
+%ylim([0 3])
+xlabel('u [m/s]','Interpreter','latex')
+ylabel('H_{sig} [m]','Interpreter','tex')
 grid on;
+
+
+maturity = wave_age{1};
+maturity(maturity>=0.83) = 1;
+maturity(maturity<0.83) = 0;
+
+figure
+h2 = imagesc(maturity);
+cRange = caxis; 
+hold on;
+contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
+caxis(cRange);
+title('Maturity of Waves')
+set(h2, 'AlphaData', plot_alpha_data);

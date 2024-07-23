@@ -58,7 +58,7 @@ for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
 
-    [avgHsig, ~, E_spec, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
+    [avgHsig, ~, E_spec, ~, ~,~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
     time_vs_wave(i,:) = avgHsig;
     save_avgHsig = avgHsig;
     save_avgHsig(avgHsig==0) = [];
