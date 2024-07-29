@@ -21,8 +21,8 @@ zDep(90:end,:) = [];
 planet_to_run = 'Titan';
 buoy_loc = [60 30];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = 1;                                                     % wind speed
-time_to_run = 720;                                                          % time to run model
+test_speeds = 0.5:0.5:5;                                                     % wind speed
+time_to_run = 120;                                                          % time to run model
 wind_direction = pi/2;                                                        % wind direction
 
 
@@ -35,7 +35,7 @@ wind_direction = 0;                                                        % win
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
 % degrade depth profile so model doesnt take as long to run
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,1);
+[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,.2);
 % populate model classes
 [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
 % update grid resolution
@@ -49,6 +49,7 @@ plot(buoy_loc(1),buoy_loc(2),'or','MarkerFaceColor','r')
 colorbar;
 hold off;
 title('input bathymetry')
+drawnow
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
@@ -63,7 +64,7 @@ for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
     
-    [myHsig{i}, htgrid{i}, ~, ~, ~,wave_age{i}] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+    [myHsig{i}, htgrid{i}, E_each{i}, ~, ~,wave_age{i}] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,11 +111,12 @@ for speed = 1:numel(test_speeds)
     title(sprintf('u = %i m/s',test_speeds(speed)))
     c1 = colorbar;
     c1.Label.String = 'H_{sig} [m]';
-    clim([0 2])
+    clim([0 1.2])
     set(h1, 'AlphaData', plot_alpha_data);
     hold on;
     
-    contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
+    %contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
+    contour(plot_grid,'-k','LineWidth',2)
 
     grid on
     new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
@@ -159,9 +161,12 @@ maturity(maturity<0.83) = 0;
 
 figure
 h2 = imagesc(maturity);
+alpha_maturity = ones(size(Model.bathy_map));
+alpha_maturity(Model.bathy_map <= 0) = 0;
+set(h2, 'AlphaData', alpha_maturity);
+
 cRange = caxis; 
 hold on;
 contour(Model.bathy_map,min(min(Model.bathy_map)):10:max(max(Model.bathy_map)),'-k','LineWidth',2)
 caxis(cRange);
 title('Maturity of Waves')
-set(h2, 'AlphaData', plot_alpha_data);

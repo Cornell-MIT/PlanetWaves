@@ -746,9 +746,9 @@ for t = 1:model.num_time_steps                                                  
                     [~,peak_freq_ind,~,~] = loc_peak_freq(E,xx,yy,model);
                     all_c = abs(squeeze(c(xx,yy,peak_freq_ind,:)));
                     all_c = all_c(~isnan(all_c));
-                    c_peak(xx,yy) = max(all_c);
+                    c_peak(yy,xx) = max(all_c);
                 else
-                    c_peak(xx,yy) = 0;
+                    c_peak(yy,xx) = 0;
                 end
                 wave_age = c_peak./wind.speed;
             end

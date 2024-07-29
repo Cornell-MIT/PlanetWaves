@@ -74,7 +74,7 @@ p5 = fill(fax1,[test_speeds, fliplr(test_speeds)], [JS_m, fliplr(JS_p)], 'k', 'F
 
 xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
 ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
-%title('Lake Superior: BUOY 45004')
+title('Lake Superior: BUOY 45004')
 grid on
 box on;
 xlim([0 20])
@@ -90,9 +90,9 @@ p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWid
 p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz')
 
 legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
-exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');
 
-figure('units', 'normalized', 'outerposition', [0 0 1 1]);
+
+figure;
 plot(wavetable.umwm,wavetable.umwm,'-k','LineWidth',4)
 hold on;
 plot(wavetable.umwm,wavetable.planetwaves,'o','MarkerFaceColor',[219, 84, 97]./255,'MarkerSize',10)

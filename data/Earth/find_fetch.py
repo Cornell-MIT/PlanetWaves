@@ -563,17 +563,19 @@ def plot_lake(img, transform, MyBuoy, shoreline, islands, fetch_loc, fetch_dist,
     """
     FUNCTION WILL PLOT THE LAKE, THE MAIN SHORELINE, AND BUOY LOCATION
     """
-
+    
+    bathy = img[0]
+    bathy[bathy >= -1.0] = np.nan
     # Plot the first band of the multiband image
-    plt.figure(figsize=(8, 8))
-    img_plot = plt.imshow(img[0],
+    f = plt.figure(figsize=(8, 8))
+    img_plot = plt.imshow(bathy,
                           extent=[transform[2], transform[2] + transform[0] * img.shape[2],
                                   transform[5] + transform[4] * img.shape[1], transform[5]],
                           cmap='viridis')
 
     plt.scatter(MyBuoy.lon, MyBuoy.lat, color='red', marker='o', s=100)
-    plt.scatter(fetch_loc[0], fetch_loc[1], color='magenta', marker='o', s=100)
-    plt.annotate('', xy=[MyBuoy.lon, MyBuoy.lat], xytext=fetch_loc, arrowprops=dict(arrowstyle='->', color='black'))
+    #plt.scatter(fetch_loc[0], fetch_loc[1], color='magenta', marker='o', s=100)
+    #plt.annotate('', xy=[MyBuoy.lon, MyBuoy.lat], xytext=fetch_loc, arrowprops=dict(arrowstyle='->', color='black'))
 
     plt.plot(shoreline[0], shoreline[1], linewidth=2, color='black')
     for i in islands:
@@ -583,12 +585,13 @@ def plot_lake(img, transform, MyBuoy, shoreline, islands, fetch_loc, fetch_dist,
     # plot details
     cbar = plt.colorbar(img_plot, orientation='horizontal')
     cbar.set_label('Depth [m]')  # Set your colorbar label here
-    plt.xlabel('Longitude')
-    plt.ylabel('Latitude')
+    plt.xlabel('Longitude (deg)')
+    plt.ylabel('Latitude (deg)')
     plt.title(f'{MyBuoy.lakename}\nWind Direction: {wind_dir[-1]} deg, Fetch : {fetch_dist} km')
     plt.grid(True)
     # plt.savefig(f'Lake_Superior_{wind_dir}deg.jpg', format='jpg')
     plt.show()
+    f.savefig("LakeSuperior_bathy.pdf", bbox_inches='tight')
 
 #####################################################################################################
 #####################################################################################################
@@ -656,9 +659,9 @@ def main(depth_file_name, csv_filename) -> None:
     # print(return_grid_cell_size(LSm))
     wind_fetch, flat, flon, fetch_dist = make_table(bx, by, winds, dd, geo_trs, deepwater_buoy)
     csv_filename = os.path.join(here, csv_filename)
-    write_to_csv(csv_filename,wind_fetch)
+    #write_to_csv(csv_filename,wind_fetch)
 
-    #plot_lake(LS, LSt, deepwater_buoy, main_shore, ii, [flon, flat], round(fetch_dist / 1000, 2), winds)
+    plot_lake(LS, LSt, deepwater_buoy, main_shore, ii, [flon, flat], round(fetch_dist / 1000, 2), winds)
 
 
 # TO RUN: >> python find_fetch.py
