@@ -56,7 +56,8 @@ Model.tune_n = 2.4;
 % sub-time step parameters for time evolution (can be optimized for particular planet condition)
 Model.mindelt = 0.0001;                                               
 Model.maxdelt = 2000.0;                                                   
-Model.time_step = 100;       
+  
+Model.time_step = 60; 
 
 if strcmp(planet_name,'Titan')
     % TITAN CONDITIONS
@@ -68,8 +69,8 @@ if strcmp(planet_name,'Titan')
     Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Titan Surface Pressure [Pa]
     Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
 
-    Model.time_step = 50;                                                  % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
-   Model.cutoff_freq = round((15/35)*Model.Fdim);
+                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+    Model.cutoff_freq = round((8/35)*Model.Fdim);
    
 elseif strcmp(planet_name,'Earth')
     % EARTH CONDITIONS
@@ -80,7 +81,7 @@ elseif strcmp(planet_name,'Earth')
     Planet.surface_temp = 288;                                             
     Planet.surface_press = 1*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.072;            
-    
+
 elseif strcmp(planet_name,'Mars')
     % MARS CONDITIONS AT JEZERO
     Planet.rho_liquid = 997;                                                     
@@ -91,7 +92,6 @@ elseif strcmp(planet_name,'Mars')
     Planet.surface_press = 50000;                                       
     Planet.surface_tension = 0.072;            
                                                                                                
-    Model.time_step = 50;
     Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Exo-Venus') 
@@ -100,13 +100,47 @@ elseif strcmp(planet_name,'Exo-Venus')
     Planet.nu_liquid = 1.26e-4;                                           
     Planet.nua = 1.24e-5;                                                  
     Planet.gravity = 8.87;                                                 
-    Planet.surface_temp = 293.15;                                             
+    Planet.surface_temp = 293.15;                                      
     Planet.surface_press = 1*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.012322;            
-    % 
-    % Model.mindelt = 0.001;                                                 % minimum time step
-    % Model.time_step = 50;
+
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+elseif strcmp(planet_name,'55Cancrie') 
+    error('not working yet')
+    % molten lava world a little bigger than earth
+    Planet.rho_liquid = 2450;                                                     
+    Planet.nu_liquid = 12.5;                                           
+    Planet.nua = 1.48e-5;                                                  
+    Planet.gravity = 22.7;                                                 
+    Planet.surface_temp = 1500;                                      
+    Planet.surface_press = 10*100*ATM_2_PASCAL;                                       
+    Planet.surface_tension = 0.44;            
+
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
+elseif strcmp(planet_name,'C3H8')
+    % propane world
+    error('not working yet')
+    Planet.rho_liquid = 725.30;                                                     
+    Planet.nu_liquid = 5.993e-3;                                           
+    Planet.nua = 2.8876e-6;                                                  
+    Planet.gravity = 1.352;                                                 
+    Planet.surface_temp = 92;                                      
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                                       
+    Planet.surface_tension = 0.035923;            
+
+    Model.cutoff_freq = round((12/35)*Model.Fdim);
+elseif strcmp(planet_name,'N2')
+    % liquid nitrogen
+    Planet.rho_liquid = 734.87;                                               % Hydrocarbon Liquid density [kg/m3]
+    Planet.nu_liquid = 9.3244e-5;                                               % Hydrocarbon Liquid Viscosity [m2/s]
+    Planet.nua = 6.432e-6;                                               % Titan atmospheric gas viscosity [m2/s]
+    Planet.gravity = 1.352;                                                % Titan Gravity [m/s2]
+    Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Titan Surface Pressure [Pa]
+    Planet.surface_tension = 5.6964e-3;                                        % Hydrocarbon Liquid Surface Tension [N/m]
+
+                                                 % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+    Model.cutoff_freq = round((8/35)*Model.Fdim);
 else
     error('%s not part of default list: %s',planet_name)
 end

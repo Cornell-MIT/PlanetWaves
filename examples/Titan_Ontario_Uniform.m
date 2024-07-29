@@ -8,7 +8,7 @@ addpath(fullfile('..','planetwaves'))
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
-test_speeds = 0.1:0.1:4.0;
+test_speeds = [0:0.5:10];
 planet_to_run = 'Titan';
 time_to_run = 720;   
 wind_direction = 0;      
