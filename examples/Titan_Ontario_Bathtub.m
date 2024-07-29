@@ -26,6 +26,11 @@ time_to_run = 720;                                                          % ti
 wind_direction = pi/2;                                                        % wind direction
 
 
+buoy_loc = [400 800];                                                      % grid location [x,y]
+grid_resolution = [180 180];                                       % pixel width and pixel height [m]
+test_speeds = 1:3;                                                 % wind speed
+time_to_run = 100;                                                        % time to run model
+wind_direction = 0;                                                        % wind direction
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
@@ -100,6 +105,7 @@ for speed = 1:numel(test_speeds)
     ax1 = subplot(1,3,[1,2]);
     h1 = imagesc(plot_grid);
     colormap linspecer
+    colormap cool
     xlabel('longitude [km]')
     ylabel('latitude [km]')
     title(sprintf('u = %i m/s',test_speeds(speed)))
