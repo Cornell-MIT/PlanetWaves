@@ -104,7 +104,6 @@ for speed = 1:numel(test_speeds)
 
     ax1 = subplot(1,3,[1,2]);
     h1 = imagesc(plot_grid);
-    colormap linspecer
     colormap cool
     xlabel('longitude [km]')
     ylabel('latitude [km]')
