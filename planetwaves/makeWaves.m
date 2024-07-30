@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each,mean_slope,celerity,wave_age] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,E_each,mean_slope,celerity,wave_age,PeakWave] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
@@ -735,24 +735,66 @@ for t = 1:model.num_time_steps                                                  
     E_each{t} = E;    % return energy spectrum for each wind speed  at each time step t
   end
 
-  if nargout > 5
+  if nargout > 5 
     wave_age = NaN(size(model.bathy_map));
+    c_peak = NaN(size(model.bathy_map));  % phase speed
+    cg_peak = NaN(size(model.bathy_map)); % group velocity
+    T_peak = NaN(size(model.bathy_map));  % period
+    L_peak = NaN(size(model.bathy_map));  % wavelength
+    d0 = NaN(size(model.bathy_map));      % orbital diameter
+    um = NaN(size(model.bathy_map));      % orbital velocity
     if t == model.num_time_steps 
         addpath(fullfile('..','planetwaves','post_analysis')) 
-        c_peak = NaN(size(model.bathy_map));
+
         for xx = 1:model.LonDim
             for yy = 1:model.LatDim
                 if model.bathy_map(yy,xx) > 0
+
                     [~,peak_freq_ind,~,~] = loc_peak_freq(E,xx,yy,model);
+                    
                     all_c = abs(squeeze(c(xx,yy,peak_freq_ind,:)));
-                    all_c = all_c(~isnan(all_c));
+                    all_c(isnan(all_c)) = 0;
                     c_peak(yy,xx) = max(all_c);
+
+                    if nargout > 6
+                        all_L = (2*pi)./(abs(squeeze(wn(xx,yy,peak_freq_ind,:))));
+                        all_L(isnan(all_L)) = 0;
+                        L_peak(yy,xx) = max(all_L);
+    
+                        all_cg = abs(squeeze(Cg(xx,yy,peak_freq_ind,:)));
+                        all_cg(isnan(all_cg)) = 0;
+                        cg_peak(yy,xx) = max(all_cg);
+    
+                        T_peak(yy,xx) = L_peak(yy,xx)/cg_peak(yy,xx);
+
+                        d_L = model.bathy_map(yy,xx)/L_peak(yy,xx);
+                        d0(yy,xx) = ht(xx,yy)/sinh(2*pi*d_L);
+                        um(yy,xx) = (pi*d0(yy,xx))/T_peak(yy,xx);
+                    end
                 else
                     c_peak(yy,xx) = 0;
+                    if nargout > 6
+                        cg_peak(yy,xx) = 0;
+                        T_peak(yy,xx) = 0;
+                        L_peak(yy,xx) = 0;
+                        d0(yy,xx) = 0;
+                        um(yy,xx) = 0;
+                    end
                 end
                 wave_age = c_peak./wind.speed;
+  
             end
         end
+
+    end
+    if nargout > 6
+        PeakWave.cg = cg_peak;
+        PeakWave.T = T_peak;
+        PeakWave.L = L_peak;
+        PeakWave.c = c_peak;
+        PeakWave.H = ht';
+        PeakWave.d0 = d0;
+        PeakWave.um = um;
     end
   end
 
