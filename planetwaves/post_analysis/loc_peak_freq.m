@@ -18,14 +18,12 @@ f_vec=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);
 f = exp(log(model.min_freq)+(0:model.Fdim-1)*f_vec);                        
 
 
-freq_dir = squeeze(energy_spectrum(gridx,gridy,:,:))';       % 2D array of freq cols and dir rows
-[dir_ind, ~] = find(ismember(freq_dir, max(freq_dir(:))));   % find direction bin containing overall maximum frequency (not summed)
-tot_freq = sum(freq_dir,1);                                  % sum along all directions for each frequency
-[~,peak_freq_ind] = max(tot_freq);
+freq_dir = squeeze(energy_spectrum(gridx,gridy,:,:));       % 2D array of freq cols and dir rows
+[~,li] = max(freq_dir(:));
+[peak_freq_ind,dir_ind,] = ind2sub(size(freq_dir),li);
 
-loc_peak = directions(dir_ind);
 peak_freq = f(peak_freq_ind);
-
+loc_peak = directions(dir_ind);
 % figure;
 % plot(f,tot_freq,'LineWidth',2);
 % hold on;

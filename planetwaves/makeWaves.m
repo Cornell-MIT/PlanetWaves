@@ -738,6 +738,7 @@ for t = 1:model.num_time_steps                                                  
   if nargout > 5 
     wave_age = NaN(size(model.bathy_map));
     c_peak = NaN(size(model.bathy_map));  % phase speed
+    f_peak = NaN(size(model.bathy_map));  % frequency
     cg_peak = NaN(size(model.bathy_map)); % group velocity
     T_peak = NaN(size(model.bathy_map));  % period
     L_peak = NaN(size(model.bathy_map));  % wavelength
@@ -750,35 +751,29 @@ for t = 1:model.num_time_steps                                                  
             for yy = 1:model.LatDim
                 if model.bathy_map(yy,xx) > 0
 
-                    [~,peak_freq_ind,~,~] = loc_peak_freq(E,xx,yy,model);
+                    [peak_freq,peak_freq_ind,~,dir_ind] = loc_peak_freq(E,xx,yy,model);
                     
-                    all_c = abs(squeeze(c(xx,yy,peak_freq_ind,:)));
-                    all_c(isnan(all_c)) = 0;
-                    c_peak(yy,xx) = max(all_c);
+                    f_peak(yy,xx) = peak_freq;
+                    c_peak(yy,xx) = abs(squeeze(c(xx,yy,peak_freq_ind,dir_ind)));
 
                     if nargout > 6
-                        all_L = (2*pi)./(abs(squeeze(wn(xx,yy,peak_freq_ind,:))));
-                        all_L(isnan(all_L)) = 0;
-                        L_peak(yy,xx) = max(all_L);
+                        L_peak(yy,xx) = (2*pi)./(abs(squeeze(wn(xx,yy,peak_freq_ind,dir_ind))));
+                        cg_peak(yy,xx) = abs(squeeze(Cg(xx,yy,peak_freq_ind,dir_ind)));
     
-                        all_cg = abs(squeeze(Cg(xx,yy,peak_freq_ind,:)));
-                        all_cg(isnan(all_cg)) = 0;
-                        cg_peak(yy,xx) = max(all_cg);
-    
-                        T_peak(yy,xx) = L_peak(yy,xx)/cg_peak(yy,xx);
+                        T_peak(yy,xx) = 1/peak_freq;
 
                         d_L = model.bathy_map(yy,xx)/L_peak(yy,xx);
                         d0(yy,xx) = ht(xx,yy)/sinh(2*pi*d_L);
                         um(yy,xx) = (pi*d0(yy,xx))/T_peak(yy,xx);
                     end
                 else
-                    c_peak(yy,xx) = 0;
+                    c_peak(yy,xx) = NaN;
                     if nargout > 6
-                        cg_peak(yy,xx) = 0;
-                        T_peak(yy,xx) = 0;
-                        L_peak(yy,xx) = 0;
-                        d0(yy,xx) = 0;
-                        um(yy,xx) = 0;
+                        cg_peak(yy,xx) = NaN;
+                        T_peak(yy,xx) = NaN;
+                        L_peak(yy,xx) = NaN;
+                        d0(yy,xx) = NaN;
+                        um(yy,xx) = NaN;
                     end
                 end
                 wave_age = c_peak./wind.speed;
@@ -795,6 +790,7 @@ for t = 1:model.num_time_steps                                                  
         PeakWave.H = ht';
         PeakWave.d0 = d0;
         PeakWave.um = um;
+        PeakWave.f = f_peak;
     end
   end
 

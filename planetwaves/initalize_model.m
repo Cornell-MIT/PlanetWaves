@@ -61,15 +61,15 @@ Model.time_step = 60;
 
 if strcmp(planet_name,'Titan')
     % TITAN CONDITIONS
-    Planet.rho_liquid = 540;                                               % Hydrocarbon Liquid density [kg/m3]
-    Planet.nu_liquid = 3e-7;                                               % Hydrocarbon Liquid Viscosity [m2/s]
-    Planet.nua = 0.0126/1e4;                                               % Titan atmospheric gas viscosity [m2/s]
-    Planet.gravity = 1.352;                                                % Titan Gravity [m/s2]
-    Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
-    Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Titan Surface Pressure [Pa]
-    Planet.surface_tension = 0.018;                                        % Hydrocarbon Liquid Surface Tension [N/m]
+    Planet.rho_liquid = 540;                                               % Liquid density [kg/m3]
+    Planet.nu_liquid = 3e-7;                                               % Liquid Viscosity [m2/s]
+    Planet.nua = 0.0126/1e4;                                               % Atmospheric gas viscosity [m2/s]
+    Planet.gravity = 1.352;                                                % Gravity [m/s2]
+    Planet.surface_temp = 92;                                              % Surface Temperature [K]
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Surface Pressure [Pa]
+    Planet.surface_tension = 0.018;                                        % Liquid Surface Tension [N/m]
 
-                                                     % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+                                                     
     Model.cutoff_freq = round((8/35)*Model.Fdim);
    
 elseif strcmp(planet_name,'Earth')
@@ -131,16 +131,63 @@ elseif strcmp(planet_name,'C3H8')
     Model.cutoff_freq = round((12/35)*Model.Fdim);
 elseif strcmp(planet_name,'N2')
     % liquid nitrogen
-    Planet.rho_liquid = 734.87;                                               % Hydrocarbon Liquid density [kg/m3]
-    Planet.nu_liquid = 9.3244e-5;                                               % Hydrocarbon Liquid Viscosity [m2/s]
-    Planet.nua = 6.432e-6;                                               % Titan atmospheric gas viscosity [m2/s]
-    Planet.gravity = 1.352;                                                % Titan Gravity [m/s2]
-    Planet.surface_temp = 92;                                              % Titan Surface Temperature [K]
-    Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Titan Surface Pressure [Pa]
-    Planet.surface_tension = 5.6964e-3;                                        % Hydrocarbon Liquid Surface Tension [N/m]
-
-                                                 % Maximum Size of time step [s] -- if set too low can lead to numerical ringing
+    Planet.rho_liquid = 734.87;                                              
+    Planet.nu_liquid = 9.3244e-5;                                               
+    Planet.nua = 6.432e-6;                                              
+    Planet.gravity = 1.352;                                               
+    Planet.surface_temp = 92;                                              
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
+    Planet.surface_tension = 5.6964e-3;                                       
+                                              
     Model.cutoff_freq = round((8/35)*Model.Fdim);
+elseif strcmp(planet_name,'Titan-OntarioLacus')
+    % TITAN CONDITIONS at Ontario Lacus (ethane-rich)
+    % 47% CH4, 40% C2H6, and 13% N2 [Mastrogiuseppe+2018] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.47 @ 92K)
+    Planet.rho_liquid = 588.15;                                               
+    Planet.nu_liquid = 8.084e-7;                                               
+    Planet.nua = 0.0126/1e4;                                               
+    Planet.gravity = 1.352;                                               
+    Planet.surface_temp = 92;                                             
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
+    Planet.surface_tension = 0.032766;                                    
+                                                     
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
+elseif strcmp(planet_name,'Titan-LigeiaMare')
+    % TITAN CONDITIONS at Ligea Mare (methane-rich)
+    % 69% CH4, 14% C2H6, and 17% N2 [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.69 @ 92K)
+    Planet.rho_liquid = 554.07;                                               
+    Planet.nu_liquid = 5.8764e-7;                                              
+    Planet.nua = 0.0126/1e4;                                               
+    Planet.gravity = 1.352;                                               
+    Planet.surface_temp = 92;                                             
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
+    Planet.surface_tension = 0.028916;                                    
+                                  
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
+elseif strcmp(planet_name,'Titan-CH4N2')
+    % TITAN CONDITIONS: Only Methane and Nitrogen
+    % [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 1.0 @ 92K)
+    Planet.rho_liquid = 510.65;                                               
+    Planet.nu_liquid = 3.827e-7;                                              
+    Planet.nua = 0.0126/1e4;                                               
+    Planet.gravity = 1.352;                                               
+    Planet.surface_temp = 92;                                             
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
+    Planet.surface_tension = 0.028916;                                    
+                                  
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
+elseif strcmp(planet_name,'Titan-CH3H8N2')
+    % TITAN CONDITIONS: Only Ethane and Nitrogen
+    % [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.0 @ 92K)
+    Planet.rho_liquid = 654.69;                                               
+    Planet.nu_liquid = 1.6501e-6;                                              
+    Planet.nua = 0.0126/1e4;                                               
+    Planet.gravity = 1.352;                                               
+    Planet.surface_temp = 92;                                             
+    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
+    Planet.surface_tension = 0.028916;                                    
+                                  
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
 else
     error('%s not part of default list: %s',planet_name)
 end
