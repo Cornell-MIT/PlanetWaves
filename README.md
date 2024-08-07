@@ -30,7 +30,7 @@ umwm_titan
 ```
 ## To do
 ```
-(1) Add shallow buoy for Lake Superior
-(3) Finish comparison with Banfield+2015 for changing environmental conditions
-(4) Add exoplanet and paleomars runs
+(1) Dynamic drag coefficient from wave maturity?
+(2) Dynamic cutoff frequency depending on wind speed?
+
 ```
