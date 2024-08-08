@@ -2,7 +2,10 @@ clc
 clear
 close all
 
-make_gif = 0;
+
+lake_slope = 0.5e-3;
+d50 = [6.35e-5 0.1];
+rho_s = 940; % ice grains
 % ONTARIO LACUS WITH BATHTUB BATHYMETRY
 
 addpath(fullfile('..','planetwaves'))  
@@ -17,27 +20,29 @@ zDep(:,80:end) = [];
 zDep(1:95,:) = [];
 zDep(90:end,:) = [];
 
+zDep_orig = zDep;
 % MODEL INPUTS
-% lakes = {'Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2','Titan-CH3H8N2'};
-lakes = {'Titan-OntarioLacus'};
+lakes = {'Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2','Titan-CH3H8N2'};
 buoy_loc = [60 55];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [1:3];                                                     % wind speed
-% time_to_run = 60*10;                                                        % time to run model
-time_to_run = 60*10;
+test_speeds = [0.5 1 2 3];                                                 % wind speed
+time_to_run = 60*10;                                                     % time to run model
 wind_direction = pi/2;                                                     % wind direction
 
 figure;
 waveheight_ax = axes;
 grid on;
 xlabel('u10 [m/s]')
-ylabel('sig[m]')
+ylabel('sigH[m]')
 hold on;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
 % degrade depth profile so model doesnt take as long to run
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.2);
+
+
 for composition = 1:numel(lakes)
+
     planet_to_run = lakes{composition};
     % populate model classes
     [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
@@ -48,43 +53,30 @@ for composition = 1:numel(lakes)
     Model.cutoff_freq = round((15/35)*Model.Fdim);
     
     figure;
-    imagesc(zDep)
-    hold on;
-    plot(buoy_loc(1),buoy_loc(2),'or','MarkerFaceColor','r')
-    colorbar;
-    
-    title('input bathymetry')
-    [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
-    quiver(Model.long,Model.lat, 5*wx, 5*wy, 'r', 'MaxHeadSize', 1);
-    
-    drawnow
-    hold off;
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % RUN MODEL
-    
-    
-    lake_slope = 0.5e-3;
-    d = Model.bathy_map(Model.long,Model.lat):-lake_slope:10^-4;
-    % d50 = [6.35e-5 0.1];% diameters for [finegrain to 10 cm] [m]
-    d50 = [6.35e-5];
-    rho_s = 940; % ice grains
-    
-    
-    figure;
-    crash_ax = axes;
-    xlabel('wind speed [m/s]')
-    ylabel('entrainment depth [m]')
-    hold on;
-    title(planet_to_run)
-    
-    figure;
     height_ax = axes;
     xlabel('model time')
     ylabel('wave height')
-    hold on;
     title(planet_to_run)
+    hold on;
+
+    if composition == 1
+        figure;
+        imagesc(zDep)
+        hold on;
+        plot(buoy_loc(1),buoy_loc(2),'or','MarkerFaceColor','r')
+        colorbar;
+        title('input bathymetry')
+        [wx,wy] = pol2cart(Wind.dir,1);
+        plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
+        quiver(Model.long,Model.lat, 5*wx, 5*wy, 'r', 'MaxHeadSize', 1);
+        drawnow
+        hold off;
+    end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % RUN MODEL FOR DEEPWATER WAVES
+    
+    d = Model.bathy_map(Model.long,Model.lat):-lake_slope:10^-4;
     
     for i = 1:numel(test_speeds)
         
@@ -93,7 +85,7 @@ for composition = 1:numel(lakes)
     
             [avgH, ~, Espec, ~, ~,~, PeakWave] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
             plot(height_ax,1:numel(avgH),avgH,'-','DisplayName',num2str(Wind.speed))
-            legend('show','Location','best')
+            legend(height_ax,'show','Location','best')
             drawnow
 
             plot_height(composition,i) = avgH(end);
@@ -108,6 +100,7 @@ for composition = 1:numel(lakes)
             alpha_0 = 0; % assuming incoming wave crests parallel to shore contour
 
          for a = 1:numel(d50)
+
             for z = 1:numel(d)
 
                 
@@ -131,9 +124,9 @@ for composition = 1:numel(lakes)
                 entrained = find(shields(:,i)>KM_crash(:,i),1,'first');
 
                 if isempty(entrained) % does not reach entrainment
-                    d_crash(i,a) = NaN;
+                    d_crash{composition}(i,a) = NaN;
                 else % does reach entrainment
-                    d_crash(i,a) = d(entrained);
+                    d_crash{composition}(i,a) = d(entrained);
                 end
 
             end
@@ -148,13 +141,14 @@ for composition = 1:numel(lakes)
                 plot(shoal_ax,d,n,'--b','LineWidth',5)
                 plot(shoal_ax,d,Cg_shoal,'--m','LineWidth',5)
                 plot(shoal_ax,d,H_shoal,'--c','LineWidth',5)
-                legend('L','C','n','Cg','H','Location','best')
+                plot(shoal_ax,d,T.*ones(size(d)),'--k','LineWidth',5)
+                legend('L','C','n','Cg','H','T','Location','best')
                 title('shoaling')
                 set(gca, 'XScale', 'log')
                 set(gca,'Xdir','reverse')
                 grid on;
                 xlabel('depth [m]')
-                title(['u = ' num2str(Wind.speed) ' m/s'])
+                title(['u = ' num2str(Wind.speed) ' m/s at ' planet_to_run])
                 drawnow
             end
 
@@ -163,36 +157,46 @@ for composition = 1:numel(lakes)
         end
 
 
-        if d_crash(:,a) > 0
-          plot(crash_ax,test_speeds,d_crash(:,a),'-s','LineWidth',1,'DisplayName',num2str(d50(a)))
-          legend('show','Location','best')
-          drawnow
-        end
+      
     end
+
         pz = plot_height(composition,:);
         plot(waveheight_ax,test_speeds(pz ~=0),pz(pz ~=0),'--s','LineWidth',2,'DisplayName',planet_to_run);
-        legend('show','Location','best')
-    
+        legend(waveheight_ax,'show','Location','best')
+        drawnow
 end
      
 
+mycolor = {'#42F2F7','#46ACC2','#498C8A','#4B6858'};
 
-% [rows, columns, numberOfColorChannels] = size(zDep);
-% 
-% x_extent = 1:columns; 
-% y_extent = 1:rows; 
-% [X,Y] = meshgrid(x_extent,y_extent);
-% 
-% figure
-% contour3(X,Y,zDep,[0:20:max(max(zDep))],'-k','ShowText','on','LabelSpacing',1000)
-% hold on;
-% [Mcon,Ccon] = contour3(X, Y, zDep,[d_crash(end,1) d_crash(end,1)],'Color',[62/255 150/255 81/255],'LineWidth',2,'ShowText',0); % entrainment depth for max wind speed for smallest grains
-% [Mcon1,Ccon1] = contour3(X, Y, zDep,[d_crash(end,2) d_crash(end,2)],'Color',[204/255 37/255 41/255],'LineWidth',2,'ShowText',0); % entrainment depth for max wind speed for largest grains
-% view(0,90)
-% 
-% set(gca,'YTickLabel',[]);
-% set(gca,'XTickLabel',[]);
-% grid off;
+figure
+for c = 1:numel(lakes)
+    plot(test_speeds,d_crash{c}(:,1),'-o','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand'])
+    hold on
+    plot(test_speeds,d_crash{c}(:,2),'--s','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel'])
+end
+legend('show','Location','best')
+grid on;
+xlim([0 4])
+xlabel('wind speed [m/s]')
+ylabel('entrainment depth [m]')
+
+[rows, columns, numberOfColorChannels] = size(zDep_orig);
+
+x_extent = 1:columns; 
+y_extent = 1:rows; 
+[X,Y] = meshgrid(x_extent,y_extent);
+
+figure
+contour3(X,Y,zDep_orig,[1:10:max(max(zDep_orig))],'-k','ShowText','on','LabelSpacing',1000)
+hold on;
+[Mcon,Ccon] = contour3(X, Y, zDep_orig,[d_crash{1}(end,1) d_crash{1}(end,1)],'Color',[62/255 150/255 81/255],'LineWidth',2,'ShowText',0); % entrainment depth for max wind speed for smallest grains
+[Mcon1,Ccon1] = contour3(X, Y, zDep_orig,[d_crash{1}(end,2) d_crash{1}(end,2)],'Color',[204/255 37/255 41/255],'LineWidth',2,'ShowText',0); % entrainment depth for max wind speed for largest grains
+view(0,90)
+
+set(gca,'YTickLabel',[]);
+set(gca,'XTickLabel',[]);
+grid off;
 
 
 
