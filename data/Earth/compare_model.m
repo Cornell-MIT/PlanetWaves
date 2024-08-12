@@ -83,11 +83,12 @@ set(gca,'FontWeight','bold')
 ylim([0 max(Events.obs_H)+1])
 
 wavetable = readtable('umwm_wind_waveheights.xlsx');
+%wavetable = readtable('umwm_wind_waveheights_6by6_60kmby60km.xlsx');
 
 PM = (0.22.*(wavetable.u).^2)./9.81;
-p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM')
-p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves')
-p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz')
+p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM');
+p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves');
+p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
 
 legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
 
@@ -101,7 +102,9 @@ xlabel('UMWM')
 ylabel('PlanetWaves')
 
 x = wavetable.umwm;
+x(isnan(x)) = 0;
 y = wavetable.planetwaves;
+y(isnan(y)) = 0;
 
 SSR = sum((y - x).^2);
 SST = sum((y - mean(y)).^2);
