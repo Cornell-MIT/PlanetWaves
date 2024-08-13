@@ -83,7 +83,7 @@ for c = 1:numel(lakes)
 
             Wind.speed = test_speeds(i);
 
-            [avgH, ~, Espec, ~, ~,~, PeakWave] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+            [avgH, ~, ~, ~, ~,~, PeakWave] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
             plot(height_ax,1:numel(avgH),avgH,'-','DisplayName',num2str(Wind.speed))
             legend(height_ax,'show','Location','best')
             drawnow

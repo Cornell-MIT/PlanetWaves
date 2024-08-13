@@ -1,4 +1,4 @@
-function [sigH,htgrid,E_each,mean_slope,celerity,wave_age,PeakWave] = makeWaves(planet,model,wind,uniflow,Etc)
+function [sigH,htgrid,wn_e_spectrum,mean_slope,celerity,wave_age,PeakWave] = makeWaves(planet,model,wind,uniflow,Etc)
 %% ==========================================================================================================================================================================================================================================================================
 %% ==========================================================================================================================================================================================================================================================================
 % MAKEWAVES calculates E(x,y,k,theta) for wave field using an energy balance between wind input and multiple dissipation terms including turbulent dissipation (Sdt), bottom friction (Sbf), wave breaking (Sds), and spilling breakers (Ssb) as well as a non-linear
@@ -60,10 +60,11 @@ function [sigH,htgrid,E_each,mean_slope,celerity,wave_age,PeakWave] = makeWaves(
 %   Returns:
 %       sigH                : significant wave height at specified (Model.lat, Model.lon) coordinates [m]
 %       htgrid              : significant wave height for each grid cell [m]
-%       E_each              : wave energy spectrum (x,y) in space and in (frequency,direction) space
+%       n_e_spectrum        : wavenumber wave energy spectrum (x,y) in space and in (frequency,direction) space with wavenumber and group velocity
 %       mean_slope          : mean slope of liquid surface
 %       celerity            : phase velocity of wave train with unidirectional currents [m/s]
 %       wave_age            : phase speed of peak frequency / wind speed (mature waves have an age > 0.83 ; Young1999) 
+%       PeakWave            : properties of wave component with peak energy (for use in entrainment calculations)
 %     
 % ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % 
@@ -329,7 +330,7 @@ end
 idx = 1;                                                                   % frame for making gif
 sigH = zeros(1,length(1:model.num_time_steps));                            % initialize sigH for returning (initialize to NaN instead?)
 htgrid = cell(1,length(1:model.num_time_steps));                           % initialize htgrid for returning
-E_each =  cell(1,length(1:model.num_time_steps));                          % initialize E-spectrum for returning
+wn_e_spectrum =  cell(1,length(1:model.num_time_steps));                          % initialize E-spectrum for returning
 
 UU = wind.speed;                                                 
 
@@ -732,7 +733,10 @@ for t = 1:model.num_time_steps                                                  
     %     colorbar
     %     title('Total Energy within Lake Grid')
     % end
-    E_each{t} = E;    % return energy spectrum for each wind speed  at each time step t
+    wn_e_spectrum{t}.E = E;    % return wavenumber energy spectrum for each wind speed  at each time step t
+    wn_e_spectrum{t}.k = wn;   % return wavenumber
+    wn_e_spectrum{t}.cg =  Cg; % return group velocity
+
   end
 
   if nargout > 5 
@@ -805,7 +809,7 @@ for t = 1:model.num_time_steps                                                  
    elseif t > 1 && ~isnan(sigH(t-1)/sigH(t)) 
        fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
        if sigH(t-1)/sigH(t) > 1
-           txt_warn = 'Numerical ringing. Suggested fix: (1) Re-run with a larger cutoff frequency (2) Re-run with a larger maximum time step.';
+           txt_warn = 'Numerical ringing.';
            warning(txt_warn)
        end
    elseif t > 1 && isnan(sigH(t-1)/sigH(t))
