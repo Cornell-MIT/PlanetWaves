@@ -1,8 +1,9 @@
-% clc
-% clear
-% close all
-% 
-% 
+clc
+clear
+close all
+
+% sediment entrainment in ontario lacus using planetwave
+
 lake_slope = 0.5e-3;
 d50 = [6.35e-5 0.1];
 rho_s = [800 940 1500]; % [organic-ice ice organic]

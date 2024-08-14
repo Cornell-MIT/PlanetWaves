@@ -101,7 +101,6 @@ file = 1;
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
 i = sqrt(-1);                                                              % imaginary number i
-kgmolwt = 0.028;                                                           % gram molecular weight [Kgm/mol]
 RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % frequency and direction bins
 dr = pi/180;                                                               % conversion from degrees to radians
@@ -116,7 +115,7 @@ zref = 20;                                                                 % hei
 wfac = 0.035;                                                              % wind drift fraction of Uz ffor U10m
 % Ideal gas law: PV = nRT
 % Densities:
-rhoa = planet.surface_press*kgmolwt/(RRR*planet.surface_temp);             % air density [kg/m3]
+rhoa = planet.surface_press*planet.kgmolwt/(RRR*planet.surface_temp);             % air density [kg/m3]
 rhorat=rhoa/planet.rho_liquid;                                             % air-water density ratio.
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Helmholtz instabilities (Donelan 2012, pg. 3)
@@ -124,8 +123,9 @@ kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wav
 % modified wavenumbers
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % create frequency limits for spectrum
-dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);             % frequency step size for log normal distribution
-f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                        % frequencies for spectrum
+% dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);           % frequency step size for log normal distribution
+% f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                      % frequencies for spectrum
+[f,dnlf] = make_frequency_vector(model);                                      % frequencies for spectrum
 dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 

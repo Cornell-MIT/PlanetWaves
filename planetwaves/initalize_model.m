@@ -21,6 +21,7 @@ ATM_2_PASCAL = 101325;
 Planet.name = planet_name;
 
 size_lake = size(depth_profile);
+
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
 Model.LatDim = size_lake(1);                                               % Number of Grid Cells in Y-Dimension (row count)
 Model.Fdim = 50;                                                           % Number of Frequency bins
@@ -28,14 +29,16 @@ Model.Dirdim = 72;                                                         % Num
 Model.long = buoy_loc(1);                                                  % longitude grid point for sampling during plotting
 Model.lat = buoy_loc(2); 
 
-Model.cutoff_freq = round((20/35)*Model.Fdim);                             % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
-
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
 Model.z_data = 10;                                                         % elevation of wind measurement [m]
 Model.bathy_map = depth_profile;
 Model.num_time_steps = time_to_run;  
+
+%Model.cutoff_freq = round((20/35)*Model.Fdim);                            % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
+[freqs,~] = make_frequency_vector(Model);                                  % vector of frequencies being used in wave model
+Model.cutoff_freq = CHARLIE_CODE(freqs);
 
 Wind.dir = wind_dir;
 
@@ -54,10 +57,10 @@ Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
 
 % sub-time step parameters for time evolution (can be optimized for particular planet condition)
-Model.mindelt = 0.0001;                                               
-Model.maxdelt = 2000.0;                                                   
+Model.mindelt = 0.0001;                                                    % seconds
+Model.maxdelt = 2000.0;                                                    % seconds
   
-Model.time_step = 60; 
+Model.time_step = 60;                                                      % time step size [seconds]
 
 if strcmp(planet_name,'Titan')
     % TITAN CONDITIONS
@@ -68,9 +71,9 @@ if strcmp(planet_name,'Titan')
     Planet.surface_temp = 92;                                              % Surface Temperature [K]
     Planet.surface_press = 1.5*ATM_2_PASCAL;                               % Surface Pressure [Pa]
     Planet.surface_tension = 0.018;                                        % Liquid Surface Tension [N/m]
-
+    Planet.kgmolwt = 0.028;                                                % gram molecular weight [Kgm/mol] (N2)
                                                      
-    Model.cutoff_freq = round((8/35)*Model.Fdim);
+    Model.cutoff_freq = round((15/35)*Model.Fdim);
    
 elseif strcmp(planet_name,'Earth')
     % EARTH CONDITIONS
@@ -80,7 +83,8 @@ elseif strcmp(planet_name,'Earth')
     Planet.gravity = 9.81;                                                 
     Planet.surface_temp = 288;                                             
     Planet.surface_press = 1*ATM_2_PASCAL;                                       
-    Planet.surface_tension = 0.072;            
+    Planet.surface_tension = 0.072;      
+    Planet.kgmolwt = 0.028;                                                % (N2)
 
 elseif strcmp(planet_name,'Mars')
     % MARS CONDITIONS AT JEZERO
@@ -91,7 +95,8 @@ elseif strcmp(planet_name,'Mars')
     Planet.surface_temp = 288;                                             
     Planet.surface_press = 50000;                                       
     Planet.surface_tension = 0.072;            
-                                                                                               
+    Planet.kgmolwt = 0.044;                                                % (CO2)
+
     Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Exo-Venus') 
@@ -103,8 +108,10 @@ elseif strcmp(planet_name,'Exo-Venus')
     Planet.surface_temp = 293.15;                                      
     Planet.surface_press = 1*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.012322;            
+    Planet.kgmolwt = 0.028;                                                % (N2)
 
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'55Cancrie') 
     error('not working yet')
     % molten lava world a little bigger than earth
@@ -115,8 +122,10 @@ elseif strcmp(planet_name,'55Cancrie')
     Planet.surface_temp = 1500;                                      
     Planet.surface_press = 10*100*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.44;            
+    Planet.kgmolwt = 0.028;                                                % (N2)
 
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'C3H8')
     % propane world
     error('not working yet')
@@ -127,19 +136,23 @@ elseif strcmp(planet_name,'C3H8')
     Planet.surface_temp = 92;                                      
     Planet.surface_press = 1.5*ATM_2_PASCAL;                                       
     Planet.surface_tension = 0.035923;            
+    Planet.kgmolwt = 0.028;                                                % (N2)
 
     Model.cutoff_freq = round((12/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'N2')
     % liquid nitrogen
     Planet.rho_liquid = 734.87;                                              
     Planet.nu_liquid = 9.3244e-5;                                               
     Planet.nua = 6.432e-6;                                              
     Planet.gravity = 1.352;                                               
-    Planet.surface_temp = 92;                                              
+    Planet.surface_temp = 75;                                              
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
     Planet.surface_tension = 5.6964e-3;                                       
-                                              
+    Planet.kgmolwt = 0.028;                                                % (N2)                                          
+
     Model.cutoff_freq = round((8/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'Titan-OntarioLacus')
     % TITAN CONDITIONS at Ontario Lacus (ethane-rich)
     % 47% CH4, 40% C2H6, and 13% N2 [Mastrogiuseppe+2018] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.47 @ 92K)
@@ -150,8 +163,10 @@ elseif strcmp(planet_name,'Titan-OntarioLacus')
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
     Planet.surface_tension = 0.032766;                                    
-                                                     
+    Planet.kgmolwt = 0.028;                                                % (N2)
+
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'Titan-LigeiaMare')
     % TITAN CONDITIONS at Ligea Mare (methane-rich)
     % 69% CH4, 14% C2H6, and 17% N2 [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.69 @ 92K)
@@ -161,9 +176,11 @@ elseif strcmp(planet_name,'Titan-LigeiaMare')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;                                    
+    Planet.surface_tension = 0.028916;
+    Planet.kgmolwt = 0.028;                                                % (N2)
                                   
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+
 elseif strcmp(planet_name,'Titan-CH4N2')
     % TITAN CONDITIONS: Only Methane and Nitrogen
     % [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 1.0 @ 92K)
@@ -173,9 +190,11 @@ elseif strcmp(planet_name,'Titan-CH4N2')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;                                    
+    Planet.surface_tension = 0.028916;  
+    Planet.kgmolwt = 0.028;                                                % (N2)
                                   
     Model.cutoff_freq = round((15/35)*Model.Fdim);
+    
 elseif strcmp(planet_name,'Titan-CH3H8N2')
     % TITAN CONDITIONS: Only Ethane and Nitrogen
     % [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.0 @ 92K)
@@ -185,7 +204,8 @@ elseif strcmp(planet_name,'Titan-CH3H8N2')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;                                    
+    Planet.surface_tension = 0.028916;  
+    Planet.kgmolwt = 0.028;                                                % (N2)
                                   
     Model.cutoff_freq = round((15/35)*Model.Fdim);
 else
