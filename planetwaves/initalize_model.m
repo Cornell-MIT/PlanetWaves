@@ -1,4 +1,4 @@
-function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_run,wind_dir,depth_profile,buoy_loc)
+function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_run,wind_dir,wind_speed,depth_profile,buoy_loc)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function will populate model parameters with default values 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,11 +36,8 @@ Model.z_data = 10;                                                         % ele
 Model.bathy_map = depth_profile;
 Model.num_time_steps = time_to_run;  
 
-%Model.cutoff_freq = round((20/35)*Model.Fdim);                            % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
-[freqs,~] = make_frequency_vector(Model);                                  % vector of frequencies being used in wave model
-Model.cutoff_freq = CHARLIE_CODE(freqs);
-
 Wind.dir = wind_dir;
+Wind.speed = wind_speed;
 
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -212,7 +209,16 @@ else
     error('%s not part of default list: %s',planet_name)
 end
 
-
-
+% cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
+[freqs,~] = make_frequency_vector(Model);                                  % vector of frequencies being used in wave model
+for i = 1:length(Wind.speed)
+    cutoff_value = (0.53*Planet.gravity)/Wind.speed(i);                    % calculate the cutoff freqency value [Hz]
+    if Wind.speed(i) == 0                                                  % Check for division by zero
+        Model.cutoff_freq(i) = 2;                                          % Assign 2 for undefined cutoff frequency
+    else
+        [~, index] = min(abs(freqs - cutoff_value));                       % Find the index of the closest frequency
+        Model.cutoff_freq(i) = index;                                      % Store the index of the closest frequency
+    end
+end
 
 end
