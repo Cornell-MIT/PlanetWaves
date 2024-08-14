@@ -123,9 +123,7 @@ kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wav
 % modified wavenumbers
 kcga = 1.15*kcg;                                                           % a min is shifted above kcg.
 % create frequency limits for spectrum
-% dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);           % frequency step size for log normal distribution
-% f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                      % frequencies for spectrum
-[f,dnlf] = make_frequency_vector(model);                                      % frequencies for spectrum
+[f,dlnf] = make_frequency_vector(model);
 dom = 2*pi*dlnf.*f;                                                        % discrete angular frequency (w = 2pi*f)
 freqs = f;                                                                 % save a copy of frequencies
 

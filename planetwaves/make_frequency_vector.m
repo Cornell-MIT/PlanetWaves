@@ -1,4 +1,4 @@
-function [freqs,f_step] = make_frequency_vector(Model)
+function [f,dlnf] = make_frequency_vector(model)
 % MAKES A VECTOR OF LOG-SPACED FREQUENCIES BEING USED IN THE WAVE MODEL
 % INPUT: 
 %   Model  : containing information on min, max, and number of frequencies to include
@@ -6,7 +6,7 @@ function [freqs,f_step] = make_frequency_vector(Model)
 %   freqs  : frequency vector for spectrum
 %   f_step : frequency step size of spectrum
 
-    f_step=(log(Model.max_freq)-log(Model.min_freq))/(Model.Fdim-1);             
-    freqs = exp(log(Model.min_freq)+(0:Model.max_freq-1)*f_step);  
+    dlnf=(log(model.max_freq)-log(model.min_freq))/(model.Fdim-1);           % frequency step size for log normal distribution
+    f = exp(log(model.min_freq)+(0:model.Fdim-1)*dlnf);                      % frequencies for spectrum
 
 end
