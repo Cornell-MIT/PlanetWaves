@@ -1,13 +1,13 @@
 function [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_name,time_to_run,wind_dir,wind_speed,depth_profile,buoy_loc)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Function will populate model parameters with default values 
+% Function will populate model parameters with default suggested values 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   INPUT:
-%       planet_name     :   name of planet [string] e.g. = 'Titan'
-%       time_to_run     :   number of time steps [#]
-%       wind_dir        :   direction of wind [radians]
-%       depth_profile   :   2D array of depths [m]
-%       buoy_loc        :   grid location (x,y) of buoy for measurement
+%       planet_name     : name of planet [string] e.g. = 'Titan'
+%       time_to_run     : number of time steps [#]
+%       wind_dir        : direction of wind [radians]
+%       depth_profile   : 2D array of depths [m]
+%       buoy_loc        : grid location (x,y) of buoy for measurement
 %   OUTPUT:
 %       Planet          : Class object containing planetary conditions
 %       Model           : Class object containing model geometry 
@@ -20,7 +20,7 @@ ATM_2_PASCAL = 101325;
 
 Planet.name = planet_name;
 
-size_lake = size(depth_profile);
+size_lake = size(depth_profile);                                    
 
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
 Model.LatDim = size_lake(1);                                               % Number of Grid Cells in Y-Dimension (row count)
@@ -29,15 +29,17 @@ Model.Dirdim = 72;                                                         % Num
 Model.long = buoy_loc(1);                                                  % longitude grid point for sampling during plotting
 Model.lat = buoy_loc(2); 
 
+Model.z_data = 10;                                                         % elevation of wind measurement [m]
+Model.bathy_map = depth_profile;                                           % bathymetric map [m]
+
 Model.tolH = NaN;                                                          % tolerance threshold for maturity
 Model.min_freq = 0.05;                                                     % minimum frequency to model
 Model.max_freq = 35;                                                       % maximum frequency to model
-Model.z_data = 10;                                                         % elevation of wind measurement [m]
-Model.bathy_map = depth_profile;
-Model.num_time_steps = time_to_run;  
+
+
+%Model.cutoff_freq = round((20/35)*Model.Fdim);                            % cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
 
 Wind.dir = wind_dir;
-Wind.speed = wind_speed;
 
 Uniflow.East = 0;                                                          % eastward unidirectional current [m/s]
 Uniflow.North = 0;                                                         % northward unidirectional current [m/s]
@@ -58,6 +60,7 @@ Model.mindelt = 0.0001;                                                    % sec
 Model.maxdelt = 2000.0;                                                    % seconds
   
 Model.time_step = 60;                                                      % time step size [seconds]
+Model.num_time_steps = time_to_run;  
 
 if strcmp(planet_name,'Titan')
     % TITAN CONDITIONS
@@ -70,7 +73,7 @@ if strcmp(planet_name,'Titan')
     Planet.surface_tension = 0.018;                                        % Liquid Surface Tension [N/m]
     Planet.kgmolwt = 0.028;                                                % gram molecular weight [Kgm/mol] (N2)
                                                      
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    %Model.cutoff_freq = round((15/35)*Model.Fdim);
    
 elseif strcmp(planet_name,'Earth')
     % EARTH CONDITIONS
@@ -94,7 +97,7 @@ elseif strcmp(planet_name,'Mars')
     Planet.surface_tension = 0.072;            
     Planet.kgmolwt = 0.044;                                                % (CO2)
 
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Exo-Venus') 
     % Sulfuric Acid
@@ -107,7 +110,7 @@ elseif strcmp(planet_name,'Exo-Venus')
     Planet.surface_tension = 0.012322;            
     Planet.kgmolwt = 0.028;                                                % (N2)
 
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'55Cancrie') 
     error('not working yet')
@@ -121,7 +124,7 @@ elseif strcmp(planet_name,'55Cancrie')
     Planet.surface_tension = 0.44;            
     Planet.kgmolwt = 0.028;                                                % (N2)
 
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'C3H8')
     % propane world
@@ -135,7 +138,7 @@ elseif strcmp(planet_name,'C3H8')
     Planet.surface_tension = 0.035923;            
     Planet.kgmolwt = 0.028;                                                % (N2)
 
-    Model.cutoff_freq = round((12/35)*Model.Fdim);
+    % Model.cutoff_freq = round((12/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'N2')
     % liquid nitrogen
@@ -148,7 +151,7 @@ elseif strcmp(planet_name,'N2')
     Planet.surface_tension = 5.6964e-3;                                       
     Planet.kgmolwt = 0.028;                                                % (N2)                                          
 
-    Model.cutoff_freq = round((8/35)*Model.Fdim);
+    % Model.cutoff_freq = round((8/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Titan-OntarioLacus')
     % TITAN CONDITIONS at Ontario Lacus (ethane-rich)
@@ -162,7 +165,7 @@ elseif strcmp(planet_name,'Titan-OntarioLacus')
     Planet.surface_tension = 0.032766;                                    
     Planet.kgmolwt = 0.028;                                                % (N2)
 
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Titan-LigeiaMare')
     % TITAN CONDITIONS at Ligea Mare (methane-rich)
@@ -176,7 +179,7 @@ elseif strcmp(planet_name,'Titan-LigeiaMare')
     Planet.surface_tension = 0.028916;
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 
 elseif strcmp(planet_name,'Titan-CH4N2')
     % TITAN CONDITIONS: Only Methane and Nitrogen
@@ -190,7 +193,7 @@ elseif strcmp(planet_name,'Titan-CH4N2')
     Planet.surface_tension = 0.028916;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
     
 elseif strcmp(planet_name,'Titan-CH3H8N2')
     % TITAN CONDITIONS: Only Ethane and Nitrogen
@@ -204,21 +207,9 @@ elseif strcmp(planet_name,'Titan-CH3H8N2')
     Planet.surface_tension = 0.028916;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
-    Model.cutoff_freq = round((15/35)*Model.Fdim);
+    % Model.cutoff_freq = round((15/35)*Model.Fdim);
 else
     error('%s not part of default list: %s',planet_name)
-end
-
-% cutoff frequency bin from diagnostic to advection -- if set too low can lead to numerical ringing
-[freqs,~] = make_frequency_vector(Model);                                  % vector of frequencies being used in wave model
-for i = 1:length(Wind.speed)
-    cutoff_value = (0.53*Planet.gravity)/Wind.speed(i);                    % calculate the cutoff freqency value [Hz]
-    if Wind.speed(i) == 0                                                  % Check for division by zero
-        Model.cutoff_freq(i) = 2;                                          % Assign 2 for undefined cutoff frequency
-    else
-        [~, index] = min(abs(freqs - cutoff_value));                       % Find the index of the closest frequency
-        Model.cutoff_freq(i) = index;                                      % Store the index of the closest frequency
-    end
 end
 
 end
