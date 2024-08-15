@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-% MARS UNIFORM 10-m DEPTH
+% COMPARE THE EFFECT OF CHANGING THE ATMOSPHERIC PRESSURE ON LAKES AT MARS
 
 addpath(fullfile('..','planetwaves'))  
 
@@ -19,6 +19,7 @@ buoy_loc = [6 6];
 Model.z_data = 10;
 Model.gridX = grid_resolution(1);                                              
 Model.gridY = grid_resolution(2);   
+
 
 figure
 surf(zDep);
@@ -58,6 +59,7 @@ time_vs_wave = NaN(numel(test_speeds),time_to_run);
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
+    Model = calc_cutoff_freq(Planet,Model,Wind);
 
     [avgHsig, ~, E_spec, ~, ~,~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
     time_vs_wave(i,:) = avgHsig;
@@ -94,7 +96,7 @@ p1 = plot(sigH_ax,test_speeds, spectrogram.wave_height,'--s','LineWidth',2,'Mark
 
 
 
-Planet.surface_press = 4*50000; 
+Planet.surface_press = 4*Planet.surface_press;
 
 figure;
 time_evolve_ax2 = axes;
@@ -106,12 +108,12 @@ ylabel('significant wave height [m]','interpreter','latex')
 hold on;
 
 
-
 time_vs_wave2 = NaN(numel(test_speeds),time_to_run);
 
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
+    Model = calc_cutoff_freq(Planet,Model,Wind);
 
     [avgHsig, ~, E_spec, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
     time_vs_wave2(i,:) = avgHsig;
@@ -145,7 +147,6 @@ end
 p2 = plot(sigH_ax,test_speeds, spectrogram2.wave_height,'--s','LineWidth',2,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','MarkerEdgeColor','#2B3A67','Color','#2B3A67');
 
 legend([p1 p2],'50 kPA','200 kPa','Location','best')
-
 
 
 

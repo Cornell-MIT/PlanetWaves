@@ -1,5 +1,8 @@
 function make_input_map(Planet,Model,Wind)
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Makes map of bathymetry used as input for the model and includes a star at the buoy location
+% of interest with a red arrow in the direction of the wind
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     figure;
     imagesc(Model.bathy_map)
     hold on;

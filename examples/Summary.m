@@ -2,7 +2,7 @@ clc
 clear
 close all
 
-% plot all planets together for same depth profile
+% PLOT ALL PLANETS TOGETHER FOR SAME DEPTH AND WIND SPEEDS
 
 addpath(fullfile('..','planetwaves'))  
 
@@ -87,6 +87,7 @@ for pp = 1:numel(all_planets)
     for i = 1:numel(test_speeds)
     
         Wind.speed = test_speeds(i);
+        Model = calc_cutoff_freq(Planet,Model,Wind);
     
         [avgHsig, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
         time_vs_wave(i,:) = avgHsig;

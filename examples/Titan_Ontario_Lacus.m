@@ -2,7 +2,8 @@ clc
 clear
 close all
 
-% ONTARIO LACUS WITH BATHTUB BATHYMETRY
+% PLOT WAVES IN ONTARIO LACUS
+
 addpath(fullfile('..','planetwaves'))  
 addpath(fullfile('..','planetwaves','pre_analysis'))
 addpath(fullfile('..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
@@ -15,15 +16,16 @@ zDep = imrotate(zDep,-90);
 zDep(:,80:end) = [];
 zDep(1:95,:) = [];
 zDep(90:end,:) = [];
+zDep = imrotate(zDep,-90);
 
 zDep_orig = zDep;
 % MODEL INPUTS
 planet_to_run = 'Titan-OntarioLacus';
 buoy_loc = [60 55];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.6 1:4];                                                   % wind speed
-time_to_run = 60*10;                                                       % time to run model
-wind_direction = pi/2;                                                     % wind direction
+test_speeds = [0.1:0.1:2];                                                % wind speed
+time_to_run = 10;                                                          % time to run model
+wind_direction = pi;                                                       % wind direction
 
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.3);
 
@@ -34,9 +36,11 @@ Model.gridY = grid_resolution(2);
 
 make_input_map(Planet,Model,Wind)
 
+
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
+    Model = calc_cutoff_freq(Planet,Model,Wind);
 
     [myHsig{i}, htgrid{i}, wn_e_spectrum, ~ , ~ , ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
     if ~isempty(wn_e_spectrum{end})
@@ -47,4 +51,4 @@ for i = 1:numel(test_speeds)
 end
 
 
-make_plots(Planet,Model,test_speeds,myHsig, htgrid,energy,wn)
+%make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

@@ -1,5 +1,11 @@
-function make_plots(Planet,Model,test_speeds,myHsig, htgrid,energy,wn)
-
+function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MAKES PLOTS FOR WAVEFIELD RESULTS OF:
+% (1) Signifigant wave height growth with time (good to check this for numerical ringing)
+% (2) Wavefield height in the basin with the wave height at the buoy -- gif
+% (3) Wave height vs wind speed at the buoy
+% (4) Wavenumber frequency spectrum with average of linear fit to high frequency slope
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     figure
     for i = 1:numel(test_speeds)
         plot(myHsig{i}, '-', 'LineWidth', 3, 'DisplayName', num2str(test_speeds(i)))
