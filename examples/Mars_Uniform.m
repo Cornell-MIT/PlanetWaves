@@ -5,7 +5,7 @@ close all
 % COMPARE THE EFFECT OF CHANGING THE ATMOSPHERIC PRESSURE ON LAKES AT MARS
 
 addpath(fullfile('..','planetwaves'))  
-
+addpath(fullfile('..','planetwaves','pre_analysis'))
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
 test_speeds = [1.2 1.6 2:10];
@@ -92,8 +92,7 @@ end
 
 
 % add dashed line between points
-p1 = plot(sigH_ax,test_speeds, spectrogram.wave_height,'--s','LineWidth',2,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','MarkerEdgeColor','#FF6F59','Color','#FF6F59');
-
+p1 = plot(sigH_ax,test_speeds(spectrogram.wave_height>0), spectrogram.wave_height(spectrogram.wave_height>0),'--s','LineWidth',2,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','MarkerEdgeColor','#FF6F59','Color','#FF6F59');
 
 
 Planet.surface_press = 4*Planet.surface_press;
@@ -144,7 +143,7 @@ end
 
 
 % add dashed line between points
-p2 = plot(sigH_ax,test_speeds, spectrogram2.wave_height,'--s','LineWidth',2,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','MarkerEdgeColor','#2B3A67','Color','#2B3A67');
+p2 = plot(sigH_ax,test_speeds(spectrogram2.wave_height>0), spectrogram2.wave_height(spectrogram2.wave_height>0),'--s','LineWidth',2,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','MarkerEdgeColor','#2B3A67','Color','#2B3A67');
 
 legend([p1 p2],'50 kPA','200 kPa','Location','best')
 
