@@ -18,7 +18,7 @@ planet_to_run = 'Earth';
 buoy_loc = [6618 1729];                                                    % grid location [x,y]
 % from find_fetch.py
 grid_resolution = [4542.948547909539 92.66280063299297];                   % pixel width and pixel height [m]
-test_speeds = 0:20;                                                        % wind speed
+test_speeds = 20;                                                        % wind speed
 time_to_run = 60*10;                                                       % time to run model
 wind_direction = 0;                                                        % wind direction
 

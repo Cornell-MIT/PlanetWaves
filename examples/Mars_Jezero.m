@@ -5,6 +5,7 @@ close all
 % PLOT THE WAVES IN JEZERO CRATER LAKE 
 
 addpath(fullfile('..','data','Mars'))
+addpath(fullfile('..','planetwaves'))
 addpath(fullfile('..','planetwaves','pre_analysis'))
 
 fn = 'M20_JezeroCrater_CTXDEM_20m.tif';
@@ -12,7 +13,7 @@ lake_level = 10;
 
 planet_to_run = 'Mars';
 time_to_run = 60*10;
-test_speeds = [1 1.2 2:10];
+test_speeds = [1:10];
 wind_direction = pi;
 
 A = read(Tiff(fn,'r'));
@@ -34,10 +35,10 @@ grid_resolution = [20 20]; % 20 m/pix
 % X = 20.*(1:sz(2));
 % Y = 20.*(1:sz(1));
 
-buoy_loc = [414 836]; % location of Jezero delta
+buoy_loc = [580 836]; % location of Jezero delta
 
 
-[A,buoy_loc,grid_resolution] = degrade_depth_resolution(A,buoy_loc,grid_resolution,0.005);
+[A,buoy_loc,grid_resolution] = degrade_depth_resolution(A,buoy_loc,grid_resolution,0.05);
 
 % setting water level within the crater
 A(A>0) = 0;
@@ -71,4 +72,5 @@ for i = 1:numel(test_speeds)
     end
 end
 
+save('MarsJezero.mat','myHsig','htgrid','wn','energy','cg')
 make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

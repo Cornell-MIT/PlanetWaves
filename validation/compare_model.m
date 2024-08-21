@@ -85,9 +85,9 @@ ylim([0 max(Events.obs_H)+1])
 wavetable = readtable('umwm_wind_waveheights.xlsx');
 
 PM = (0.22.*(wavetable.u).^2)./9.81;
-p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM')
-p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves')
-p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz')
+p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM');
+p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves');
+p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
 
 legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
 exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');
@@ -108,7 +108,7 @@ SST = sum((y - mean(y)).^2);
 R_sqr = 1 - (SSR/SST);
 
 title(['R^2 = ' num2str(R_sqr)])
-
+exportgraphics(gcf, 'LSCompare_Rsqr.pdf', 'ContentType', 'vector');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rgb = hex2rgb(hex)

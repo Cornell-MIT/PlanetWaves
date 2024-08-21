@@ -5,6 +5,7 @@ close all
 % SHOW DECOMPOSITION OF MODEL 
 
 addpath(fullfile('..','planetwaves'))  
+addpath(fullfile('..','planetwaves','pre_analysis'))
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,22 +27,25 @@ Etc.showplots = 1;
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
+    Model = calc_cutoff_freq(Planet,Model,Wind);
 
     [avgHsig, ~, ~, ~, ~,~,~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
 
  
 end
-print('-vectpr', '-dpdf', 'Decomposed_Model')
+%print('-vectpr', '-dpdf', 'Decomposed_Model')
 x = 1:numel(avgHsig);
 y = avgHsig;
 z = zeros(size(avgHsig));
 col = flip(autumn(time_to_run),1); % yellow -> red, with 61 colors (for 61 lines)
 figure;
-for ii = 1:20:numel(avgHsig)
+for ii = 60:60:numel(avgHsig)
     plot(x(ii),y(ii),'.','Color',col(ii,:),'MarkerSize',30)
     hold on;
 end
 grid on;
+xlim([0 610])
+ylim([0 max(y)+0.05])
 xlabel('model time step [$\Delta$ t]','interpreter','latex')
 ylabel('significant wave height [m]','interpreter','latex')
 % print('-vector', '-dpdf', 'Decomposed_Waveheight')

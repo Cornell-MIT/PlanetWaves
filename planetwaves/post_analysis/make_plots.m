@@ -125,7 +125,7 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
     
     for i = 1:length(test_speeds)
         
-        if ~isempty(htgrid{i}{end})
+        if ~isempty(energy{i})
             k_wave = wn{i};
             e_wave = energy{i}*dang;
             plot(k_wave,e_wave,'-','DisplayName',num2str(test_speeds(i)),'LineWidth',5)

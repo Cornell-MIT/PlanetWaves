@@ -371,7 +371,6 @@ for t = 1:model.num_time_steps                                                  
        end
 
        tplot = tplot + 1;
-       explim = 0.1;                                                                                                                                             % limit for making dynamic time step if the source = dissipation
        delt = 0.7 * mindelx / cgmax;                                                                                                                             % advection-limited Courant condition.
       
 % Scale wind to reference heights at 1/wavenumber and wavelength/2 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                                                                                                           % kinematic stress (u_*^2) at boundary is proportional to square of wind velocity at 10m [u_*^2 = Cd*U^2]  
@@ -499,7 +498,7 @@ for t = 1:model.num_time_steps                                                  
        aa = Sin(:,:,ol,:) - Sds(:,:,ol,:);                                                                                                       % ol = long wavelength waves (that will advect)
        aa = aa(D(:,:,ol,:)>0);                                                                                                    
        aa = max(abs(aa(:)));
-       aaa = explim;
+       aaa = model.explim;
       
        if isnan(aa)                                                                                                                              % if source = dissipation then denominator for new possible time step is 5e-5
            aa = aaa/model.maxdelt;
@@ -659,61 +658,61 @@ for t = 1:model.num_time_steps                                                  
       
      if Etc.showplots
         
-        if sumt == model.time_step
-        
-        
-        cmap = flip(autumn(model.num_time_steps),1); % yellow -> red, with 61 colors (for 61 lines)
-        xx = squeeze(wn(model.long,model.lat,:,model.Dirdim/2));
-        % INPUT
-        set(gca(),'ColorOrder',cmap)
-        hold on;
-        subplot(2,2,1)
-        aa = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)';
-        semilogx(xx,aa,'-','LineWidth',3);
-        hold on;
-        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
-        xlabel('k [m^-1]')
-        ylabel('k x Input [m2/s]')
-        grid on
-        title('k x Input')
-        set(gca(),'ColorOrder',cmap)
-        hold on;
-        % LOSS
-        subplot(2,2,2)
-        bb = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)';
-        semilogx(xx,bb,'-','LineWidth',3)
-        hold on;
-        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
-        xlabel('k [m^-1]')
-        ylabel('k x Loss [m2/s]')
-        grid on
-        title('k x Loss')
-        set(gca(),'ColorOrder',cmap)
-        hold on;
-        % NON-LINEAR
-        subplot(2,2,3)
-        semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
-        hold on;
-        xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
-        xlabel('k [m^-1]')
-        ylabel('k x Non-Linear[m2/s]')
-        grid on
-        title('k x Non-Linear')
-        set(gca(),'ColorOrder',cmap)
-        % FULL
-        hold on;
-        subplot(2,2,4)
-        semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
-        xlabel('k [m^-1]')
-        ylabel('k x Full Spectrum[m2/s]')
-        title('k x Full Spectrum')
-        grid on
-        xlabel('k [m^-1]')
-       
-        sgtitle(['u = ', num2str(UU), ' m/s'])
+        if sumt == model.time_step 
+            if mod(t,60) == 0
+            cmap = flip(autumn(model.num_time_steps/60),1); % yellow -> red, with 61 colors (for 61 lines)
+            xx = squeeze(wn(model.long,model.lat,:,model.Dirdim/2));
+            % INPUT
+            set(gca(),'ColorOrder',cmap)
+            hold on;
+            subplot(2,2,1)
+            aa = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sin(model.long,model.lat,:,:),4)*dthd*dr)';
+            semilogx(xx,aa,'-','LineWidth',3);
+            hold on;
+            xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
+            xlabel('k [m^-1]')
+            ylabel('k x Input [m2/s]')
+            grid on
+            title('k x Input')
+            set(gca(),'ColorOrder',cmap)
+            hold on;
+            % LOSS
+            subplot(2,2,2)
+            bb = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)';
+            semilogx(xx,bb,'-','LineWidth',3)
+            hold on;
+            xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
+            xlabel('k [m^-1]')
+            ylabel('k x Loss [m2/s]')
+            grid on
+            title('k x Loss')
+            set(gca(),'ColorOrder',cmap)
+            hold on;
+            % NON-LINEAR
+            subplot(2,2,3)
+            semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+            hold on;
+            xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
+            xlabel('k [m^-1]')
+            ylabel('k x Non-Linear[m2/s]')
+            grid on
+            title('k x Non-Linear')
+            set(gca(),'ColorOrder',cmap)
+            % FULL
+            hold on;
+            subplot(2,2,4)
+            semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+            xlabel('k [m^-1]')
+            ylabel('k x Full Spectrum[m2/s]')
+            title('k x Full Spectrum')
+            grid on
+            xlabel('k [m^-1]')
+           
+            sgtitle(['u = ', num2str(UU), ' m/s'])
+            end
+            
         end
-    end
-
+     end
    end % end while loop for sub-time steps
   
 

@@ -54,6 +54,7 @@ Model.tune_Sdt_fac = 0.001;
 Model.tune_Sbf_fac = 0.002;
 Model.tune_cotharg = 0.2;
 Model.tune_n = 2.4;
+Model.explim = 0.1;
 
 % sub-time step parameters for time evolution (can be optimized for particular planet condition)
 Model.mindelt = 0.0001;                                                    % seconds
