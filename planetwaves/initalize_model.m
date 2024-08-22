@@ -119,8 +119,7 @@ elseif strcmp(planet_name,'Exo-Venus')
     Planet.kgmolwt = 0.028;                                                % (N2)
 
 
-elseif strcmp(planet_name,'55Cancrie') 
-    error('not working yet')
+elseif strcmp(planet_name,'55-Cancrie') 
     % molten lava world a little bigger than earth
     Planet.rho_liquid = 2450;                                                     
     Planet.nu_liquid = 12.5;                                           
