@@ -83,6 +83,8 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             set(ax1,'Ydir','reverse')
             %set(ax1,'Xdir','reverse')
             drawnow
+            exportgraphics(gcf, [Planet.name,'_',num2str(speed),'_waves.pdf'], 'ContentType', 'vector');
+
             if frame == 1
                 gif([Planet.name,'_waves.gif'],'DelayTime',1,'overwrite',true)
                 frame = 0;
