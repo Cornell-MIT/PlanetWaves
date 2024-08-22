@@ -29,9 +29,9 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
     for speed = 1:numel(test_speeds)
         if ~isempty(htgrid{speed}{end})
             subplot(1,3,3)
-            plot(test_speeds(buoy_waves>0),buoy_waves(buoy_waves>0),'-sb','LineWidth',1,'MarkerFaceColor','b')
+            plot(test_speeds(buoy_waves>0),buoy_waves(buoy_waves>0),'-sb','LineWidth',2,'MarkerFaceColor','b','MarkerSize',15)
             hold on
-            plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',1,'MarkerFaceColor','r')
+            plot(test_speeds(speed),htgrid{speed}{end}(Model.long,Model.lat),'-sr','LineWidth',2,'MarkerFaceColor','r','MarkerSize',15)
             xlim([0 max(test_speeds)+0.5])
         
             hold off;
