@@ -4,14 +4,21 @@ function make_input_map(Planet,Model,Wind)
 % of interest with a red arrow in the direction of the wind
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     figure;
-    imagesc(Model.bathy_map)
+    sz = size(Model.bathy_map);
+    Xrange =  0:sz(2)-1;
+    Xrange = Model.gridX.*Xrange;
+    Yrange = 0:sz(1)-1;
+    Yrange = Model.gridY.*Yrange;
+    pcolor(Xrange./1000,Yrange./1000,Model.bathy_map)
     hold on;
-    contour(Model.bathy_map,'-k')
+    contour(Xrange./1000,Yrange./1000,Model.bathy_map,'-k')
     [wx,wy] = pol2cart(Wind.dir,1);
-    plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
-    quiver(Model.long,Model.lat, 1*wx, 1*wy, 'r', 'MaxHeadSize', 1);
+    plot(Model.long*(Model.gridX/1000),Model.lat*(Model.gridY/1000),'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
+    quiver(Model.long*(Model.gridX/1000),Model.lat*(Model.gridY/1000), 1*wx, 1*wy, 'r', 'MaxHeadSize', 1);
     colorbar;
     title(['input bathymetry at ',Planet.name])
+    xlabel('lon [km]')
+    ylabel('lat [km]')
     drawnow
 
 end

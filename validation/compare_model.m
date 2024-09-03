@@ -90,7 +90,7 @@ p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWid
 p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
 
 legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
-exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');
+%exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1]);
 plot(wavetable.umwm,wavetable.umwm,'-k','LineWidth',4)
@@ -108,7 +108,7 @@ SST = sum((y - mean(y)).^2);
 R_sqr = 1 - (SSR/SST);
 
 title(['R^2 = ' num2str(R_sqr)])
-exportgraphics(gcf, 'LSCompare_Rsqr.pdf', 'ContentType', 'vector');
+%exportgraphics(gcf, 'LSCompare_Rsqr.pdf', 'ContentType', 'vector');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rgb = hex2rgb(hex)

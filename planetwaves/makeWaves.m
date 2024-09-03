@@ -60,7 +60,7 @@ function [sigH,htgrid,wn_e_spectrum,mean_slope,celerity,wave_age,PeakWave] = mak
 %   Returns:
 %       sigH                : significant wave height at specified (Model.lat, Model.lon) coordinates [m]
 %       htgrid              : significant wave height for each grid cell [m]
-%       n_e_spectrum        : wavenumber wave energy spectrum (x,y) in space and in (frequency,direction) space with wavenumber and group velocity
+%       wn_e_spectrum       : wavenumber wave energy spectrum (x,y) in space and in (frequency,direction) space with wavenumber and group velocity
 %       mean_slope          : mean slope of liquid surface
 %       celerity            : phase velocity of wave train with unidirectional currents [m/s]
 %       wave_age            : phase speed of peak frequency / wind speed (mature waves have an age > 0.83 ; Young1999) 
