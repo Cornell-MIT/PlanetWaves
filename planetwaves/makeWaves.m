@@ -784,14 +784,14 @@ for t = 1:model.num_time_steps                                                  
 
     end
     if nargout > 6
-        PeakWave.cg = cg_peak;
-        PeakWave.T = T_peak;
-        PeakWave.L = L_peak;
-        PeakWave.c = c_peak;
-        PeakWave.H = ht';
-        PeakWave.d0 = d0;
-        PeakWave.um = um;
-        PeakWave.f = f_peak;
+        PeakWave.cg = cg_peak';
+        PeakWave.T = T_peak';
+        PeakWave.L = L_peak';
+        PeakWave.c = c_peak';
+        PeakWave.H = ht;
+        PeakWave.d0 = d0';
+        PeakWave.um = um';
+        PeakWave.f = f_peak';
     end
   end
 

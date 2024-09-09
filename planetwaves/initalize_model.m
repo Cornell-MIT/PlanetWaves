@@ -186,7 +186,7 @@ elseif strcmp(planet_name,'LHS-1140b')
     Planet.nua = 1.7e-8;                                               
     Planet.gravity = 18.4;                                               
     Planet.surface_temp = 288;                                             
-    Planet.surface_press = 101.3;                             
+    Planet.surface_press = 1*ATM_2_PASCAL;                             
     Planet.surface_tension = 0.074;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   

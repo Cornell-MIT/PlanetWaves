@@ -83,7 +83,7 @@ for i = 1:numel(test_speeds)
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PLOT MODEL
     if spectrogram.wave_height(i) > 0
-        plot(sigH_ax,test_speeds(i), spectrogram.wave_height(i),'--s','LineWidth',1,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','Color','#FF6F59')
+        plot(sigH_ax,test_speeds(i), spectrogram.wave_height(i),'-s','LineWidth',1,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','Color','#FF6F59')
         drawnow;
     end
 
@@ -92,7 +92,7 @@ end
 
 
 % add dashed line between points
-p1 = plot(sigH_ax,test_speeds(spectrogram.wave_height>0), spectrogram.wave_height(spectrogram.wave_height>0),'--s','LineWidth',2,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','MarkerEdgeColor','#FF6F59','Color','#FF6F59');
+p1 = plot(sigH_ax,test_speeds(spectrogram.wave_height>0), spectrogram.wave_height(spectrogram.wave_height>0),'-s','LineWidth',2,'MarkerFaceColor','#FF6F59','MarkerSize',15,'MarkerEdgeColor','#FF6F59','MarkerEdgeColor','#FF6F59','Color','#FF6F59');
 
 
 Planet.surface_press = 4*Planet.surface_press;
@@ -135,7 +135,7 @@ for i = 1:numel(test_speeds)
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PLOT MODEL
     if spectrogram2.wave_height(i) > 0
-        plot(sigH_ax,test_speeds(i), spectrogram2.wave_height(i),'--s','LineWidth',1,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','Color','#2B3A67')
+        plot(sigH_ax,test_speeds(i), spectrogram2.wave_height(i),'-^','LineWidth',1,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','Color','#2B3A67')
         drawnow;
     end
 
@@ -143,7 +143,7 @@ end
 
 
 % add dashed line between points
-p2 = plot(sigH_ax,test_speeds(spectrogram2.wave_height>0), spectrogram2.wave_height(spectrogram2.wave_height>0),'--s','LineWidth',2,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','MarkerEdgeColor','#2B3A67','Color','#2B3A67');
+p2 = plot(sigH_ax,test_speeds(spectrogram2.wave_height>0), spectrogram2.wave_height(spectrogram2.wave_height>0),'-^','LineWidth',2,'MarkerFaceColor','#2B3A67','MarkerSize',15,'MarkerEdgeColor','#2B3A67','MarkerEdgeColor','#2B3A67','Color','#2B3A67');
 
 legend([p1 p2],'50 kPA','200 kPa','Location','best')
 
