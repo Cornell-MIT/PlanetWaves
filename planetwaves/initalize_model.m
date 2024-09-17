@@ -122,6 +122,7 @@ elseif strcmp(planet_name,'55-Cancrie')
 
 elseif strcmp(planet_name,'Titan-N2')
     % liquid nitrogen
+    error('use different atmosphere pressure')
     Planet.rho_liquid = 862.43;                                              
     Planet.nu_liquid = 2.5e-7;                                               
     Planet.nua = 4.5e-9;                                              
@@ -140,19 +141,19 @@ elseif strcmp(planet_name,'Titan-OntarioLacus')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.033;                                    
+    Planet.surface_tension = 0.032766;                                    
     Planet.kgmolwt = 0.028;                                                % (N2)
 
 elseif strcmp(planet_name,'Titan-LigeiaMare')
     % TITAN CONDITIONS at Ligea Mare (methane-rich)
-    % 69% CH4, 14% C2H6, and 17% N2 [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.69 @ 92K)
-    Planet.rho_liquid = 554.07;                                               
-    Planet.nu_liquid = 5.8764e-7;                                              
+    % 71% CH4, 12% C2H6, and 17% N2 [Mastrogiuseppe+2016] (values taken from Steckloff TitanPool for Methane Alkaline Fraction 0.71 @ 92K)
+    Planet.rho_liquid = 551.6;                                               
+    Planet.nu_liquid = 5.685e-7;                                              
     Planet.nua = 6.4e-9;                                               
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;
+    Planet.surface_tension = 0.028363;
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
 elseif strcmp(planet_name,'Titan-CH4N2')
@@ -164,7 +165,7 @@ elseif strcmp(planet_name,'Titan-CH4N2')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;  
+    Planet.surface_tension = 0.016606;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                       
 elseif strcmp(planet_name,'Titan-CH3H8N2')
@@ -176,7 +177,7 @@ elseif strcmp(planet_name,'Titan-CH3H8N2')
     Planet.gravity = 1.352;                                               
     Planet.surface_temp = 92;                                             
     Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.028916;  
+    Planet.surface_tension = 0.016606;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
 elseif strcmp(planet_name,'LHS-1140b')
