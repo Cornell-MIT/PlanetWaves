@@ -63,12 +63,14 @@ Model.maxdelt = 2000.0;                                                    % sec
 Model.time_step = 60;                                                      % time step size [seconds]
 Model.num_time_steps = time_to_run;  
 
-                                                      
+
+% VALUES FOR LIQUID DENSITY, LIQUID VISCOSITY, VAPOR (ATM) VISCOSITY, AND
+% SURFACE TEMPERATURE TAKEN FROM dippr.aiche.org DATABASE
 if strcmp(planet_name,'Earth')
     % EARTH CONDITIONS
-    Planet.rho_liquid = 998.21;                                               % Liquid density [kg/m3]                               
-    Planet.nu_liquid = 1.2e-6;                                           % Liquid Viscosity [m2/s]                        
-    Planet.nua = 1.7e-8;                                                  % Atmospheric gas viscosity [m2/s]
+    Planet.rho_liquid = 998.21;                                            % Liquid density [kg/m3]                               
+    Planet.nu_liquid = 1.2e-6;                                             % Liquid Viscosity [m2/s]                        
+    Planet.nua = 1.7e-8;                                                   % Atmospheric gas viscosity [m2/s]
     Planet.gravity = 9.81;                                                 % Gravity [m/s2]
     Planet.surface_temp = 288;                                             % Surface Temperature [K]
     Planet.surface_press = 1*ATM_2_PASCAL;                                 % Surface Pressure [Pa]      
@@ -121,15 +123,15 @@ elseif strcmp(planet_name,'55-Cancrie')
     Planet.kgmolwt = 0.044;                                                % (CO2)
 
 elseif strcmp(planet_name,'Titan-N2')
-    % liquid nitrogen
-    error('use different atmosphere pressure')
-    Planet.rho_liquid = 862.43;                                              
-    Planet.nu_liquid = 2.5e-7;                                               
-    Planet.nua = 4.5e-9;                                              
+    % TITAN CONDITIONS IN PAST/FUTURE WITH NO METHANE TO KEEP MOON WARM
+    % liquid nitrogen (based on methane depletion case from Charnay+2014) for surface albedo of 0.3 with non-radiative clouds
+    Planet.rho_liquid = 807.22 ;                                              
+    Planet.nu_liquid = 1.6e-7;                                               
+    Planet.nua = 5.4e-9;                                              
     Planet.gravity = 1.352;                                               
-    Planet.surface_temp = 65;                                              
-    Planet.surface_press = 1.5*ATM_2_PASCAL;                             
-    Planet.surface_tension = 0.012;                                       
+    Planet.surface_temp = 77.5;                                                                                      
+    Planet.surface_press = 0.89*ATM_2_PASCAL;                             
+    Planet.surface_tension = 0.0088249;                                       
     Planet.kgmolwt = 0.028;                                                % (N2)                                          
 
 elseif strcmp(planet_name,'Titan-OntarioLacus')

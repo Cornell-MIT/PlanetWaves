@@ -21,9 +21,10 @@ lakes = {'Titan-CH3H8N2','Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2'};
 ol = 2; lm = 3;
 org = 1; ice = 2; fluffy = 3;
 
+load('TitanLakesWaves.mat','test_speeds')
 buoy_loc = [577 835];                                                      % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.3:0.1:4.5];
+%test_speeds = [0.3:0.1:4.5];
 time_to_run = 60*10;                                                          % time to run model
 wind_direction = 0;                                                        % wind direction
 
@@ -93,23 +94,23 @@ for c = 1:numel(lakes)
 
 
             Wind.speed = test_speeds(i);
-            Model = calc_cutoff_freq(Planet,Model,Wind);
+            % Model = calc_cutoff_freq(Planet,Model,Wind);
 
-            [avgH, ~, ~, ~, ~,~, PeakWave] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
-            plot(height_ax,1:numel(avgH),avgH,'-','DisplayName',num2str(Wind.speed))
-            legend(height_ax,'show','Location','best')
-            drawnow
-
-            plot_height(c,i) = avgH(end);
-
-            % shoal the waves 
-            H0(c,i) = PeakWave.H(Model.long,Model.lat);
-            Cg0(c,i) = PeakWave.cg(Model.long,Model.lat);
-            C0(c,i) = PeakWave.c(Model.long,Model.lat);
-            L0(c,i) = PeakWave.L(Model.long,Model.lat);
-            T(c,i) = PeakWave.T(Model.long,Model.lat);
-            save('LongRun.mat','C0','Cg0','H0','L0','plot_height','T','test_speeds','time_to_run')
-            %load('TitanLakesWaves.mat')
+            % [avgH, ~, ~, ~, ~,~, PeakWave] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+            % plot(height_ax,1:numel(avgH),avgH,'-','DisplayName',num2str(Wind.speed))
+            % legend(height_ax,'show','Location','best')
+            % drawnow
+            % 
+            % plot_height(c,i) = avgH(end);
+            % 
+            % % shoal the waves 
+            % H0(c,i) = PeakWave.H(Model.long,Model.lat);
+            % Cg0(c,i) = PeakWave.cg(Model.long,Model.lat);
+            % C0(c,i) = PeakWave.c(Model.long,Model.lat);
+            % L0(c,i) = PeakWave.L(Model.long,Model.lat);
+            % T(c,i) = PeakWave.T(Model.long,Model.lat);
+            % save('LongRun.mat','C0','Cg0','H0','L0','plot_height','T','test_speeds','time_to_run')
+            load('TitanLakesWaves.mat')
 
             alpha_0 = 0; % assuming incoming wave crests parallel to shore contour
 
@@ -134,10 +135,12 @@ for c = 1:numel(lakes)
     
                     d0_shoal(z) = (H_shoal(z)/2).*((1)./sinh(2*pi*d_L)); % cosh @ z = -d = 1
                     um_shoal(z) = (H_shoal(z)/2).*((Planet.gravity*T(c,i))/L_shoal(z)).*((1)./(cosh(2*pi*d_L))); % cosh @ z = -d = 1
+                    break_frac(z) = H_shoal(z)/L_shoal(z);
+                    break_frac(break_frac>=max_steepness) = NaN;
                 end
                    
                 
-                    plot(shoal_ax,d,H_shoal,'LineWidth',3,'Color',lakecolors{c},'DisplayName',num2str(Wind.speed))
+                    plot(shoal_ax,d(~isnan(break_frac)),H_shoal(~isnan(break_frac)),'LineWidth',3,'Color',lakecolors{c},'DisplayName',num2str(Wind.speed))
                     hold on;
                 
                 for s = 1:numel(rho_s)
