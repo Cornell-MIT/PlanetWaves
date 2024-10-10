@@ -21,6 +21,7 @@ function [depth_resized,buoy_loc_resized,new_resolution] = degrade_depth_resolut
     depth = imresize(depth, resizeFactor, "bicubic");
     depth_resized = round(depth);
     
+    
     buoy_loc_resized = ceil(pos * resizeFactor);
 
 

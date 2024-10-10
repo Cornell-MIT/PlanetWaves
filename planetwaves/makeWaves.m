@@ -745,6 +745,7 @@ for t = 1:model.num_time_steps                                                  
     L_peak = NaN(size(model.bathy_map));  % wavelength
     d0 = NaN(size(model.bathy_map));      % orbital diameter
     um = NaN(size(model.bathy_map));      % orbital velocity
+    dir_peak = NaN(size(model.bathy_map)); % direction
     if t == model.num_time_steps 
         addpath(fullfile('..','planetwaves','post_analysis')) 
 
@@ -752,9 +753,10 @@ for t = 1:model.num_time_steps                                                  
             for yy = 1:model.LatDim
                 if model.bathy_map(yy,xx) > 0
 
-                    [peak_freq,peak_freq_ind,~,dir_ind] = loc_peak_freq(E,xx,yy,model);
+                    [peak_freq,peak_freq_ind,loc_peak,dir_ind] = loc_peak_freq(E,xx,yy,model);
                     
                     f_peak(yy,xx) = peak_freq;
+                    dir_peak(yy,xx) = loc_peak;
                     c_peak(yy,xx) = abs(squeeze(c(xx,yy,peak_freq_ind,dir_ind)));
 
                     if nargout > 6
