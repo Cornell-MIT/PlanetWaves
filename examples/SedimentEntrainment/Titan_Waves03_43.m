@@ -24,7 +24,7 @@ org = 1; ice = 2; fluffy = 3;
 buoy_loc = [577 835];                                                      % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
 test_speeds = [0.3:0.1:4.5];
-time_to_run = 10;                                                          % time to run model
+time_to_run = 10*60;                                                          % time to run model
 wind_direction = 0;                                                        % wind direction
 
 figure;

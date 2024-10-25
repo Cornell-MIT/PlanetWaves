@@ -4,7 +4,8 @@ close all
 
 total = 430652;
 duration_years = 10;
-stopi = round(total/(10/duration_years));
+%stopi = round(total/(10/duration_years));
+stopi = total;
 % ONTARIO LACUS
 loni = 34;
 lati = 3; 
@@ -12,7 +13,16 @@ lati = 3;
 % loni = 45; 
 % lati = 31; 
 
-fn = "TAM.10mwinds.L24.table950.k1e-4.y181-190.6-hourly.nc";
+
+% 1 Titan Year = 29.5 Earth Year = 258420 hours
+% 1 Titan Day = 15.95 Earth days = 382.8 hours
+% 1 Measurement per 6 hours
+
+% Measurements per Day = (382.8 / 6) = 63.8
+% Measurements per Year = (258420 / 6) = 43070
+
+
+fn = "C:\Users\Owner\OneDrive\Desktop\Main\Work\MIT\External_Data\TAM.10mwinds.L24.table950.k1e-4.y181-190.6-hourly.nc";
 fileinfo = ncinfo(fn);
 lon = ncread(fn, 'lon');
 lat = ncread(fn, 'lat');

@@ -2,20 +2,26 @@ clc
 clear
 close all
 
-addpath(fullfile('..','data/Titan/TAMwTopo/'))
-addpath(fullfile('..','planetwaves'))
-addpath(fullfile('..','planetwaves','post_analysis'))
-addpath(fullfile('.','past_runs'))
+addpath(fullfile('..','past_runs'))
+addpath(fullfile('..','..','planetwaves'))
+addpath(fullfile('..','..','planetwaves','post_analysis'))
 
-% Results from Titan_Ontario_Lacus_Entrainment
-load('Waves03_43.mat','H0','test_speeds','lakes','lake_slope','L0','T','Planet','C0','Cg0','rho_s','d50','ice','lakecolors','time_to_run','wind_direction','zDep','buoy_loc','max_steepness','min_depth')
+addpath(fullfile('..','..','data/Titan/TAMwTopo/'))
+addpath(fullfile('..','..','data/Titan/TitanLakes/Bathymetries/bathtub_bathy'))
+
+
+% Results from Titan_Waves03_43
+load('../past_runs/Waves03_43.mat','H0','test_speeds','lakes','lake_slope','L0','T','Planet','C0','Cg0','rho_s','d50','lakecolors','time_to_run','wind_direction','zDep','buoy_loc','max_steepness','min_depth')
 
 alpha_0 = 0;
 d = 100:-lake_slope:min_depth;
-d50 = d50(1:100:end);
-d50 = [d50(1) d50(end)];
+d50 = linspace(d50(1),d50(end),100);
 
 
+ol = 2; lm = 3;
+org = 1; ice = 2; fluffy = 3;
+
+% CALCULATE ENTRAINMENT DEPTH FOR SAND AND GRAVEL
 for c = 1:numel(lakes)
 
     [Planet, Model, Wind, Uniflow, Etc] = initalize_model(lakes{c}, time_to_run, wind_direction, zDep, buoy_loc);
@@ -59,10 +65,10 @@ for c = 1:numel(lakes)
              % meshgrid to vectorizing for computational speed
             [S, A] = meshgrid(rho_s, d50);  % [S,A] : [numel(d50), numel(rho_s)]
 
-            shields = zeros(length(um_shoal), size(S, 1), size(S, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
-            KM_crash = zeros(length(um_shoal), size(A, 1), size(A, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
+            shields = zeros(length(d), size(S, 1), size(S, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
+            KM_crash = zeros(length(d), size(A, 1), size(A, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
 
-            for z = 1:length(um_shoal)
+            for z = 1:length(d)
                 shields(z, :, :) = (Planet.rho_liquid * (um_shoal(z)^2)) ./ ((S - Planet.rho_liquid) * Planet.gravity .* A);
                 KM_crash(z, :, :) = 0.3 .* sqrt(d0_shoal(z) ./ A);  
             end
@@ -96,6 +102,9 @@ for c = 1:numel(lakes)
     end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PLOT ONE: PLOT OF ENTRAINMENT DEPTH VS WIND SPEED (w LAKE COMPOSITION)
 
 icecolor = {'#42F2F7','#46ACC2','#498C8A','#4B6858'}; % ice colors (blues)
 organicicecolor = {'#ffa5ab','#da627d','#a53860','#450920'}; % organic-ice (reds)
@@ -118,9 +127,9 @@ for s = 1:numel(rho_s)
         depth_entrain_sand(depth_entrain_sand==-999) = NaN;
         depth_entrain_grav = d_crash{s,c}(:,end);
         depth_entrain_grav(depth_entrain_grav==-999) = NaN;
-        plot(test_speeds,depth_entrain_sand,'^','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand (rho = ' num2str(rho_s(s)) ')'])
+        plot(test_speeds,depth_entrain_sand,'-^','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand (rho = ' num2str(rho_s(s)) ')'])
         hold on
-        plot(test_speeds,depth_entrain_grav,'s','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel(rho = ' num2str(rho_s(s)) ')'])
+        plot(test_speeds,depth_entrain_grav,'-s','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel(rho = ' num2str(rho_s(s)) ')'])
     end
 
     legend('show','Location','best')
@@ -130,6 +139,28 @@ for s = 1:numel(rho_s)
 
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PLOT TWO: ENTRAINMENT DEPTH VS GRAIN SIZE (w LAKE COMPOSITION)
+
+
+figure;
+for c = 1:numel(lakes)
+    entrainment_depth = d_crash{ice,c}(end,:);
+    entrainment_depth(entrainment_depth==-999) = NaN;
+    plot(d50,d_crash{ice,c}(end,:),'-','LineWidth',3,'Color',lakecolors{c},'DisplayName',lakes{c})
+    hold on
+end
+legend('show')
+xlabel('d50')
+ylabel('entrainment depth')
+grid on;
+hold off
+set(gca,'XScale','log')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PLOT THREE: PLOT OF WOLMAN-MILLER GEOMORPHOLOGICAL EFFECTIVENESS 
 
 % JUAN'S TAM WIND MODEL WINDS
 load('TAM_winds.mat')
@@ -150,12 +181,13 @@ ylabel('pdf time')
 
 tt = [0 0 test_speeds];
 Qc = NaN(numel(lakes),numel(tt));
+max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
 for c = [4 3 2 1]
 
     yyaxis left
     Hw = [0 0 H0(c,:)];
     Tw = [0 0 T(c,:)];
-    Qs(c,:) = 0.5.*(Hw.^(5/6)).*(Tw.^(1/5));
+    Qs(c,:) = max_angle.*(Hw.^(5/6)).*(Tw.^(1/5));
     Qs(c,:) = (Qs(c,:)./max(Qs(c,:)));
     
     Wolman_Miller(c,:) = Qs(c,:).*(percent_time*100);
@@ -166,9 +198,6 @@ for c = [4 3 2 1]
     hold on;
     b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c});
     b1.FaceAlpha = 0.3;
-    % plot(x,Wolman_Miller(c,:),'--','Color',lakecolors{c},'LineWidth',2)
-    
-    
    
     start_plot = find(Qs(c,:)==0,1,'last');
     
@@ -177,3 +206,33 @@ for c = [4 3 2 1]
 end
 ylabel('Qs')
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PLOT FOUR: CONTOURS OF ENTRAINMENT IN ONTARIO LACUS
+load('ol_bathtub_0.002000_slope.mat')
+
+zDep(isnan(zDep))=-1;
+zDep_entrain = zDep;
+zDep_entrain(zDep_entrain>d_crash{ice,ol}(18,1)) = -1;
+figure;
+M2 = contourf(zDep_entrain,[0 d_crash{ice,ol}(18,1)],'-w','LineWidth',3);
+colormap([0.5 0.5 0.5])
+hold on;
+M1 = contour(zDep,[0:10:max(max(zDep))],'-k','LineWidth',3,'ShowText','on');
+set(gca,'YTickLabel',[]);
+set(gca,'XTickLabel',[]);
+%exportgraphics(gcf, 'ol_smallsand_medwind.pdf', 'ContentType', 'vector');
+
+load('lm_bathtub_0.002000_slope.mat')
+zDep(isnan(zDep))=-1;
+zDep_entrain = zDep;
+zDep_entrain(zDep_entrain>d_crash{ice,lm}(18,1)) = -1;
+figure;
+M2 = contourf(zDep_entrain,[0 d_crash{ice,lm}(18,1)],'-w','LineWidth',3);
+colormap([0.5 0.5 0.5])
+hold on;
+M1 = contour(zDep,[0:20:max(max(zDep))],'-k','LineWidth',3,'ShowText','on');
+
+set(gca,'YTickLabel',[]);
+set(gca,'XTickLabel',[]);
+%exportgraphics(gcf, 'lm_smallsand_maxwind.pdf', 'ContentType', 'vector');
