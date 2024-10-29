@@ -11,12 +11,14 @@ addpath(fullfile('..','..','data/Titan/TitanLakes/Bathymetries/bathtub_bathy'))
 
 
 % Results from Titan_Waves03_43
-load('../past_runs/Waves03_43.mat','H0','test_speeds','lakes','lake_slope','L0','T','Planet','C0','Cg0','rho_s','d50','lakecolors','time_to_run','wind_direction','zDep','buoy_loc','max_steepness','min_depth')
+load('../past_runs/Waves03_43.mat','test_speeds','time_to_run','lakecolors','wind_direction','zDep','buoy_loc','lakes','Planet','H0','L0','T','C0','Cg0')
 
+lake_slope = 0.002000;
 alpha_0 = 0;
-d = 100:-lake_slope:min_depth;
+d = max(max(Model.bathy_map)):-lake_slope:min_depth;
 d50 = linspace(d50(1),d50(end),100);
-
+rho_s = [800 940 1500]; % [organic-ice ice organic]
+max_steepness = 1/7;
 
 ol = 2; lm = 3;
 org = 1; ice = 2; fluffy = 3;
@@ -30,16 +32,16 @@ for c = 1:numel(lakes)
     % figure
     % plot(test_speeds,H0(1,:),'-','DisplayName','original H')
     % hold on
-    H0(c,:) = smooth_waves(H0(c,:));
+    %H0(c,:) = smooth_waves(H0(c,:));
     % plot(test_speeds,H0(1,:),'--','DisplayName','smoothed H')
     % figure;
     % plot(test_speeds,T(1,:),'-','DisplayName','original T')
     % hold on
-    T(c,:) = smooth_waves(T(c,:));
+    %T(c,:) = smooth_waves(T(c,:));
     % plot(test_speeds,T(1,:),'--','DisplayName','smoothed T')
     % figure;
     % plot(test_speeds,L0(1,:),'-','DisplayName','original L0')
-    L0(c,:) = smooth_waves(L0(c,:));
+    %L0(c,:) = smooth_waves(L0(c,:));
     % hold on
     % plot(test_speeds,L0(1,:),'--','DisplayName','smoothed L0')
 
@@ -162,7 +164,7 @@ set(gca,'XScale','log')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT THREE: PLOT OF WOLMAN-MILLER GEOMORPHOLOGICAL EFFECTIVENESS 
 
-% JUAN'S TAM WIND MODEL WINDS
+% JUAN'S TAM WIND MODEL WINDS AT ONTARIO LACUS
 load('TAM_winds.mat')
 str = '#F0C808';
 wind_color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
@@ -180,7 +182,7 @@ xlabel('wind speed [m/s]')
 ylabel('pdf time')
 
 tt = [0 0 test_speeds];
-Qc = NaN(numel(lakes),numel(tt));
+Qs = NaN(numel(lakes),numel(tt));
 max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
 for c = [4 3 2 1]
 

@@ -635,12 +635,9 @@ for t = 1:model.num_time_steps                                                  
        ht = sum(dwn.*wn.*E,4)*dth;                                                                                                         % integral = sum(wavespectrum*wn*del_wn) -->  spectral moment
        ht = sum(ht,3);                                                                                                                     % sum the prev sum over all frequencies to get the zeroth order moment (aka variance of sea surface (1/2a^2))
        ht = 4*sqrt(abs(ht));                                                                                                               % significant wave height (from zeroth order moment of surface)
-       ks = ht;
        sigH(t) = ht(model.long,model.lat);                                                                                                 % return significant wave height at specified lat,lon coordinates 
-
-       if nargout > 1
-           htgrid{t} = ht;                                                                                                                 % return significant wave height at each spatial point (m,n) on the grid
-       end
+       htgrid{t} = ht;                                                                                                                 % return significant wave height at each spatial point (m,n) on the grid
+       
           
 
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -737,17 +734,19 @@ for t = 1:model.num_time_steps                                                  
   end
 
   if nargout > 5 
-    wave_age = NaN(size(model.bathy_map));
-    c_peak = NaN(size(model.bathy_map));  % phase speed
-    f_peak = NaN(size(model.bathy_map));  % frequency
-    cg_peak = NaN(size(model.bathy_map)); % group velocity
-    T_peak = NaN(size(model.bathy_map));  % period
-    L_peak = NaN(size(model.bathy_map));  % wavelength
-    d0 = NaN(size(model.bathy_map));      % orbital diameter
-    um = NaN(size(model.bathy_map));      % orbital velocity
-    dir_peak = NaN(size(model.bathy_map)); % direction
-    if t == model.num_time_steps 
-        addpath(fullfile('..','planetwaves','post_analysis')) 
+    % wave_age = NaN(size(model.bathy_map));
+    % c_peak = NaN(size(model.bathy_map));  % phase speed
+    % f_peak = NaN(size(model.bathy_map));  % frequency
+    % cg_peak = NaN(size(model.bathy_map)); % group velocity
+    % T_peak = NaN(size(model.bathy_map));  % period
+    % L_peak = NaN(size(model.bathy_map));  % wavelength
+    % d0 = NaN(size(model.bathy_map));      % orbital diameter
+    % um = NaN(size(model.bathy_map));      % orbital velocity
+    % dir_peak = NaN(size(model.bathy_map)); % direction
+
+    if t <= model.num_time_steps 
+        addpath(fullfile('..','..','planetwaves','post_analysis')) 
+        addpath(fullfile('..','..','planetwaves','intermediary_analysis')) 
 
         for xx = 1:model.LonDim
             for yy = 1:model.LatDim
@@ -755,44 +754,59 @@ for t = 1:model.num_time_steps                                                  
 
                     [peak_freq,peak_freq_ind,loc_peak,dir_ind] = loc_peak_freq(E,xx,yy,model);
                     
-                    f_peak(yy,xx) = peak_freq;
+                    f_peak(t,yy,xx) = peak_freq;
                     dir_peak(yy,xx) = loc_peak;
-                    c_peak(yy,xx) = abs(squeeze(c(xx,yy,peak_freq_ind,dir_ind)));
+                    c_peak(t,yy,xx) = abs(squeeze(c(xx,yy,peak_freq_ind,dir_ind)));
 
                     if nargout > 6
-                        L_peak(yy,xx) = (2*pi)./(abs(squeeze(wn(xx,yy,peak_freq_ind,dir_ind))));
-                        cg_peak(yy,xx) = abs(squeeze(Cg(xx,yy,peak_freq_ind,dir_ind)));
+                        L_peak(t,yy,xx) = (2*pi)./(abs(squeeze(wn(xx,yy,peak_freq_ind,dir_ind))));
+                        cg_peak(t,yy,xx) = abs(squeeze(Cg(xx,yy,peak_freq_ind,dir_ind)));
     
-                        T_peak(yy,xx) = 1/peak_freq;
+                        T_peak(t,yy,xx) = 1/peak_freq;
 
-                        d_L = model.bathy_map(yy,xx)/L_peak(yy,xx);
-                        d0(yy,xx) = ht(xx,yy)/sinh(2*pi*d_L);
-                        um(yy,xx) = (pi*d0(yy,xx))/T_peak(yy,xx);
+                        d_L = model.bathy_map(yy,xx)/L_peak(t,yy,xx);
+                        d0(t,yy,xx) = ht(xx,yy)/sinh(2*pi*d_L);
+                        um(t,yy,xx) = (pi*d0(t,yy,xx))/T_peak(t,yy,xx);
                     end
                 else
-                    c_peak(yy,xx) = NaN;
+                    c_peak(t,yy,xx) = NaN;
                     if nargout > 6
-                        cg_peak(yy,xx) = NaN;
-                        T_peak(yy,xx) = NaN;
-                        L_peak(yy,xx) = NaN;
-                        d0(yy,xx) = NaN;
-                        um(yy,xx) = NaN;
+                        cg_peak(t,yy,xx) = NaN;
+                        T_peak(t,yy,xx) = NaN;
+                        L_peak(t,yy,xx) = NaN;
+                        d0(t,yy,xx) = NaN;
+                        um(t,yy,xx) = NaN;
                     end
                 end
-                wave_age = c_peak./wind.speed;
+                
   
             end
         end
-
+        
     end
-    if nargout > 6
+    
+    if nargout > 5 && t == model.num_time_steps
+        wave_age = squeeze(c_peak(t,:,:))./wind.speed;
+    end
+
+    if nargout > 6 && t == model.num_time_steps 
+        cg_peak = smooth_ringing(cg_peak,sigH);
         PeakWave.cg = cg_peak';
+        T_peak = smooth_ringing(T_peak,sigH);
         PeakWave.T = T_peak';
+        L_peak = smooth_ringing(L_peak,sigH);
         PeakWave.L = L_peak';
+        c_peak = smooth_ringing(c_peak,sigH);
         PeakWave.c = c_peak';
-        PeakWave.H = ht;
+        htgrid_save = cat(3,htgrid{:});
+        htgrid_save = permute(htgrid_save, [3, 1, 2]);
+        htgrid_save = smooth_ringing(htgrid_save,sigH);
+        PeakWave.H = htgrid_save;
+        d0 = smooth_ringing(d0,sigH);
         PeakWave.d0 = d0';
+        um = smooth_ringing(um,sigH);
         PeakWave.um = um';
+        f_peak = smooth_ringing(f_peak,sigH);
         PeakWave.f = f_peak';
     end
   end
