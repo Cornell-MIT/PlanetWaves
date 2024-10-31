@@ -31,6 +31,7 @@ umwm_titan
 ## To do
 ```
 (1) Dynamic drag coefficient from wave maturity?
-(2) Dynamic cutoff frequency depending on wind speed?
+(2) Spatially varying wind climate
+(3) Temporally varying wind climate
 
 ```
