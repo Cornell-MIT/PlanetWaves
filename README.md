@@ -8,10 +8,14 @@ umwm_titan
 │   │   │   └── LakeSuperior
 │   │   │       ├── 45004_Buoy : Wave height and weather data at deepwater buoy 45004
 │   │   │       └── BathyData : Bathymetric sounding data of Lake Superior
-│   ├── Mars : Banfield+2015 wave tank experiments
+│   ├── Mars :
+|   |     ├── Banfield+2015 wave tank experiments
+|   |     └── M20_JezeroCrater_CTXDEM_20m : DTM mosaic of Jezero crater
 │   └── Titan
 │       ├── TAMnoTopo : Titan GCM with no topography influence
 │       ├── TAMwTopo : Titan GCM with topography influence
+|       |   ├── TAM_LM_winds.mat : 10 years of GCM winds at Ligeia Mare
+|       |   └── TAM_OL_winds.mat : 10 years of GCM winds at Ontario Lacus 
 │       └── TitanLakes 
 │           └── Bathymetries
 │               ├── SAR_bathy_cleaned : bathymetry estimated from SAR darkness
@@ -19,18 +23,22 @@ umwm_titan
 │               └── shoreline : mapped shoreline coordinates from SAR mosaics
 ├── docs
 ├── examples : model run scripts
-│   └── model_logs : log of past runs
-|   └── results : saved results from run
+│   └── WaveModelling : Scripts for modelling waves in lakes
+|   └── ShorelineSmoothing : Scripts for modelling shoreline diffusivity of lakes
+|   └── SedimentEntrainment : Scripts for modelling nearshore sediment entrainment by waves
+|   └── past_runs : useful wave model runs that took a long time to finish and were saved for future analysis 
 ├── figures : figures for paper
-└── planetwaves : main model scripts
-    ├── intermediary_analysis : optional scripts run during the wave model
-    ├── post_analysis : optional scripts run after the wave model
-    ├── pre_analysis : optional scripts run before wave model 
-    └── unit_testing : scripts for unit testing model
+├── planetwaves : main model scripts
+|   ├── intermediary_analysis : optional scripts run during the wave model
+|   ├── post_analysis : optional scripts run after the wave model
+|   ├── pre_analysis : optional scripts run before wave model 
+|   └── unit_testing : scripts for unit testing model
+└── validation : scripts comparing wave heights in model to buoy data on Earth and past empirical models
 ```
 ## To do
 ```
 (1) Dynamic drag coefficient from wave maturity?
-(2) Dynamic cutoff frequency depending on wind speed?
+(2) Spatially varying wind climate
+(3) Temporally varying wind climate
 
 ```
