@@ -14,6 +14,8 @@ load('..\..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000
 % hi-res coordinates of shoreline
 load('..\..\data\Titan\TitanLakes\shoreline\OL_SHORELINE.mat','X_cor','Y_cor')
 x = X_cor;y = Y_cor;
+[x,y] = smooth_path(x,y,10);
+%[x,y] = make_circle(x,y);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FIGURES STUFF
@@ -34,12 +36,15 @@ planet_to_run = 'Titan-OntarioLacus';
 buoy_loc = [630 255];                                                      % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
 test_speeds = 3;                                                         % wind speed
-time_to_run = 60*2;                                                         % time to run model
+time_to_run = 60*10;                                                         % time to run model
 wind_direction = pi;                                                     % wind direction
 
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.02);
+[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.06);
 
 zDep(zDep<1) = NaN;
+[a,b] = size(zDep);
+% zDep = max(max(zDep)).*ones(20,20);
+
 [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction(1),zDep,buoy_loc);
 
 Model.gridX = grid_resolution(1);                                              
@@ -49,17 +54,9 @@ make_input_map(Planet,Model,Wind)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GRIDDED PLOT FOR DEPTH
-x_min = min(x);
-x_max = max(x);
-y_min = min(y);
-y_max = max(y);
 
-num_cells_x = Model.LonDim;                                                % number of cells in x direction
-num_cells_y = Model.LatDim;                                                % number of cells in y direction
-
-WIDTH = (x_max-x_min)/num_cells_x;                                             % Width of each grid cell (# cells * width of 1 cell = width of all cells)
-HEIGHT = (y_max-y_min)/num_cells_y;                                             % Height of each grid cell
-
+WIDTH = (max(x)-min(x))/Model.LonDim;                                             % Width of each grid cell (# cells * width of 1 cell = width of all cells)
+HEIGHT = (max(y)-min(y))/Model.LatDim;                                             % Height of each grid cell
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN WAVE MODEL (need H, T) OF MAIN ENERGY COMPONENT
@@ -90,21 +87,22 @@ sig_wave = PeakWave{test_u_ind,test_dir_ind}';
 % Initialize arrays for theta and Qs, matching the order of shoreline points (x, y)
 theta = NaN(size(x));  % Relative angle of attack
 Qs = NaN(size(x));     % Sediment transport rate
-
+psi = NaN(size(x));
 % find theta
 for i = 1:numel(x)
     if i < numel(x)
-        shoreface_angle = atan2(y(i+1) - y(i), x(i+1) - x(i));
+        shoreface_angle(i) = atan2(y(i+1) - y(i), x(i+1) - x(i));
     else % wrap around to the first point to complete the circle
-        shoreface_angle = atan2(y(1) - y(i), x(1) - x(i));
+        shoreface_angle(i) = atan2(y(1) - y(i), x(1) - x(i));
     end
-
+    
+    shoreface_angle(i) = wrapToPi(shoreface_angle(i));
     % Calculate the relative wave angle
-    wave_front_angle = Wind.dir + pi / 2;
-    theta(i) = mod(2*pi - (wave_front_angle - shoreface_angle), 2 * pi);
+    wave_front_angle = wrapToPi(Wind.dir + pi / 2);
+    theta(i) = wrapToPi(wave_front_angle - shoreface_angle(i));
 
-    % Limit theta to the range [0, pi/2]
-    if theta(i) >= pi/2 || theta(i) <= 0
+    % % Limit theta to the range [0, pi/2]
+    if abs(theta(i)) > pi/2 || abs(theta(i)) < 0
         theta(i) = NaN;
     end
 end
@@ -115,14 +113,14 @@ figure;
 plot(x,y,'-k')
 hold on
 
-for i = 1:num_cells_x
-    for j = 1:num_cells_y
+for i = 1:Model.LonDim
+    for j = 1:Model.LatDim
 
         % boundaries of grid cell
-        x_lower = x_min + (i-1) * WIDTH;
-        x_upper = x_min + i * WIDTH;
-        y_lower = y_min + (j-1) * HEIGHT;
-        y_upper = y_min + j * HEIGHT;
+        x_lower = min(x) + (i-1) * WIDTH;
+        x_upper = min(x) + i * WIDTH;
+        y_lower = min(y) + (j-1) * HEIGHT;
+        y_upper = min(y) + j * HEIGHT;
 
         % PLOT WAVE GRID ON SUB-GRID ATTACK ANGLE
         % using relative size compared to max for coloring grid
@@ -147,12 +145,19 @@ for i = 1:numel(x)
     end
     
     % find grid containing POI (x(i), y(i)) 
-    cell_x = floor((x(i) - x_min) / WIDTH) + 1;
-    cell_y = floor((y(i) - y_min) / HEIGHT) + 1;
+    cell_x = floor((x(i) - min(x)) / WIDTH) + 1;
+    cell_y = floor((y(i) - min(y)) / HEIGHT) + 1;
     
     % skip points outside coordinate grid
-    if cell_x < 1 || cell_x > num_cells_x || cell_y < 1 || cell_y > num_cells_y
-        continue  
+    if cell_x < 1 || cell_x > Model.LonDim || cell_y < 1 || cell_y > Model.LatDim
+        %continue  
+        if cell_y > Model.LatDim
+            cell_y = Model.LatDim;
+        elseif cell_x > Model.LonDim
+            cell_x = Model.LonDim;
+        else
+            continue
+        end
     end
     
     % get H, T of current cell
@@ -160,7 +165,7 @@ for i = 1:numel(x)
     T_cell = sig_wave.T(cell_y, cell_x);
     
     if isnan(H_cell)
-        [H_cell, T_cell] = check_neighbor(sig_wave, cell_x, cell_y, num_cells_x, num_cells_y, x(i), y(i), x_min, y_min, WIDTH, HEIGHT);
+        [H_cell, T_cell] = check_neighbor(sig_wave, cell_x, cell_y, Model.LonDim, Model.LatDim, x(i), y(i), min(x), min(y), WIDTH, HEIGHT);
     end
 
     if isnan(H_cell)
@@ -168,42 +173,33 @@ for i = 1:numel(x)
     end
     % Calculate sediment transport rate Qs based on theta(i)
     Qs(i) = CERC(H_cell, T_cell, theta(i));
-    psi(i) = shoreline_stability(H_cell, T_cell, theta(i),Model.bathy_map(cell_x,cell_y));
+    psi(i) = shoreline_stability(H_cell, T_cell, theta(i),zDep(cell_x,cell_y));
 end
 
 plot(x(~isnan(theta)),y(~isnan(theta)),'or','MarkerFaceColor','r')
 plot(x(isnan(theta)),y(isnan(theta)),'ok','MarkerFaceColor','k')
 
 scatter(x,y,100,Qs,"filled")
+colorbar
 title('Qs')
-
-% dQ_dx = NaN(size(Qs));
-% for i = 1:numel(Qs)
-% 
-%     if isnan(Qs(i))
-%         continue
-%     end
-% 
-%     if i < numel(Qs)
-%         dx = sqrt((y(i+1)-y(i))^2 + (x(i+1)-x(i))^2);
-%         dQ_dx(i) = (Qs(i+1) - Qs(i))/dx;
-% 
-%     else
-%         dx = sqrt((y(1)-y(i))^2 + (x(1)-x(i))^2);
-%         dQ_dx(i) = (Qs(1) - Qs(i))/dx;
-% 
-%     end
-% end
-% 
-% figure;
-% scatter(x,y,100,dQ_dx,"filled")
-% colorbar
-% title('dQ/dx')
 
 
 figure;
 scatter(x,y,100,psi,"filled")
+colorbar
 title('\Psi')
+
+sin = calc_sinuosity(x,y,5);
+
+figure;
+scatter(x,y,100,sin,"filled")
+colorbar
+title('sinuosity')
+
+figure;
+plot(psi,sin,'ok','MarkerFaceColor','k')
+xlabel('\Psi')
+ylabel('sin')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Qs = CERC(H,T,theta)
@@ -278,3 +274,87 @@ function [H_valid, T_valid] = check_neighbor(sig_wave, cell_x, cell_y, num_cells
     end
 end
 
+function [xnew,ynew] = smooth_path(x,y,n)
+
+numPoints = floor(length(x) / n);
+
+xnew = zeros(1, numPoints);
+ynew = zeros(1, numPoints);
+
+for i = 1:numPoints
+    startIdx = (i - 1) * n + 1;
+    endIdx = startIdx + n - 1;
+    xnew(i) = mean(x(startIdx:endIdx),"omitmissing");
+    ynew(i) = mean(y(startIdx:endIdx),"omitmissing");
+end
+
+if xnew(1) ~= xnew(end) || ynew(1) ~= ynew(end)
+    xnew = [xnew xnew(1)];
+    ynew = [ynew ynew(1)];
+end
+end
+
+function [x_circle, y_circle] = make_circle(x,y)
+
+% Step 1: Calculate the centroid
+centroid_x = mean(x);
+centroid_y = mean(y);
+
+% Step 2: Calculate the maximum distance from the centroid to each point
+distances = sqrt((x - centroid_x).^2 + (y - centroid_y).^2);
+radius = min(distances)/5;
+
+% Step 3: Create a circle with this centroid and radius
+theta = linspace(0, 2*pi, 100);  % 100 points to approximate the circle
+x_circle = centroid_x + radius * cos(theta);
+y_circle = centroid_y + radius * sin(theta);
+
+end
+
+function sinuosity = calc_sinuosity(x,y,ws)
+
+    % distance walking along the shore
+    for i = 1:length(x)
+        
+        if i + 1 <= length(x)
+            each_diff(i) = sqrt((y(i+1) - y(i))^2 + (x(i+1)-x(i))^2);
+        else 
+            each_diff(i) = sqrt((y(1) - y(i))^2 + (x(1)-x(i))^2);
+        end
+    end
+
+
+   for i = 1:length(x)
+    
+        if i - ws >= 1 && i + ws <= length(x)
+            j1 = i - ws;
+            j2 = i + ws;
+            full_length_alongshore(i) = sum(each_diff(j1:j2));
+        elseif i - ws >= 1 && i + ws > length(x)
+            j1 = i - ws;
+            j2 = i + ws - length(x);
+            full_length_alongshore(i) = sum(each_diff(j1:length(x))) + sum(each_diff(1:j2));      
+        elseif i - ws < 1 && i + ws <= length(x)
+            j1 = length(x) + (i - ws);
+            j2 = i + ws;
+            full_length_alongshore(i) = sum(each_diff(j1:length(x))) + sum(each_diff(1:j2));
+        else
+            disp('missed points')
+            disp('i')
+        end
+        
+        % P1 - > P2 is distance as crow flies 
+        pt1 = [x(j1),y(j1)]; 
+        pt2 = [x(j2),y(j2)];
+        
+        abs_diff(i) = sqrt((pt2(2) - pt1(2))^2 + (pt2(1) - pt1(1))^2); % absolute distance between two points on the shoreline          
+           
+   end
+
+   % sinuosity is between 0 and 1
+    %   s -> 1 means less sinous
+    %   s -> 0 means more sinous
+    sinuosity = abs_diff./full_length_alongshore;
+    
+
+end

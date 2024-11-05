@@ -11,10 +11,25 @@ addpath(fullfile('..','..','data/Titan/TitanLakes/Bathymetries/bathtub_bathy'))
 
 
 % Results from Titan_Waves03_43
-load('../past_runs/Waves03_43.mat','test_speeds','time_to_run','lakecolors','wind_direction','zDep','buoy_loc','lakes','Planet','H0','L0','T','C0','Cg0')
+load('../past_runs/Waves03_43.mat','test_speeds','time_to_run','wind_direction','zDep','buoy_loc','lakes','Planet','Model','H0','L0','T','C0','Cg0')
+lakecolors = {'#F2D1C9','#E086D3','#8332AC','#462749'};
+
+figure;
+for i = 1:numel(lakecolors)
+    plot(test_speeds,H0(i,:),'-','LineWidth',5,'Color',lakecolors{i},'DisplayName',lakes{i})
+    hold on;
+end
+xlabel('wind speed [m/s]')
+ylabel('wave height [m]')
+grid on
+legend('show')
+
 
 lake_slope = 0.002000;
 alpha_0 = 0;
+min_depth = 10^-4;
+d50 = [6.35e-5:1e-5:0.1];
+
 d = max(max(Model.bathy_map)):-lake_slope:min_depth;
 d50 = linspace(d50(1),d50(end),100);
 rho_s = [800 940 1500]; % [organic-ice ice organic]
@@ -23,27 +38,28 @@ max_steepness = 1/7;
 ol = 2; lm = 3;
 org = 1; ice = 2; fluffy = 3;
 
+max_d0_shoal = [];
 % CALCULATE ENTRAINMENT DEPTH FOR SAND AND GRAVEL
 for c = 1:numel(lakes)
 
     [Planet, Model, Wind, Uniflow, Etc] = initalize_model(lakes{c}, time_to_run, wind_direction, zDep, buoy_loc);
 
-    % smooth artifacts in wave model (introduces max of ~ 0.1 error)
-    % figure
-    % plot(test_speeds,H0(1,:),'-','DisplayName','original H')
-    % hold on
-    %H0(c,:) = smooth_waves(H0(c,:));
-    % plot(test_speeds,H0(1,:),'--','DisplayName','smoothed H')
-    % figure;
-    % plot(test_speeds,T(1,:),'-','DisplayName','original T')
-    % hold on
-    %T(c,:) = smooth_waves(T(c,:));
-    % plot(test_speeds,T(1,:),'--','DisplayName','smoothed T')
-    % figure;
-    % plot(test_speeds,L0(1,:),'-','DisplayName','original L0')
-    %L0(c,:) = smooth_waves(L0(c,:));
-    % hold on
-    % plot(test_speeds,L0(1,:),'--','DisplayName','smoothed L0')
+    %smooth artifacts in wave model (introduces max of ~ 0.1 error)
+    %figure
+    %plot(test_speeds,H0(1,:),'-','DisplayName','original H')
+    %hold on
+    H0(c,:) = smooth_waves(H0(c,:));
+    %plot(test_speeds,H0(1,:),'--','DisplayName','smoothed H')
+    %figure;
+    %plot(test_speeds,T(1,:),'-','DisplayName','original T')
+    %hold on
+    T(c,:) = smooth_waves(T(c,:));
+    %plot(test_speeds,T(1,:),'--','DisplayName','smoothed T')
+    %figure;
+    %plot(test_speeds,L0(1,:),'-','DisplayName','original L0')
+    L0(c,:) = smooth_waves(L0(c,:));
+    %hold on
+    %plot(test_speeds,L0(1,:),'--','DisplayName','smoothed L0')
 
 
     for u = 1:numel(test_speeds)
@@ -60,6 +76,9 @@ for c = 1:numel(lakes)
             H_shoal = KR .* KS .* H0(c,u);
             % orbital size, velocity, breaking wave condition
             d0_shoal = (H_shoal / 2) .* (1 ./ sinh(2*pi*d_L));
+            if test_speeds(u) == 0.7 || test_speeds(u) == 0.8
+                max_d0_shoal = [max_d0_shoal max(d0_shoal,[],'omitnan')];
+            end
             um_shoal = (H_shoal / 2) .* ((Planet.gravity * T(c,u)) ./ L_shoal) .* (1 ./ cosh(2*pi*d_L));
             break_frac = H_shoal ./ L_shoal;
             break_frac(break_frac >= max_steepness) = NaN;
@@ -104,6 +123,7 @@ for c = 1:numel(lakes)
     end
 end
 
+fprintf('Bedforms for wind speeds 0.7-0.8 m/s = %0.2f')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT ONE: PLOT OF ENTRAINMENT DEPTH VS WIND SPEED (w LAKE COMPOSITION)
@@ -165,13 +185,61 @@ set(gca,'XScale','log')
 %% PLOT THREE: PLOT OF WOLMAN-MILLER GEOMORPHOLOGICAL EFFECTIVENESS 
 
 % JUAN'S TAM WIND MODEL WINDS AT ONTARIO LACUS
-load('TAM_winds.mat')
+% load('TAM_OL_winds.mat')
+% str = '#F0C808';
+% wind_color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
+% 
+% figHandle = figure;
+% yyaxis left
+% h = histogram(mag_wind,'BinEdges',0:0.1:max(mag_wind), 'Normalization','probability','FaceColor',wind_color);
+% axisHandle = figHandle.Children;
+% histHandle = axisHandle.Children;
+% histHandle.BinEdges = histHandle.BinEdges + histHandle.BinWidth/2;
+% aa = histHandle.BinEdges;
+% percent_time = h.Values;
+% grid on
+% xlabel('wind speed [m/s]')
+% ylabel('pdf time')
+% 
+% tt = [0 0 test_speeds];
+% Qs = NaN(numel(lakes),numel(tt));
+% max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
+% for c = [4 ol 1]
+% 
+%     yyaxis left
+%     Hw = [0 0 H0(c,:)];
+%     Tw = [0 0 T(c,:)];
+%     Qs(c,:) = max_angle.*(Hw.^(5/6)).*(Tw.^(1/5));
+%     Qs(c,:) = (Qs(c,:)./max(Qs(c,:)));
+% 
+%     Wolman_Miller(c,:) = Qs(c,:).*(percent_time*100);
+% 
+%     nBins = length(Wolman_Miller(c,:));
+%     x = (0:nBins-0.9).*0.1 + 0.1;
+%     yyaxis right
+%     hold on;
+%     if c == ol
+%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0.3);
+%     else
+%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0,'LineStyle','--');
+%     end
+% 
+% 
+%     start_plot = find(Qs(c,:)==0,1,'last');
+% 
+%     plot(tt(start_plot:end),Qs(c,start_plot:end),':','LineWidth',2,'Color',lakecolors{c})
+% 
+% end
+% ylabel('Qs')
+
+% JUAN'S TAM WIND MODEL WINDS AT LIGEIA MARE
+load('TAM_LM_winds.mat')
 str = '#F0C808';
 wind_color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
 
 figHandle = figure;
 yyaxis left
-h = histogram(mag_wind,'BinEdges',0:0.1:max(mag_wind), 'Normalization','probability','FaceColor',wind_color);
+h = histogram(mag_wind,'BinEdges',0:0.1:4.5, 'Normalization','probability','FaceColor',wind_color);
 axisHandle = figHandle.Children;
 histHandle = axisHandle.Children;
 histHandle.BinEdges = histHandle.BinEdges + histHandle.BinWidth/2;
@@ -184,7 +252,7 @@ ylabel('pdf time')
 tt = [0 0 test_speeds];
 Qs = NaN(numel(lakes),numel(tt));
 max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
-for c = [4 3 2 1]
+for c = [4 lm 1]
 
     yyaxis left
     Hw = [0 0 H0(c,:)];
@@ -198,8 +266,12 @@ for c = [4 3 2 1]
     x = (0:nBins-0.9).*0.1 + 0.1;
     yyaxis right
     hold on;
-    b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c});
-    b1.FaceAlpha = 0.3;
+    if c == lm
+        b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0.3);
+    else
+        b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0);
+    end
+
    
     start_plot = find(Qs(c,:)==0,1,'last');
     

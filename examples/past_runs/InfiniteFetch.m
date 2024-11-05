@@ -5,20 +5,19 @@ close all
 % DEEPWATER WAVES FOR SEDIMENT ENTRAINMENT AT ONTARIO LACUS
 addpath(fullfile('..','..','planetwaves'))  
 addpath(fullfile('..','..','planetwaves','pre_analysis'))
-addpath(fullfile('..','..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
-load('..\..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope','zDep');
 
-% infinite fetch?
+
+% infinite fetch
 
 % MODEL INPUTS
-lakes = {'Titan-CH3H8N2','Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2'};
+%lakes = {'Titan-CH3H8N2','Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2'};
+lakes = {'Titan-CH3H8N2'};
 
-[~,I] = max(zDep,[],"all","linear");
-[by, bx] = ind2sub(size(zDep),I);
-buoy_loc = [bx by];                                                        % measure at deepest location
-grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
+zDep = 75.*ones(50,50);
+buoy_loc = [25 25];                                                        % measure at deepest location
+grid_resolution = [10*1000 10*1000];                                             % pixel width and pixel height [m]
 test_speeds = 4;%[0.3:0.1:5];                                              % surface wind speeds [m/s]
-time_to_run = 15;                                                          % time to run model [s]
+time_to_run = 60*10;                                                          % time to run model [s]
 wind_direction = 0;                                                        % wind direction [rad]
 
 figure;
@@ -30,11 +29,6 @@ hold on;
 xlim([0 max(test_speeds)+0.5])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FILL MODEL
-% degrade depth profile so model doesnt take as long to run
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.05);
-% remove empty column
-zDep(:,end) = [];
 
 
 for c = 1:numel(lakes)
@@ -123,3 +117,4 @@ for c = 1:numel(lakes)
         
 end
 
+figure; imagesc(PeakWave.H)
