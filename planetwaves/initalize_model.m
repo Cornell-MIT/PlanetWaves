@@ -182,14 +182,14 @@ elseif strcmp(planet_name,'Titan-CH3H8N2')
     Planet.surface_tension = 0.016606;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   
-elseif strcmp(planet_name,'LHS-1140b')
+elseif strcmp(planet_name,'Kepler-1649b')
     % WATER WORLD EXOPLANET
     Planet.rho_liquid = 998.21;                                               
     Planet.nu_liquid = 1.2e-6;                                              
     Planet.nua = 1.7e-8;                                               
     Planet.gravity = 18.4;                                               
     Planet.surface_temp = 288;                                             
-    Planet.surface_press = 1*ATM_2_PASCAL;                             
+    Planet.surface_press = 1013;%1*ATM_2_PASCAL;                             
     Planet.surface_tension = 0.074;  
     Planet.kgmolwt = 0.028;                                                % (N2)
                                   

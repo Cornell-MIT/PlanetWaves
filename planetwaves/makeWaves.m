@@ -657,6 +657,8 @@ for t = 1:model.num_time_steps                                                  
         
         if sumt == model.time_step 
             if mod(t,60) == 0
+            figure;
+            % (1) TIME EVOLUTION
             cmap = flip(autumn(model.num_time_steps/60),1); % yellow -> red, with 61 colors (for 61 lines)
             xx = squeeze(wn(model.long,model.lat,:,model.Dirdim/2));
             % INPUT
@@ -676,7 +678,7 @@ for t = 1:model.num_time_steps                                                  
             % LOSS
             subplot(2,2,2)
             bb = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Sds_full(model.long,model.lat,:,:),4)*dthd*dr)';
-            semilogx(xx,bb,'-','LineWidth',3)
+            semilogx(xx,-bb,'-','LineWidth',3)
             hold on;
             xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
             xlabel('k [m^-1]')
@@ -687,7 +689,8 @@ for t = 1:model.num_time_steps                                                  
             hold on;
             % NON-LINEAR
             subplot(2,2,3)
-            semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+            cc = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_Snl(model.long,model.lat,:,:),4)*dthd*dr)';
+            semilogx(xx,cc,'-','LineWidth',3)
             hold on;
             xline(squeeze(wn(model.long,model.lat,model.cutoff_freq,model.Dirdim/2)))
             xlabel('k [m^-1]')
@@ -698,7 +701,8 @@ for t = 1:model.num_time_steps                                                  
             % FULL
             hold on;
             subplot(2,2,4)
-            semilogx(xx,squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)','-','LineWidth',3)
+            dd = squeeze(sum(wn(model.long,model.lat,:,:).^2.*plot_E(model.long,model.lat,:,:),4)*dthd*dr)';
+            semilogx(xx,dd,'-','LineWidth',3)
             xlabel('k [m^-1]')
             ylabel('k x Full Spectrum[m2/s]')
             title('k x Full Spectrum')
@@ -706,6 +710,37 @@ for t = 1:model.num_time_steps                                                  
             xlabel('k [m^-1]')
            
             sgtitle(['u = ', num2str(UU), ' m/s'])
+
+            % (2) SPATIAL VARIABILITY
+            [~,pfi,~,pdi] = loc_peak_freq(E,model.long,model.lat,model);
+            input_xy = squeeze(sum(wn(:,:,pfi,pdi).^2.*plot_Sin(:,:,pfi,pdi),4)*dthd*dr)';
+            dis_xy = squeeze(sum(wn(:,:,pfi,pdi).^2.*plot_Sds_full(:,:,pfi,pdi),4)*dthd*dr)';
+            snl_xy = squeeze(sum(wn(:,:,pfi,pdi).^2.*plot_Snl(:,:,pfi,pdi),4)*dthd*dr)';
+            tot_xy = squeeze(sum(wn(:,:,pfi,pdi).^2.*plot_E(:,:,pfi,pdi),4)*dthd*dr)';
+
+            figure
+            subplot(2,2,1)
+            pcolor(input_xy)
+            title('input')
+            subplot(2,2,2)
+            pcolor(dis_xy)
+            colorbar
+            title('dissipation')
+            subplot(2,2,3)
+            pcolor(snl_xy)
+            colorbar
+            clim([-2e6 3e-6])
+            title('non-linear')
+            subplot(2,2,4)
+            pcolor(tot_xy)
+            colorbar
+            clim([0 15e-3])
+            title('total')
+
+
+
+
+
             end
             
         end
@@ -787,6 +822,8 @@ for t = 1:model.num_time_steps                                                  
     
     if nargout > 5 && t == model.num_time_steps
         wave_age = squeeze(c_peak(t,:,:))./wind.speed;
+    else
+        wave_age = NaN;
     end
 
     if nargout > 6 && t == model.num_time_steps 
@@ -808,6 +845,16 @@ for t = 1:model.num_time_steps                                                  
         PeakWave.um = um';
         f_peak = smooth_ringing(f_peak,sigH);
         PeakWave.f = f_peak';
+    else
+        PeakWave.cg = NaN;
+        PeakWave.T = NaN;
+        PeakWave.L = NaN;
+        PeakWave.c = NaN;
+        PeakWave.H = NaN;
+        PeakWave.d0 = NaN;
+        PeakWave.um = NaN;
+        PeakWave.f = NaN;
+        
     end
   end
 
