@@ -4,19 +4,30 @@ close all
 
 % PLOT ALL PLANETS TOGETHER FOR SAME DEPTH AND WIND SPEEDS
 
-addpath(fullfile('..','planetwaves'))  
+addpath(fullfile('..','..','planetwaves'))  
+addpath(fullfile('..','..','planetwaves/pre_analysis/'))  
+
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
-test_speeds = 2.1:0.1:3;
-time_to_run = 5;  
+test_speeds = [0.2:0.1:40];
+time_to_run = 60*10;  
 wind_direction = 0;  
-buoy_loc = [6 6];    
-grid_resolution = [7.5*1000 7.5*1000];
-zDep = 10.*ones(12,12);
+buoy_loc = [5 5];    
+grid_resolution = [20*1000 20*1000];
+zDep = 100.*ones(10,10);
 
-all_planets = {'Earth','Mars','Mars-high','Titan-OntarioLacus','Exo-Venus','Titan-N2','LHS-1140b','55-Cancrie'};
-all_planets = {'LHS-1140b'};
+all_planets = {'Earth','Mars-low','Mars-high','Titan-OntarioLacus','Exo-Venus','Titan-N2','LHS-1140b','55-Cancrie'};
+% THRESHOLDS:
+% EARTH : 1.9
+% MARS-LOW : 1.4
+% MARS-HIGH : 1.0 
+% TITAN-ONTARIOLACUS : 0.5
+% EXO=VENUS : 4.9
+% TITAN-N2 : 0.3
+% LHS-1140b : 2.3
+% 55-Cancri-e : 36.4
+
 
 figure;
 sigH_ax = axes;
@@ -48,15 +59,17 @@ for pp = 1:numel(all_planets)
     hold on;
     
 
+    if strcmp(planet_to_run,'55-Cancrie') % skip non-growth values to run faster
+        test_speeds = [35.0:0.1:40];
+    end
  
     time_vs_wave = NaN(numel(test_speeds),time_to_run);
     for i = 1:numel(test_speeds)
     
         Wind.speed = test_speeds(i);
         Model = calc_cutoff_freq(Planet,Model,Wind);
-    
 
-        [avgHsig, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
+        [avgHsig, ~, ~, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
         time_vs_wave(i,:) = avgHsig;
         save_avgHsig = avgHsig;
         save_avgHsig(avgHsig==0) = [];
