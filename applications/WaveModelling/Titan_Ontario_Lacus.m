@@ -4,10 +4,10 @@ close all
 
 % PLOT WAVES IN ONTARIO LACUS
 
-addpath(fullfile('..','planetwaves'))  
-addpath(fullfile('..','planetwaves','pre_analysis'))
-addpath(fullfile('..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
-load('..\data\Titan\TitanLakes\Bathymetries\SAR_bathy_cleaned\ol_main_basin.mat','smoothed_ol');
+addpath(fullfile('..','..','planetwaves'))  
+addpath(fullfile('..','..','planetwaves','pre_analysis'))
+addpath(fullfile('..','..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
+load('..\..\data\Titan\TitanLakes\Bathymetries\SAR_bathy_cleaned\ol_main_basin.mat','smoothed_ol');
 
 % isolate main basin of interest
 zDep = smoothed_ol;
@@ -23,8 +23,8 @@ zDep_orig = zDep;
 planet_to_run = 'Titan-OntarioLacus';
 buoy_loc = [60 55];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.1:0.1:2];                                                % wind speed
-time_to_run = 10;                                                          % time to run model
+test_speeds = [0.5:0.5:4];                                                % wind speed
+time_to_run = 60*10;                                                          % time to run model
 wind_direction = pi;                                                       % wind direction
 
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.3);
@@ -49,6 +49,5 @@ for i = 1:numel(test_speeds)
         cg{i} = squeeze(sum(wn_e_spectrum{end}.cg(Model.long,Model.lat,:,:),4));
     end
 end
-
-
-%make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
+save('OntarioLacus.mat','myHsig','htgrid','wn','energy','cg')
+make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

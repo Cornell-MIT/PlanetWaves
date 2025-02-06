@@ -39,9 +39,10 @@ function sinuosity = calc_sinuosity(x,y,ws)
    end
 
    % sinuosity is between 0 and 1
-    %   s -> 1 means less sinous
-    %   s -> 0 means more sinous
+    %   s -> 1 means more sinous
+    %   s -> 0 means less sinous
     sinuosity = abs_diff./full_length_alongshore;
+    sinuosity = 1 - sinuosity;
     
 
 end

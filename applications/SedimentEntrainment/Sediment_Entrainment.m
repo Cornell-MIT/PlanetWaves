@@ -25,7 +25,7 @@ grid on
 legend('show')
 
 
-lake_slope = 0.002000;
+lake_slope = .46e-3;%0.002000;
 alpha_0 = 0;
 min_depth = 10^-4;
 d50 = [6.35e-5:1e-5:0.1];

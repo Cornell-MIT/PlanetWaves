@@ -62,6 +62,7 @@ for pp = 1:numel(all_planets)
     if strcmp(planet_to_run,'55-Cancrie') % skip non-growth values to run faster
         test_speeds = [35.0:0.1:40];
     end
+    
  
     time_vs_wave = NaN(numel(test_speeds),time_to_run);
     for i = 1:numel(test_speeds)

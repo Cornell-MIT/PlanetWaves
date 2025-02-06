@@ -89,7 +89,7 @@ p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'
 p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves');
 p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
 
-legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
+% legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
 %exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');
 
 figure('units', 'normalized', 'outerposition', [0 0 1 1]);

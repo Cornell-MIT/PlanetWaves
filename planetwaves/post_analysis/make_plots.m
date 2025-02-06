@@ -57,7 +57,8 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             hold on;
         
             %contour(Model.bathy_map,linspace(min(min(Model.bathy_map)),max(max(Model.bathy_map)),10),':k','LineWidth',2)
-            contour(plot_grid,[0:max(buoy_waves)/10:max(buoy_waves)],'-k','LineWidth',2)
+            [cc,hh] = contour(plot_grid,buoy_waves,'-k','LineWidth',2,'ShowText','on');
+            clabel(cc,hh,'FontSize',15,'Color',[.7 .7 .7])
         
             grid on
             new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;

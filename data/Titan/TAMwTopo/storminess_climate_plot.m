@@ -7,11 +7,11 @@ duration_years = 10;
 %stopi = round(total/(10/duration_years));
 stopi = total;
 % ONTARIO LACUS
-loni = 34;
-lati = 3; 
+% loni = 34;
+% lati = 3; 
 % LIGEIA MARE
-% loni = 45; 
-% lati = 31; 
+loni = 45; 
+lati = 31; 
 
 
 % 1 Titan Year = 29.5 Earth Year = 258420 hours

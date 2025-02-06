@@ -15,6 +15,8 @@ load('..\..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000
 load('..\..\data\Titan\TitanLakes\shoreline\OL_SHORELINE.mat','X_cor','Y_cor')
 x = X_cor;y = Y_cor;
 [x,y] = smooth_path(x,y,10);
+[x,y] = make_circle(x,y);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SET UP BATHYMETRY FOR WAVE MODEL
@@ -26,12 +28,14 @@ planet_to_run = 'Titan-OntarioLacus';
 buoy_loc = [630 255];                                                      % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
 test_speeds = 3;                                                         % wind speed
-time_to_run = 60*10;                                                         % time to run model
-wind_direction = 0;                                                     % wind direction
+time_to_run = 10;                                                         % time to run model
+wind_direction = pi;                                                     % wind direction
 
-[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.06);
+[zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.02);
 
 zDep(zDep<1) = NaN;
+[a,b] = size(zDep);
+zDep = max(max(zDep)).*ones(a,b);
 
 [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction(1),zDep,buoy_loc);
 
@@ -59,37 +63,52 @@ Model = calc_cutoff_freq(Planet,Model,Wind);
 sig_wave = PeakWave';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+POI = 51;
 % CALCULATE Qs and Psi for each sub-grid point from wave grid
-theta = calc_shoreline_angle(x,y,Wind);
-[Qs,psi] = shoreline_smoothing(x,y,sig_wave,theta,WIDTH,HEIGHT,Model);
+[wind_dir,wave_front_angle,shoreline_angle,relative_angle] = calc_shoreline_angle(x,y,Wind);
+
+[Qs,psi] = shoreline_smoothing(x,y,sig_wave,relative_angle,WIDTH,HEIGHT,Model);
 sin = calc_sinuosity(x,y,5);
 
+figure;
+scatter(x,y,50,'k')
+hold on;
+scatter(x,y,50,psi,'filled')
+plot(x(POI),y(POI),'.r')
+
+fprintf('wind: %f\n',rad2deg(wind_dir));
+fprintf('wave: %f\n',rad2deg(wave_front_angle(POI)))
+fprintf('shore: %f\n',rad2deg(shoreline_angle(POI)))
+fprintf('relative angle: %f\n',rad2deg(relative_angle(POI)));
+fprintf('dif: %f\n',psi(POI))
+
+figure; scatter(x,y,50,rad2deg(relative_angle),'filled'); colorbar
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PLOT STUFF
-f1 = plot_wave_grid(x,y,WIDTH,HEIGHT,Model);
-plot(x(~isnan(theta)),y(~isnan(theta)),'or','MarkerFaceColor','r')
-plot(x(isnan(theta)),y(isnan(theta)),'ok','MarkerFaceColor','k')
-
-scatter(x,y,100,Qs,"filled")
-colorbar
-title('Qs')
-
-f2 = plot_wave_grid(x,y,WIDTH,HEIGHT,Model);
-scatter(x,y,100,psi,"filled")
-colorbar
-title('\Psi')
-
-
-figure;
-scatter(x,y,100,sin,"filled")
-colorbar
-title('sinuosity')
-
-figure;
-plot(psi,sin,'ok','MarkerFaceColor','k')
-xlabel('\Psi')
-ylabel('sin')
-
-
-
+% % PLOT STUFF
+% f1 = plot_wave_grid(x,y,WIDTH,HEIGHT,Model);
+% plot(x(~isnan(theta)),y(~isnan(theta)),'or','MarkerFaceColor','r')
+% plot(x(isnan(theta)),y(isnan(theta)),'ok','MarkerFaceColor','k')
+% 
+% scatter(x,y,100,Qs,"filled")
+% colorbar
+% title('Qs')
+% 
+% f2 = plot_wave_grid(x,y,WIDTH,HEIGHT,Model);
+% scatter(x,y,100,psi,"filled")
+% colorbar
+% title('\Psi')
+% 
+% 
+% figure;
+% scatter(x,y,100,sin,"filled")
+% colorbar
+% title('sinuosity')
+% 
+% figure;
+% plot(psi,sin,'ok','MarkerFaceColor','k')
+% xlabel('\Psi')
+% ylabel('sin')
+% 
+% 
+% 

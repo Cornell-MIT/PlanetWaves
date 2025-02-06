@@ -12,7 +12,7 @@ function make_input_map(Planet,Model,Wind)
     pcolor(Xrange./1000,Yrange./1000,Model.bathy_map)
     hold on;
     contour(Xrange./1000,Yrange./1000,Model.bathy_map,'-k')
-    [wx,wy] = pol2cart(Wind.dir,1);
+    [wx,wy] = pol2cart(Wind.dir,10);
     plot(Model.long*(Model.gridX/1000),Model.lat*(Model.gridY/1000),'pentagram','MarkerFaceColor','k','MarkerEdgeColor','k','MarkerSize',20)
     quiver(Model.long*(Model.gridX/1000),Model.lat*(Model.gridY/1000), 1*wx, 1*wy, 'r', 'MaxHeadSize', 1);
     colorbar;

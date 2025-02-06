@@ -1,4 +1,4 @@
-function [H_valid, T_valid] = check_neighbor(sig_wave, cell_x, cell_y, num_cells_x, num_cells_y, x_point, y_point, x_min, y_min, width, height)
+function [H_valid, T_valid, D_valid] = check_neighbor(sig_wave, cell_x, cell_y, num_cells_x, num_cells_y, x_point, y_point, x_min, y_min, width, height,Model,x,y)
     % CHECK EIGHT NEAREST NEIGHBORS IF NO WAVES PRESENT EXACTLY IN GRID CELL WILL RETURN NEAREST non-NAN 
     % INPUT:
     %   sig_wave    : grid of wave heights
@@ -16,7 +16,9 @@ function [H_valid, T_valid] = check_neighbor(sig_wave, cell_x, cell_y, num_cells
     %   H_valid     : nearest-neighbor non-NaN waveheight
     %   T_valid     : nearest-neighbor non-NaN wave period
 
-    H_valid = NaN; T_valid = NaN;
+    POI = 1;
+
+    H_valid = NaN; T_valid = NaN; D_valid = NaN;
     min_dist = inf;  
     
     % Eight nearest neighbors
@@ -44,7 +46,14 @@ function [H_valid, T_valid] = check_neighbor(sig_wave, cell_x, cell_y, num_cells
                 if dist < min_dist
                     H_valid = sig_wave.H(ny, nx);
                     T_valid = sig_wave.T(ny, nx);
+                    D_valid = Model.bathy_map(ny,nx);
                     min_dist = dist;  
+                    if x_point == x(POI) && y_point == y(POI)
+                        fprintf('x_center %i\n',x_center)
+                        fprintf('y_center %i\n',y_center)
+                        fprintf('D valid: %f\n',D_valid)
+                    end
+ 
                 end
             end
         end
