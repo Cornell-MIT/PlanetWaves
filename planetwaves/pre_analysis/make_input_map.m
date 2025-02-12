@@ -9,7 +9,8 @@ function make_input_map(Planet,Model,Wind)
     Xrange = Model.gridX.*Xrange;
     Yrange = 0:sz(1)-1;
     Yrange = Model.gridY.*Yrange;
-    pcolor(Xrange./1000,Yrange./1000,Model.bathy_map)
+    h = pcolor(Xrange./1000,Yrange./1000,Model.bathy_map);
+    set(h,'EdgeColor','none')
     hold on;
     contour(Xrange./1000,Yrange./1000,Model.bathy_map,'-k')
     [wx,wy] = pol2cart(Wind.dir,10);

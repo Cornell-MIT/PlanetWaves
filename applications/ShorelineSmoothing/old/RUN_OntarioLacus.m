@@ -177,16 +177,6 @@ xlabel('wave energy')
 ylabel('sinuoisty')
 ylim([0 1])
 
-function STRUCT = invert_attribute(STRUCT)
-
-fields = fieldnames(STRUCT);
-for i = 1:numel(fields)
-    if isnumeric(STRUCT.(fields{i})) && ismatrix(STRUCT.(fields{i}))
-        STRUCT.(fields{i}) = transpose(STRUCT.(fields{i}));
-    end
-end
-
-end
 
 function newval = closest_power2(val)
     newval = pow2(floor(log2(val)));
@@ -204,42 +194,5 @@ function [xEven, yEven] = even_spacing(x, y,gap)
 end
 
 
-function my_angle = point_rel2_wind(x,y,wind_dir)
-    polyin = polyshape(x,y);
-    [xcent,ycent] = centroid(polyin);
-    v1 = [cos(wind_dir), sin(wind_dir)];
-    
-    for pt = 1:numel(x)
-        v2 = [(x(pt) - xcent), (y(pt) - ycent)];
-        my_angle(pt) = angle_between(v1,v2);
-    end
-
-    figure;
-    plot(x,y)
-    hold on
-    quiver(xcent,ycent,2e4*v1(1),2e4*v1(2),'-r');
-    plot([xcent x(pt)],[ycent y(pt)],'--g')
-
-end
 
 
-function myangle = angle_between(vec1,vec2)
-    
-    % normalize the vectors
-    v1 = vec1/norm(vec1);
-    v2 = vec2/norm(vec2);
-
-    % find dot product
-    dot_product = dot(v1,v2);
-    % find cross product
-    cross_product = det([v1; v2]);
-
-    % find angle between difference vector
-    myangle = atan2(cross_product, dot_product);
-
-    % wrap between 0 and 2pi
-    if myangle < 0
-        myangle = myangle + 2*pi;
-    end
-
-end

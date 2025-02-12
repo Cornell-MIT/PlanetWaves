@@ -15,20 +15,22 @@ fh = figure;
 plot(x,y,'-k')
 hold on
 
-for i = 1:Model.LonDim
-    for j = 1:Model.LatDim
+for ii = 1%:Model.LonDim
+    for jj = 1%Model.LatDim
 
         % boundaries of grid cell
-        x_lower = min(x) + (i-1) * width;
-        x_upper = min(x) + i * width;
-        y_lower = min(y) + (j-1) * height;
-        y_upper = min(y) + j * height;
+        x_lower = min(x) + (ii-1) * width;
+        x_upper = min(x) + ii * width;
+        y_lower = min(y) + (jj-1) * height;
+        y_upper = min(y) + jj * height;
 
         % PLOT WAVE GRID ON SUB-GRID ATTACK ANGLE
         % using relative size compared to max for coloring grid
         maxH = max(max(WAVES.H));
-        H_color = round((WAVES.H(j,i)/maxH)*100);
-        
+        H_color = round((WAVES.H(jj,ii)/maxH)*100);
+        if H_color == 0
+            H_color = 1;
+        end
         % Check if the point of interest (POI) is in the current rectangle
             if x(POI) >= x_lower && x(POI) <= x_upper && y(POI) >= y_lower && y(POI) <= y_upper
                 % Highlight the rectangle in red

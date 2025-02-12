@@ -124,13 +124,7 @@ my_angle = point_rel2_wind(x,y,wind_dir);
 % colormap(jet_wrap);
 % colorbar
 
-for i = 1:numel(x)
-    if my_angle(i) > pi/2 && my_angle(i) < 3*pi/2
-        along_wind(i) = false;
-    else
-        along_wind(i) = true;
-    end
-end
+
 
 
 alongwind_diff = mydiff(along_wind);
@@ -254,27 +248,3 @@ function myangle = angle_between(vec1,vec2)
 
 end
 
-function R2 = r_squared(x, y,xval,yval)
-    x = x(:); % Ensure x is a column vector
-    y = y(:); % Ensure y is a column vector
-    
-    p = polyfit(x, y, 1); % Fit a linear model
-    y_fit = polyval(p, x); % Compute fitted values
-    
-    SS_tot = sum((y - mean(y)).^2); % Total sum of squares
-    SS_res = sum((y - y_fit).^2); % Residual sum of squares
-    
-    R2 = 1 - (SS_res / SS_tot); % Compute R^2 value
-    
-    % Plot the data and the linear fit
-    figure;
-    plot(x, y, 'bo', 'MarkerFaceColor', 'b'); % Original data points
-    hold on;
-    plot(x, y_fit, 'r-', 'LineWidth', 2); % Fitted line
-    xlabel(xval);
-    ylabel(yval);
-    title('Linear Fit');
-    legend('Data', 'Fit');
-    grid on;
-    hold off;
-end
