@@ -61,11 +61,13 @@ m_fetch = avg_fetch - std_fetch;
 
 % PIERSON-MOSKOWITZ
 test_speeds = 0:20;
-PM = (0.22.*(test_speeds).^2)./9.81;
 % JONSWAP
 JS = 4.*sqrt((1.67e-7).*((test_speeds.^2)./9.81).*avg_fetch);
 JS_p = 4.*sqrt((1.67e-7).*((test_speeds.^2)./9.81).*p_fetch);
 JS_m = 4.*sqrt((1.67e-7).*((test_speeds.^2)./9.81).*m_fetch);
+
+JS_RMS = calc_rms(test_speeds,JS,Events.U,Events.obs_H);
+fprintf('RMS of JONSWAP Curve: %f\n',JS_RMS)
 
 p2 = plot(fax1,test_speeds, JS, '--','Color',[0.7 0.7 0.7], 'LineWidth', 3);
 p4 = fill(fax1,[test_speeds, fliplr(test_speeds)], [JS_p, fliplr(JS_m)], 'k', 'FaceAlpha', 0.3, 'EdgeAlpha', 0);
@@ -85,6 +87,10 @@ ylim([0 max(Events.obs_H)+1])
 wavetable = readtable('umwm_wind_waveheights.xlsx');
 
 PM = (0.22.*(wavetable.u).^2)./9.81;
+
+PM_RMS = calc_rms(test_speeds,PM,Events.U,Events.obs_H);
+fprintf('RMS of Pierson-Moskowtiz Curve: %f\n',PM_RMS)
+
 p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM');
 p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves');
 p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
@@ -97,8 +103,8 @@ plot(wavetable.umwm,wavetable.umwm,'-k','LineWidth',4)
 hold on;
 plot(wavetable.umwm,wavetable.planetwaves,'o','MarkerFaceColor',[219, 84, 97]./255,'MarkerSize',10)
 grid on;
-xlabel('UMWM')
-ylabel('PlanetWaves')
+xlabel('UMWM H_{1/3} [m]')
+ylabel('PlanetWaves H_{1/3} [m]')
 
 x = wavetable.umwm;
 y = wavetable.planetwaves;
@@ -108,10 +114,24 @@ SST = sum((y - mean(y)).^2);
 R_sqr = 1 - (SSR/SST);
 
 title(['R^2 = ' num2str(R_sqr)])
+
+UMWM_RMS = calc_rms(wavetable.u,wavetable.umwm,Events.U,Events.obs_H);
+fprintf('RMS of UMWM Curve: %f\n',UMWM_RMS)
+PlanetWave_RMS = calc_rms(wavetable.u,wavetable.planetwaves,Events.U,Events.obs_H);
+fprintf('RMS of PlanetWaves Curve: %f\n',PlanetWave_RMS)
+
 %exportgraphics(gcf, 'LSCompare_Rsqr.pdf', 'ContentType', 'vector');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rgb = hex2rgb(hex)
     hex = reshape(hex, [], 6);
     rgb = reshape(sscanf(hex.', '%2x'), [], 3) / 255;
+end
+
+
+function RMS = calc_rms(x_model,y_model,x_data,y_data)
+
+    y_interp = interp1(x_model,y_model,x_data,'linear');
+    RMS = sqrt(mean((y_data - y_interp).^2));
+
 end
