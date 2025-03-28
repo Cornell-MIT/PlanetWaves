@@ -10,6 +10,10 @@ function Model = calc_cutoff_freq(Planet,Model,Wind)
             Model.cutoff_freq(i) = 2;                                          % Assign 2 for undefined cutoff frequency
         else
             [~, index] = min(abs(freqs - cutoff_value));                       % Find the index of the closest frequency
+            if index < 2
+                warning('wind speed is storm like compared to gravity. Diagnostic part of spectrum dominates.')
+                index = 2;
+            end 
             Model.cutoff_freq(i) = index;                                      % Store the index of the closest frequency
         end
     end

@@ -1,27 +1,32 @@
-function [wind_dir,wave_front_angle,shoreline_angle,relative_angle] = calc_shoreline_angle(x,y,Wind)
-% Initialize arrays for theta and Qs, matching the order of shoreline points (x, y)
-relative_angle = NaN(size(x));  % Relative angle of attack
+function [wind_dir, wave_front_angle, shoreline_angle, relative_angle] = calc_shoreline_angle(x, y, Wind,win_size)
+    % Initialize arrays for shoreline angle and relative angle
+    num_points = numel(x);
+    shoreline_angle = NaN(size(x));
+    relative_angle = NaN(size(x));
 
-% find theta
-for i = 1:numel(x)
-    if i < numel(x)
-        shoreline_angle(i) = atan2(y(i+1) - y(i), x(i+1) - x(i));
-    else % wrap around to the first point to complete the circle
-        shoreline_angle(i) = atan2(y(1) - y(i), x(1) - x(i));
+    
+    % Calculate shoreline angles using 17 points ahead and behind
+    for i = 1:num_points
+        % Determine indices for forward and backward points with wrap-around
+        idx_forward = mod(i - 1 + win_size, num_points) + 1;
+        idx_backward = mod(i - 1 - win_size, num_points) + 1;
+        
+        % Compute the shoreline angle
+        shoreline_angle(i) = atan2(y(idx_forward) - y(idx_backward), x(idx_forward) - x(idx_backward));
+        shoreline_angle(i) = mod(shoreline_angle(i), 2 * pi);
     end
     
-    shoreline_angle(i) = mod(shoreline_angle(i),2*pi);
+    % Wind direction and wave front angle
     wind_dir = Wind.dir;
-    wave_front_angle(i) =  wind_dir + pi / 2;
-    relative_angle(i) = mod(wave_front_angle(i) - shoreline_angle(i),2*pi);
-
-    if relative_angle(i) > pi/2 && relative_angle(i) < 3*pi/2
-        relative_angle(i) = NaN;
+    wave_front_angle = wind_dir + pi / 2;
+    
+    % Compute relative angles
+    for i = 1:num_points
+        relative_angle(i) = mod(wave_front_angle - shoreline_angle(i), 2 * pi);
+        
+        % Filter angles outside the range [0, pi/2]
+        if relative_angle(i) > pi/2 && relative_angle(i) < 3*pi/2
+            relative_angle(i) = NaN;
+        end
     end
-    % Limit angle to the range [0, pi/2]
-    % if abs(relative_angle(i)) > pi/2 || abs(relative_angle(i)) < 0
-    %     relative_angle(i) = NaN;
-    % end
-end
-
 end

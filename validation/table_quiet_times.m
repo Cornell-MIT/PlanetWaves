@@ -7,7 +7,7 @@ h = data;
 angle = data;
 
 cwd = pwd;
-cd('C:\Users\Owner\OneDrive\Desktop\Main\Work\Github_Repos\umwm_titan\data\Earth\GreatLakes\LakeSuperior\45004_Buoy')
+cd('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\data\Earth\GreatLakes\LakeSuperior\45004_Buoy')
 
 for i = 1:length(years)
     data{i} = analyze_buoy_data(['45004h' num2str(years(i))]);

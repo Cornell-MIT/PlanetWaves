@@ -17,15 +17,16 @@ zDep(:,80:end) = [];
 zDep(1:95,:) = [];
 zDep(90:end,:) = [];
 zDep = imrotate(zDep,-90);
+zDep = imrotate(zDep,180);
 
 zDep_orig = zDep;
 % MODEL INPUTS
 planet_to_run = 'Titan-OntarioLacus';
-buoy_loc = [60 55];                                                        % grid location [x,y]
+buoy_loc = [40 35];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.5:0.5:4];                                                % wind speed
+test_speeds = [0.3 1 1.5 2 2.5 3 3.5 4];                                                % wind speed
 time_to_run = 60*10;                                                          % time to run model
-wind_direction = pi;                                                       % wind direction
+wind_direction = 0;                                                       % wind direction
 
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.3);
 

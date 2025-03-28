@@ -1,0 +1,387 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>Andrew W. Stevens</origin>
+        <origin>David M. Rubin</origin>
+        <pubdate>20220330</pubdate>
+        <title>Tabulated wave parameter results from modeling surface gravity waves on a schematized ancient lake on Mars</title>
+        <geoform>csv</geoform>
+        <serinfo>
+          <sername>data release</sername>
+          <issue>DOI:10.5066/P9AA8WKP</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>Pacific Coastal and Marine Science Center, Santa Cruz, California</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.5066/P9AA8WKP</onlink>
+        <lworkcit>
+          <citeinfo>
+            <origin>Andrew W. Stevens</origin>
+            <origin>David M. Rubin</origin>
+            <pubdate>2022</pubdate>
+            <title>Modeling surface gravity waves on a schematized ancient lake on Mars</title>
+            <serinfo>
+              <sername>data release</sername>
+              <issue>DOI:10.5066/P9AA8WKP</issue>
+            </serinfo>
+            <pubinfo>
+              <pubplace>Pacific Coastal and Marine Science Center, Santa Cruz, CA</pubplace>
+              <publish>U.S. Geological Survey</publish>
+            </pubinfo>
+            <onlink>https://doi.org/10.5066/P9AA8WKP</onlink>
+          </citeinfo>
+        </lworkcit>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>This portion of the data release presents tabulated wave parameter results derived from simulations of wind generated surface gravity waves on an ancient lake on Mars. The phase-averaged wave model, SWAN, was applied within the Delft3D modeling system (Deltares, 2018) with reduced gravity and a range of atmospheric densities and wind speeds to simulate potential conditions that could generate wind waves on Mars.</abstract>
+      <purpose>Model simulations of wave development on an ancient lake on Mars were used in conjunction with analysis of sedimentary structures observed in imagery collected by the Mars rover Curiosity to explore the possibility that wind waves are strong enough to transport sand and form wave ripples. The presence of wave ripples would signify that ice-free liquid water was present on the surface of Mars in the past.</purpose>
+      <supplinf>Any use of trade, product, or firm names is for descriptive purposes only and does not imply endorsement by the U.S. Government.</supplinf>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <sngdate>
+          <caldate>20171221</caldate>
+        </sngdate>
+      </timeinfo>
+      <current>Time when model inputs were first created</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>None planned</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-180</westbc>
+        <eastbc>180</eastbc>
+        <northbc>90</northbc>
+        <southbc>-90</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>ISO 19115 Topic Category</themekt>
+        <themekey>geoscientificInformation</themekey>
+      </theme>
+      <theme>
+        <themekt>Data Categories for Marine Planning</themekt>
+        <themekey>predictions</themekey>
+      </theme>
+      <theme>
+        <themekt>USGS Thesaurus</themekt>
+        <themekey>coastal processes</themekey>
+        <themekey>geomorphology</themekey>
+        <themekey>planetary sciences</themekey>
+        <themekey>mathematical modeling</themekey>
+      </theme>
+      <theme>
+        <themekt>Marine Realms Information Bank (MRIB) keywords</themekt>
+        <themekey>numerical modeling</themekey>
+      </theme>
+      <theme>
+        <themekt>None</themekt>
+        <themekey>U.S. Geological Survey</themekey>
+        <themekey>USGS</themekey>
+        <themekey>Coastal and Marine Hazards and Resources Program</themekey>
+        <themekey>CMHRP</themekey>
+        <themekey>Pacific Coastal and Marine Science Center</themekey>
+        <themekey>PCMSC</themekey>
+      </theme>
+      <theme>
+        <themekt>USGS Metadata Identifier</themekt>
+        <themekey>USGS:621528f1d34e4465d4090926</themekey>
+      </theme>
+      <place>
+        <placekt>None</placekt>
+        <placekey>Mars</placekey>
+      </place>
+    </keywords>
+    <accconst>None</accconst>
+    <useconst>USGS-authored or produced data and information are in the public domain from the U.S. Government and are freely redistributable with proper metadata and source attribution. Please recognize and acknowledge the U.S. Geological Survey as the originator(s) of the dataset and in products derived from these data.</useconst>
+    <ptcontac>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, Pacific Coastal and Marine Science Center</cntorg>
+          <cntper>PCMSC Science Data Coordinator</cntper>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>2885 Mission Street</address>
+          <city>Santa Cruz</city>
+          <state>CA</state>
+          <postal>95060</postal>
+        </cntaddr>
+        <cntvoice>831-427-4747</cntvoice>
+        <cntemail>pcmsc_data@usgs.gov</cntemail>
+      </cntinfo>
+    </ptcontac>
+    <native>Delft3D version 4.04.01</native>
+    <crossref>
+      <citeinfo>
+        <origin>D.M. Rubin</origin>
+        <origin>M.A.G. Lapotre</origin>
+        <origin>A.W. Stevens</origin>
+        <origin>M.P. Lamb</origin>
+        <origin>C.M. Fedo</origin>
+        <origin>J.P. Grotzinger</origin>
+        <origin>S. Gupta</origin>
+        <origin>K.M. Stack</origin>
+        <origin>A.R. Vasavada</origin>
+        <origin>S.G. Banham</origin>
+        <origin>A.B. Bryk</origin>
+        <origin>J.R. Christian</origin>
+        <origin>L.A. Edgar</origin>
+        <origin>G. Caravaca</origin>
+        <pubdate>2022</pubdate>
+        <title>Ancient winds, waves, and atmosphere in Gale Crater, Mars, inferred from sedimentary structures and wave modeling</title>
+        <othercit>Journal of Geophysical Research: Planets</othercit>
+        <onlink>https://doi.org/10.1029/2021JE007162</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>D. Banfield</origin>
+        <origin>M. Donelan</origin>
+        <origin>L. Cavaleri</origin>
+        <pubdate>2015</pubdate>
+        <title>Winds, waves and shorelines from ancient martian seas</title>
+        <othercit>Icarus, v. 250, pp. 368-383.</othercit>
+        <onlink>https://doi.org/10.1016/j.icarus.2014.12.001</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Deltares</origin>
+        <pubdate>2018</pubdate>
+        <title>Delft3D Wave User Manual (version 3.05)</title>
+        <onlink>https://oss.deltares.nl/web/delft3d/manuals</onlink>
+      </citeinfo>
+    </crossref>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>The wave model SWAN used in this dataset was previously tested with experiments in a low-pressure wind tunnel and found that the model could accurately simulate the development of waves at low atmospheric pressure (Banfield and others, 2015).</attraccr>
+    </attracc>
+    <logic>All data fall within expected ranges.</logic>
+    <complete>Dataset is considered complete for the information presented, as described in the abstract. Users are advised to read the rest of the metadata record carefully for additional details.</complete>
+    <posacc>
+      <horizpa>
+        <horizpar>No formal positional accuracy tests were conducted.</horizpar>
+      </horizpa>
+      <vertacc>
+        <vertaccr>No formal positional accuracy tests were conducted.</vertaccr>
+      </vertacc>
+    </posacc>
+    <lineage>
+      <procstep>
+        <procdesc>The phase-averaged wave model, SWAN, was applied within the Delft3D modeling system to simulate wave growth on a regular, curvilinear grid. The source code of SWAN (version 40.72ABCDE) was modified and recompiled to incorporate variable atmospheric density in the wave calculations.</procdesc>
+        <procdate>20160714</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>A model grid and bathymetry were constructed with a lake basin that was 20 km wide and 10 m deep that sloped up to the shoreline over a distance of 120 m. The model grid contained 50 grid cells along the length of the lake that were spaced at 1.2 km intervals from the upwind coastline to 18 km downwind. Between 18 km and the shoreline, the grid spacing gradually decreased to as fine as 6.5 m to better resolve shallow-water processes. Wave development was simulated for 24 frequency bins between 0.05 and 1 Hz using 3rd generation physics and default values for bottom friction, white-capping, depth-induced breaking, and wind growth (Deltares, 2018).</procdesc>
+        <procdate>20171221</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Three sets of simulations were performed with atmospheric densities of 6, 60, and 600 mbar. For each atmospheric density, 5 wind speeds corresponding to 0.25, 0.5, 1, 2, and 4 times the threshold wind speed needed to initiate tranport of 125-micron sand grains on land were prescribed. See Rubin and others (2022) for details on how the threshold wind speeds were determined.</procdesc>
+        <procdate>20210824</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Results from all model simulations were tablulated and written to comma-separated text files for distribution.</procdesc>
+        <procdate>20220223</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Corrected URL for the accompanying journal article. No data were changed. (scochran@usgs.gov)</procdesc>
+        <procdate>20220406</procdate>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spref>
+    <vertdef>
+      <altsys>
+        <altdatum>Depth below the water surface</altdatum>
+        <altres>0.91</altres>
+        <altunits>meters</altunits>
+        <altenc>Explicit elevation coordinate included with horizontal coordinates</altenc>
+      </altsys>
+    </vertdef>
+  </spref>
+  <eainfo>
+    <detailed>
+      <enttyp>
+        <enttypl>Attribute Table</enttypl>
+        <enttypd>Table containing attribute information associated with the data set</enttypd>
+        <enttypds>Producer defined</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>wind_threshold_factor</attrlabl>
+        <attrdef>Multiple of threshold wind speed required to initiate transport of 125-micron sand grains on the Mars surface</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0.25</rdommin>
+            <rdommax>4.00</rdommax>
+            <attrunit>none</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>pressure_mbar</attrlabl>
+        <attrdef>Atmospheric density used in the model simulation</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>6</rdommin>
+            <rdommax>600</rdommax>
+            <attrunit>millibar (mbar)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>wind_speed_ms</attrlabl>
+        <attrdef>Wind speed at 10 m above the lake surface</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>1.08</rdommin>
+            <rdommax>120</rdommax>
+            <attrunit>meters per second (m/s)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>distance_km</attrlabl>
+        <attrdef>Distance along lake from upwind boundary</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0</rdommin>
+            <rdommax>20</rdommax>
+            <attrunit>kilometer (km)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>depth_m</attrlabl>
+        <attrdef>Depth of lake below surface</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0</rdommin>
+            <rdommax>10</rdommax>
+            <attrunit>meter (m)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>hsig_m</attrlabl>
+        <attrdef>Significant wave height</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0</rdommin>
+            <rdommax>3.58</rdommax>
+            <attrunit>meter (m)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>tp_s</attrlabl>
+        <attrdef>Peak wave period</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0</rdommin>
+            <rdommax>8.19</rdommax>
+            <attrunit>second (s)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>ub_ms</attrlabl>
+        <attrdef>Near-bed wave orbital velocity</attrdef>
+        <attrdefs>Producer defined</attrdefs>
+        <attrdomv>
+          <rdom>
+            <rdommin>0</rdommin>
+            <rdommax>1.1</rdommax>
+            <attrunit>meters per second (m/s)</attrunit>
+          </rdom>
+        </attrdomv>
+      </attr>
+    </detailed>
+    <overview>
+      <eaover>The first line of the csv file is a header line.</eaover>
+      <eadetcit>U.S. Geological Survey</eadetcit>
+    </overview>
+  </eainfo>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey - ScienceBase</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>Denver Federal Center, Building 810, Mail Stop 302</address>
+          <city>Denver</city>
+          <state>CO</state>
+          <postal>80225</postal>
+        </cntaddr>
+        <cntvoice>1-888-275-8747</cntvoice>
+        <cntemail>sciencebase@usgs.gov</cntemail>
+      </cntinfo>
+    </distrib>
+    <resdesc>Tabulated outputs containing wave parameters and near-bed orbital velocities are provided in comma-separated text format along with associated metadata.</resdesc>
+    <distliab>Unless otherwise stated, all data, metadata and related materials are considered to satisfy the quality standards relative to the purpose for which the data were collected. Although these data and associated metadata have been reviewed for accuracy and completeness and approved for release by the U.S. Geological Survey (USGS), no warranty expressed or implied is made regarding the display or utility of the data on any other system or for general or scientific purposes, nor shall the act of distribution constitute any such warranty.</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>various</formname>
+          <formvern>Delft3D version 4.04.01</formvern>
+          <formspec>CSV</formspec>
+          <formcont>Tabulated outputs from wave model simulations of an ancient lake on Mars.</formcont>
+          <filedec>none</filedec>
+          <transize>0.03</transize>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>https://www.sciencebase.gov/catalog/file/get/621528f1d34e4465d4090926?name=mars_wave_params.csv</networkr>
+                <networkr>https://www.sciencebase.gov/catalog/item/621528f1d34e4465d4090926</networkr>
+                <networkr>https://doi.org/10.5066/P9AA8WKP</networkr>
+              </networka>
+            </computer>
+            <accinstr>Data can be downloaded using the Network_Resource_Name links. The first link is a direct link to download the wave parameter results. The second link points to a landing page with wave parameter data and metadata. The third link points to the landing page for the entire data release.</accinstr>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>None.</fees>
+    </stdorder>
+  </distinfo>
+  <metainfo>
+    <metd>20220406</metd>
+    <metc>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, Pacific Coastal and Marine Science Center</cntorg>
+          <cntper>PCMSC Science Data Coordinator</cntper>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>2885 Mission Street</address>
+          <city>Santa Cruz</city>
+          <state>CA</state>
+          <postal>95060</postal>
+        </cntaddr>
+        <cntvoice>831-427-4747</cntvoice>
+        <cntemail>pcmsc_data@usgs.gov</cntemail>
+      </cntinfo>
+    </metc>
+    <metstdn>Content Standard for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+</metadata>

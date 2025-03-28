@@ -12,7 +12,7 @@ function [depth_resized,buoy_loc_resized,new_resolution] = degrade_depth_resolut
 %       new_resolution   : [X-resolution Y-resolution] in reshaped array
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    %depth(isnan(depth)) = 0;
+    depth(isnan(depth)) = 0;
     gridX_res_new = (grid_resolution(1))*(1/resizeFactor);
     gridY_res_new = (grid_resolution(2))*(1/resizeFactor);
     new_resolution = [gridX_res_new gridY_res_new];

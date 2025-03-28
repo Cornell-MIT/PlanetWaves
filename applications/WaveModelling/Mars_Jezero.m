@@ -13,7 +13,7 @@ lake_level = 10;
 
 planet_to_run = 'Mars-high';
 time_to_run = 60*10;
-test_speeds = [1:0.5:10];
+test_speeds = 1:10;
 wind_direction = pi;
 
 A = read(Tiff(fn,'r'));
@@ -72,5 +72,5 @@ for i = 1:numel(test_speeds)
     end
 end
 
-save('MarsJezero.mat','myHsig','htgrid','wn','energy','cg')
+save('MarsJezero_low.mat','myHsig','htgrid','wn','energy','cg')
 make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

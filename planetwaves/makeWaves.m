@@ -115,7 +115,8 @@ zref = 20;                                                                 % hei
 wfac = 0.035;                                                              % wind drift fraction of Uz ffor U10m
 % Ideal gas law: PV = nRT
 % Densities:
-rhoa = planet.surface_press*planet.kgmolwt/(RRR*planet.surface_temp);             % air density [kg/m3]
+rhoa = planet.surface_press*planet.kgmolwt/(RRR*planet.surface_temp);      % air density [kg/m3]
+fprintf('Atmospheric density: %f [kg/m^3]\n',rhoa )
 rhorat=rhoa/planet.rho_liquid;                                             % air-water density ratio.
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Helmholtz instabilities (Donelan 2012, pg. 3)

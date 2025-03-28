@@ -2,11 +2,11 @@ clc
 clear
 close all
 
-addpath('C:\Users\Owner\OneDrive\Desktop\Main\Work\Github_Repos\umwm_titan\data\Earth')
-addpath('C:\Users\Owner\OneDrive\Desktop\Main\Work\Github_Repos\umwm_titan\validation')
+addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\data\Earth')
+addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\validation')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % EXTRACT OBSERVATIONS FROM BUOYS
-loc = fullfile('C:\Users\Owner\OneDrive\Desktop\Main\Work\Github_Repos\umwm_titan\data\Earth\WindFetchLS_45004.csv');
+loc = fullfile('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\data\Earth\WindFetchLS_45004.csv');
 A = readtable(loc,'VariableNamingRule', 'preserve');
 A.Properties.VariableNames = {'Dir_deg','Fetch_m'};
 dir_to_fetch = containers.Map(A.Dir_deg,A.Fetch_m);
@@ -91,9 +91,9 @@ PM = (0.22.*(wavetable.u).^2)./9.81;
 PM_RMS = calc_rms(test_speeds,PM,Events.U,Events.obs_H);
 fprintf('RMS of Pierson-Moskowtiz Curve: %f\n',PM_RMS)
 
-p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',2,'DisplayName','UMWM');
-p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',2,'DisplayName','PlanetWaves');
-p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',2,'DisplayName','Pierson-Moskowitz');
+p6 = plot(wavetable.u,wavetable.umwm,'-ok','MarkerFaceColor','k','LineWidth',5,'DisplayName','UMWM');
+p7 = plot(wavetable.u,wavetable.planetwaves,'-or','MarkerFaceColor','r','LineWidth',5,'DisplayName','PlanetWaves');
+p8 = plot(wavetable.u,PM,':','Color',[0.7 0.7 0.7],'LineWidth',7,'DisplayName','Pierson-Moskowitz');
 
 % legend([p1 p8 p2 p6 p7 p8],'Observation','Pierson-Moskowitz','JONSWAP','UMWM','PlanetWaves','Location','best')
 %exportgraphics(gcf, 'LSCompare.png', 'ContentType', 'vector');

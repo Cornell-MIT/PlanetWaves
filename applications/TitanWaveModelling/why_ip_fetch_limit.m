@@ -10,7 +10,7 @@ addpath(fullfile('..','..','planetwaves/pre_analysis/'))
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
-test_speeds = 10;
+test_speeds = 40;
 time_to_run = 60*10;  
 wind_direction = 0;  
 buoy_loc = [5 5];    
@@ -37,6 +37,7 @@ for pp = 1:numel(all_planets)
     
         Wind.speed = test_speeds(i);
         Model = calc_cutoff_freq(Planet,Model,Wind);
+        disp(Model.cutoff_freq(i))
 
         [avgHsig, ~, ~, ~, ~, ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc); 
         time_vs_wave(i,:) = avgHsig;

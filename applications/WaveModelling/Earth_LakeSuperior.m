@@ -6,11 +6,11 @@ close all
 
 warning('need to streamline process of moving outputs of find_fetch.py to matlab scripts to run model')
 
-addpath(fullfile('..','planetwaves'))  
-addpath(fullfile('..','planetwaves','pre_analysis'))
-addpath(fullfile('..','data','Earth','GreatLakes','LakeSuperior'))
+addpath(fullfile('..','..','planetwaves'))  
+addpath(fullfile('..','..','planetwaves','pre_analysis'))
+addpath(fullfile('..','..','data','Earth','GreatLakes','LakeSuperior'))
 % from find_fetch.py 
-load('..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
+load('..\..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
 zDep = -squeeze(LS);
 
 % MODEL INPUTS
@@ -18,7 +18,7 @@ planet_to_run = 'Earth';
 buoy_loc = [6618 1729];                                                    % grid location [x,y]
 % from find_fetch.py
 grid_resolution = [4542.948547909539 92.66280063299297];                   % pixel width and pixel height [m]
-test_speeds = 20;                                                        % wind speed
+test_speeds = 1:20;                                                        % wind speed
 time_to_run = 60*10;                                                       % time to run model
 wind_direction = 0;                                                        % wind direction
 

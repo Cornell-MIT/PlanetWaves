@@ -46,6 +46,7 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
         
             ax1 = subplot(1,3,[1,2]);
             h1 = imagesc(plot_grid);
+            axis equal
             colormap linspecer
             xlabel('longitude [km]')
             ylabel('latitude [km]')
@@ -57,15 +58,20 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             hold on;
         
             %contour(Model.bathy_map,linspace(min(min(Model.bathy_map)),max(max(Model.bathy_map)),10),':k','LineWidth',2)
-            [cc,hh] = contour(plot_grid,buoy_waves,'-k','LineWidth',2,'ShowText','on');
-            clabel(cc,hh,'FontSize',15,'Color',[.7 .7 .7])
+            %[cc,hh] = contour(plot_grid,buoy_waves,'-k','LineWidth',2,'ShowText','on',"LabelFormat",'%0.1f');
+            %hh.LevelList = round(hh.LevelList,2);  %rounds levels to 2nd decimal place
+            size(plot_grid)
+            size(buoy_waves)
+            [cc, hh] = contour(plot_grid, [0.1 0.5 1.0 2.0 2.5],"LabelFormat",'%0.1f');
+            set(hh, 'LineColor', 'k', 'LineWidth', 2); % Set line color and width
+            clabel(cc, hh, 'FontSize', 15, 'Color', 'k', 'LabelSpacing', 200, 'FontWeight', 'bold'); % Customize labels
         
             grid on
             new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
             new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
             set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
             set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
-        
+            set(gca,'Ydir','reverse')
         
             
             plot(Model.long,Model.lat,'pentagram','MarkerFaceColor','w','MarkerEdgeColor','k','MarkerSize',20)
@@ -81,7 +87,7 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             %         end
             %     end
             % end
-            set(ax1,'Ydir','reverse')
+            %set(ax1,'Ydir','reverse')
             %set(ax1,'Xdir','reverse')
             drawnow
             exportgraphics(gcf, [Planet.name,'_',num2str(speed),'_waves.pdf'], 'ContentType', 'vector');
@@ -95,7 +101,7 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
         end
     end
     
-    exportgraphics(gcf, [Planet.name,'_waves.pdf'], 'ContentType', 'vector');
+    %exportgraphics(gcf, [Planet.name,'_waves.pdf'], 'ContentType', 'vector');
 
     figure('units','normalized','outerposition',[0 0 1 1])
     plot(test_speeds,buoy_waves,'-sb','LineWidth',1,'MarkerFaceColor','b')
