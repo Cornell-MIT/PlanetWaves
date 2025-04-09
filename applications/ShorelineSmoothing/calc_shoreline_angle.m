@@ -24,9 +24,5 @@ function [wind_dir, wave_front_angle, shoreline_angle, relative_angle] = calc_sh
     for i = 1:num_points
         relative_angle(i) = mod(wave_front_angle - shoreline_angle(i), 2 * pi);
         
-        % Filter angles outside the range [0, pi/2]
-        if relative_angle(i) > pi/2 && relative_angle(i) < 3*pi/2
-            relative_angle(i) = NaN;
-        end
     end
 end

@@ -5,12 +5,16 @@ close all
 % HOUSE KEEPING
 addpath(fullfile('..','..','planetwaves'))  
 addpath(fullfile('..','..','planetwaves/pre_analysis/'))  
-addpath(fullfile('.','waves_w_sloping_bathy'))  
+%addpath(fullfile('.','waves_w_sloping_bathy'))  
+
+plot_H_grid_chosen = 0;
+using_H = 0;
 
 % WAVES FOR 8 DIRECTIONS
 wind_direction = 0:45:315;
 wind_direction = deg2rad(wind_direction);
-fne = {'0deg.mat','45deg.mat','90deg.mat','135deg.mat','180deg.mat','225deg.mat','270deg.mat','315deg.mat'};
+
+
 
 % nice colormaps for plotting
 jet_wrap = vertcat(jet,flipud(jet)); % circular colormap
@@ -21,11 +25,34 @@ plasma_bottom = plasma_bottom(end/2:end,:);
 distinct_cmap = [viridis_top;plasma_bottom]; % distinct colormap to distinguish positive and negative values 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+addpath(fullfile('.','rednoise_asylake_1')) % not using the files here but still need to reference them
+% look here for shoreline, depth, waves (make_deepwater_waves)
+fne = {'0deg.mat','45deg.mat','90deg.mat','135deg.mat','180deg.mat','225deg.mat','270deg.mat','315deg.mat'};
+
+shoreline_choice = 1;
+% % LAKE SHORELINE WITH SIMPLE BATHYMETRY
+if shoreline_choice == 1
+    addpath(fullfile('.','rednoise_asylake_1')) % not using the files here but still need to reference them
+    load('asylake1.mat','x','y','x_center','y_center')
+    % %[x,y] = make_circle(x,y);
+    x(end) = [];
+    y(end) = [];
+    load('lake_depth.mat','Xmesh','Ymesh','zDep')
+elseif shoreline_choice == 2
+    addpath(fullfile('..','..','\data\Titan\TitanLakes\Bathymetries\bathtub_bathy'))
+    load('ol_bathtub_0.46e_neg3.mat','X_cor','Y_cor','x_center','y_center','Xmesh','Ymesh','zDep')
+    X_cor(1) = [];
+    Y_cor(1) = [];
+    x = X_cor;
+    y = Y_cor;
+else
+    error('no shoreline, depths provided')
+end
+
 % Biased wind rose with a main direction that falls off symmetrically away from main direction as a circular normal
 for mu = 1:numel(wind_direction)
     main_direction = wind_direction(mu);
     windPDF = vonMises(main_direction,1.5,wind_direction);
-    
     
     % plot wind pdf
     figure;
@@ -33,37 +60,14 @@ for mu = 1:numel(wind_direction)
     
     % for each wind direction, calculate wave energy and diffusivity
     for fn = 1:numel(fne)
-        
-        % LAKE SHORELINE WITH SIMPLE BATHYMETRY
-        load('asylake1.mat','x','y','x_center','y_center')
-        %[x,y] = make_circle(x,y);
-        x(end) = [];
-        y(end) = [];
-        %load('asylake1_bathtub.mat')
-        load('lake_depth.mat','Xmesh','Ymesh','zDep')
-        % zDep = zDep.*1000;
-        % zDep(~isnan(zDep)) = 80;
-        % 
-        % zDep(:,1:400) = [];
-        % zDep(:,180:600) = [];
-        % zDep(1:440,:) = [];
-        % zDep(120:560,:) = [];
-        % 
-        % Xmesh(:,1:400) = [];
-        % Xmesh(:,180:600) = [];
-        % Xmesh(1:440,:) = [];
-        % Xmesh(120:560,:) = [];
-        % 
-        % Ymesh(:,1:400) = [];
-        % Ymesh(:,180:600) = [];
-        % Ymesh(1:440,:) = [];
-        % Ymesh(120:560,:) = [];
-        
-        % calculate sinuosity of the shoreline with window size of 100
+                
+        % calculate sinuosity of the shoreline with window size of 50
         sinu = calc_sinuosity(x,y,50);
+        
         % calculate relative angle of shoreline with wave crest angle
         Wind.dir = wind_direction(fn);
         Wind.speed = 1;
+        % calculate shoreline angle and angle of wavefront relative
         [wind_dir,wave_front_angle,shoreline_angle,relative_angle] = calc_shoreline_angle(x,y,Wind,50);
         
          if fn == 1
@@ -74,60 +78,53 @@ for mu = 1:numel(wind_direction)
             title('sinuosity')
             % plot shoreline angle (theta)
             figure;
-            scatter(x,y,50,rad2deg(shoreline_angle),'filled')
+            scatter(x,y,50,wrap_180(rad2deg(shoreline_angle)),'filled')
             colormap(jet)
             colorbar
+            clim([-180 180])
             title('shoreline angle (\theta)')
         end
     
         % plot relative angle (psi - theta)
         figure;
-        scatter(x,y,50,rad2deg(relative_angle),"filled")
-        %colormap(jet_wrap)
-        colormap(jet)
+        scatter(x,y,50,wrap_180(rad2deg(relative_angle)),"filled")
+        colormap(distinct_cmap)
         colorbar
         hold on;
         scatter(x,y,50,'.k')
-        quiver(x_center,y_center,100*cos(wind_dir),100*sin(wind_dir))
+        quiver(x_center,y_center,1e5*cos(wind_dir),1e5*sin(wind_dir))
         hold off
         title('\psi - \theta')
     
-        % retrieve model parameters
-        % resizeFactor = 1/10;
-        % buoy_loc = [200 200];
-        % grid_resolution = [300 300];
-        % planet_to_run = 'Titan-OntarioLacus';
-        % time_to_run = 60;
-        % Wind.dir = wind_direction(fn);
-        % [zDep, buoy_loc, grid_resolution, Xmesh, Ymesh, ~, ~] = degrade_depth_mesh(zDep, buoy_loc, grid_resolution, resizeFactor, Xmesh, Ymesh, x, y);
-        % 
-        % 
         load(fne{fn})
-        %sig_wave = invert_attribute(PeakWave);
-    
-        plot_H = sig_wave.H;
 
-        figure;
-        h = imagesc(Xmesh(1,:),Ymesh(:,1),plot_H);
-        set(h,'AlphaData',~isnan(plot_H))
-        axis equal
-        xlim([-200 500])
-        ylim([-200 500])
-        colorbar
-        hold on
-        plot3(x,y,200.*ones(size(x)),'-r') 
-        quiver(x_center,y_center,80*cos(wind_dir),80*sin(wind_dir),'off','MaxHeadSize',5)
-        set(gca,'YDir','normal')
-        title(sprintf('Waves in %s',fne{fn}))
+        if using_H == 1
+            plot_H = sig_wave.H;
+    
+            figure;
+            h = imagesc(Xmesh(1,:),Ymesh(:,1),plot_H);
+            set(h,'AlphaData',~isnan(plot_H))
+            axis equal
+            xlim([-200 500])
+            ylim([-200 500])
+            colorbar
+            hold on
+            plot3(x,y,200.*ones(size(x)),'-r') 
+            quiver(x_center,y_center,80*cos(wind_dir),80*sin(wind_dir),'off','MaxHeadSize',5)
+            set(gca,'YDir','normal')
+            title(sprintf('Waves in %s',fne{fn}))
+        end
     
     
         for POI = 1:numel(x)
 
-            % Find nearest Z value
-            [H_pt(POI), row, col] = findNearestZ(Xmesh, Ymesh, sig_wave.H, x(POI), y(POI));
-            %title(sprintf('wave height is %f', H_pt(POI)));
-            T_pt(POI) = sig_wave.T(row,col);
-            D_pt(POI) = zDep(row,col);
+            if using_H == 1
+                % Find nearest Z value
+                [H_pt(POI), row, col] = findNearestZ(Xmesh, Ymesh, sig_wave.H, x(POI), y(POI));
+                %title(sprintf('wave height is %f', H_pt(POI)));
+                T_pt(POI) = sig_wave.T(row,col);
+                D_pt(POI) = zDep(row,col);
+            end
 
             H_pt(POI) = 0.9;
             T_pt(POI) = 10.2;
@@ -138,47 +135,51 @@ for mu = 1:numel(wind_direction)
             % T_pt(POI) = sig_wave.T(i_point);
             % D_pt(POI) = zDep(i_point);
 
-            % % Create surface plot
-            % s = imagesc(Xmesh(1,:), Ymesh(:,1), sig_wave.H);
-            % view(2);
-            % hold on;
-            % 
-            % alphaData = ones(size(Xmesh)) * 0.5; 
-            % alphaData(row, col) = 1; % leep selected grid cell fully visible
-            % set(s,'AlphaData',alphaData)
-            % 
-            %  % Plot trajectory and selected point
-            % plot3(x, y, 100 .* ones(size(x)), '-r');
-            % plot3(x(POI), y(POI), 100, 'om');
-            % 
-            % % Highlight selected grid cell
-            % plot3(Xmesh(row, col), Ymesh(row, col), 100, 'or');
-            % 
-            % drawnow;
-            % hold off;
-        
-            % % Save as GIF
-            % if POI == 1
-            %     gif('waves.gif');
-            % else
-            %     gif;
-            % end
-            % 
+            if plot_H_grid_chosen == 1
+                % Create surface plot
+                s = imagesc(Xmesh(1,:), Ymesh(:,1), sig_wave.H);
+                view(2);
+                hold on;
+    
+                alphaData = ones(size(Xmesh)) * 0.5; 
+                alphaData(row, col) = 1; % leep selected grid cell fully visible
+                set(s,'AlphaData',alphaData)
+    
+                 % Plot trajectory and selected point
+                plot3(x, y, 100 .* ones(size(x)), '-r');
+                plot3(x(POI), y(POI), 100, 'om');
+    
+                % Highlight selected grid cell
+                plot3(Xmesh(row, col), Ymesh(row, col), 100, 'or');
+    
+                drawnow;
+                hold off;
+            
+                % Save as GIF
+                if POI == 1
+                    gif('waves.gif');
+                else
+                    gif;
+                end
+            end
+
         end
-    
-    
     
         for ii = 1:numel(x)
             dn_dt(fn,ii) = shoreline_stability(H_pt(ii),T_pt(ii),relative_angle(ii),D_pt(ii));
-            wave_energy(fn,ii) = H_pt(ii).^2.*cos(relative_angle(ii));
-            if cos(relative_angle(ii)) < 0
-                wave_energy(fn,ii) = NaN;
-            end
+            wave_energy(fn,ii) = calculate_wave_energy(H_pt(ii),relative_angle(ii));
         end
         weighted_wave_energy(fn,:) = wave_energy(fn,:).*windPDF(fn); 
         weighted_dn_dt(fn,:) = dn_dt(fn,:).*windPDF(fn);
     end
-    
+
+
+    % figure; 
+    % scatter(x,y,50,'.k')
+    % hold on
+    % scatter(x,y,50,dn_dt(1,:)./max(dn_dt(1,:)),'filled')
+    % colorbar
+
     
     weighted_wave_energy_sum = sum(weighted_wave_energy,1,"omitnan");
     weighted_dn_dt_sum = sum(weighted_dn_dt,1,"omitnan");
@@ -192,7 +193,7 @@ for mu = 1:numel(wind_direction)
     scatter(x,y,50,'k')
     hold on
     scatter(x,y,50,weighted_wave_energy_sum,'filled')
-    quiver(x_center,y_center,100*cos(main_direction),100*sin(main_direction))
+    quiver(x_center,y_center,1e5*cos(main_direction),1e5*sin(main_direction))
     colorbar
     clim([0 1])
     title('normalized weighted wave energy with reoccurence')
@@ -201,7 +202,7 @@ for mu = 1:numel(wind_direction)
     scatter(x,y,50,'k')
     hold on
     scatter(x,y,50,weighted_dn_dt_sum,'filled')
-    quiver(x_center,y_center,100*cos(main_direction),100*sin(main_direction))
+    quiver(x_center,y_center,1e5*cos(main_direction),1e5*sin(main_direction))
     colormap(distinct_cmap)
     colorbar
     clim([-1 1])
@@ -209,6 +210,13 @@ for mu = 1:numel(wind_direction)
     
     [r_wave(mu),s_wave(mu)] = r_squared(weighted_wave_energy_sum,1./sinu,'wave energy','1/sinuoisity');
     [r_diff(mu),s_diff(mu)] = r_squared(weighted_dn_dt_sum,1./sinu,'diffusivity','1/sinuoisity');
+
+    [r_wave_spearman(mu), p_wave_spearman(mu)] = corr(weighted_wave_energy_sum',1./sinu', 'Type', 'Spearman');
+    [r_diff_spearman(mu), p_diff_spearman(mu)] = corr(weighted_dn_dt_sum',1./sinu', 'Type', 'Spearman');
+
+    fprintf('For direction %i:\n diff: r = %f p = %f\n wave: r = %f p= %f\n',rad2deg(wind_direction(mu)),r_diff_spearman(mu), p_diff_spearman(mu), r_wave_spearman(mu), p_wave_spearman(mu))
+
+
     if mu ~= numel(wind_direction)
         close all
     end
@@ -229,7 +237,7 @@ pax = polaraxes; % Create a polar axes manually
 hold on
 
 % Use scatter to simulate shading in the negative r-region
-polarscatter(Theta(:), R(:), 10, [0.8 0.8 0.8], 'filled', 'MarkerFaceAlpha', 0.2);
+polarscatter(Theta(:), R(:), 10, [0.8 0.8 0.8], 'filled', 'MarkerFaceAlpha', 0.02);
 
 % Plot the main polar plot
 polarplot(pax,[wind_direction wind_direction(1)],[s_wave s_wave(1)],'-k','LineWidth',0.5)
@@ -240,22 +248,13 @@ rlim([-1 1])
 hold off
 title('slope of wave energy vs 1/sin w color = R^2')
 
-
-% Define the shaded region
-% theta = linspace(0, 2*pi, 1000); % Full circle angles
-% r_negative = linspace(-1, 0, 50); % Range of negative r values
-% 
-% % Convert polar to Cartesian for shading
-% [Theta, R] = meshgrid(theta, r_negative); 
-% [X, Y] = pol2cart(Theta, R);
-
 % Create figure with polar axes
 figure
 pax = polaraxes; % Create a polar axes manually
 hold on
 
 % Use scatter to simulate shading in the negative r-region
-polarscatter(Theta(:), R(:), 10, [0.8 0.8 0.8], 'filled', 'MarkerFaceAlpha', 0.1);
+polarscatter(Theta(:), R(:), 10, [0.8 0.8 0.8], 'filled', 'MarkerFaceAlpha', 0.02);
 
 % Plot the main polar plot
 polarplot(pax,[wind_direction wind_direction(1)],[s_diff s_diff(1)],'-k','LineWidth',0.5)
@@ -265,6 +264,24 @@ colorbar
 rlim([-1 1])
 hold off
 title('slope of diffusivity vs 1/sin w color = R^2')
+
+
+p_wave_spearman(p_wave_spearman>0.05) = 1;
+p_wave_spearman(p_wave_spearman<= 0.05) = -1;
+
+p_diff_spearman(p_diff_spearman>0.05) = 1;
+p_diff_spearman(p_diff_spearman<=0.05) = -1;
+
+figure;
+pax2 = polaraxes;
+polarplot(pax2,[wind_direction wind_direction(1)],[r_wave_spearman r_wave_spearman(1)],'-k','LineWidth',0.5)
+rlim([-1 1])
+hold on
+polarplot(pax2,[wind_direction wind_direction(1)],[r_diff_spearman r_diff_spearman(1)],'-r','LineWidth',0.5)
+polarscatter(pax2, wind_direction, r_wave_spearman, 50, p_wave_spearman, 'filled');
+polarscatter(pax2, wind_direction, r_diff_spearman, 50, p_diff_spearman, 'filled');
+colorbar
+legend('wave energy','diffusion')
 
 
 function [x_circle, y_circle] = make_circle(x,y)
@@ -281,5 +298,11 @@ function [x_circle, y_circle] = make_circle(x,y)
     theta = linspace(0, 2*pi, 1000);
     x_circle = xc + my_r.*cos(theta);
     y_circle = yc + my_r.*sin(theta);
+
+end
+
+function new_angle = wrap_180(angle)
+    
+    new_angle = mod(angle + 180, 360) - 180;
 
 end
