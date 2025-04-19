@@ -25,10 +25,10 @@ grid on
 legend('show')
 
 
-lake_slope = .46e-3;%0.002000;
+lake_slope = 2e-3;
 alpha_0 = 0;
 min_depth = 10^-4;
-d50 = [6.35e-5:1e-5:0.1];
+d50 = [6.35e-5:1e-5:0.1];  % [fines gravel]
 
 d = max(max(Model.bathy_map)):-lake_slope:min_depth;
 d50 = linspace(d50(1),d50(end),100);

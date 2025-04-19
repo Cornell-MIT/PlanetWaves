@@ -29,7 +29,7 @@ addpath(fullfile('.','rednoise_asylake_1')) % not using the files here but still
 % look here for shoreline, depth, waves (make_deepwater_waves)
 fne = {'0deg.mat','45deg.mat','90deg.mat','135deg.mat','180deg.mat','225deg.mat','270deg.mat','315deg.mat'};
 
-shoreline_choice = 1;
+shoreline_choice = 2;
 % % LAKE SHORELINE WITH SIMPLE BATHYMETRY
 if shoreline_choice == 1
     addpath(fullfile('.','rednoise_asylake_1')) % not using the files here but still need to reference them
@@ -272,15 +272,16 @@ p_wave_spearman(p_wave_spearman<= 0.05) = -1;
 p_diff_spearman(p_diff_spearman>0.05) = 1;
 p_diff_spearman(p_diff_spearman<=0.05) = -1;
 
+wind_direction = wind_direction + pi + pi/2;
 figure;
 pax2 = polaraxes;
-polarplot(pax2,[wind_direction wind_direction(1)],[r_wave_spearman r_wave_spearman(1)],'-k','LineWidth',0.5)
+polarplot(pax2,[wind_direction wind_direction(1)],[r_wave_spearman r_wave_spearman(1)],'-k','LineWidth',2)
 rlim([-1 1])
 hold on
-polarplot(pax2,[wind_direction wind_direction(1)],[r_diff_spearman r_diff_spearman(1)],'-r','LineWidth',0.5)
+polarplot(pax2,[wind_direction wind_direction(1)],[r_diff_spearman r_diff_spearman(1)],'--k','LineWidth',2)
 polarscatter(pax2, wind_direction, r_wave_spearman, 50, p_wave_spearman, 'filled');
 polarscatter(pax2, wind_direction, r_diff_spearman, 50, p_diff_spearman, 'filled');
-colorbar
+colormap(flip(coolRedToCoolGreen(10)));
 legend('wave energy','diffusion')
 
 
@@ -305,4 +306,21 @@ function new_angle = wrap_180(angle)
     
     new_angle = mod(angle + 180, 360) - 180;
 
+end
+
+function cmap = coolRedToCoolGreen(n)
+    if nargin < 1
+        n = 256;
+    end
+
+    
+    cool_red = [0.8, 0.3, 0.4];  % muted rosy red
+    cool_blue = [0.5882, 0.8235,0.5804]; % soft teal blue
+
+    
+    r = linspace(cool_red(1), cool_blue(1), n)';
+    g = linspace(cool_red(2), cool_blue(2), n)';
+    b = linspace(cool_red(3), cool_blue(3), n)';
+
+    cmap = [r g b];
 end
