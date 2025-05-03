@@ -39,10 +39,11 @@ umwm_titan
 ```
 ## To do
 ```
-(1) Unit testing for UMWM-PlanetWaves comparison with Lake Superior 
-(2) Spatially varying wind climate
-(2) Temporally varying wind climate
-(3) Radar scattering from MSS
+(1) Unit testing for UMWM-PlanetWaves comparison with Lake Superior
+(2) Mex for smooth_nu, wavekgt, short
+(3) Spatially varying wind climate
+(4) Temporally varying wind climate
+(5) Radar scattering from MSS
 (4) Parallelize code for higher grid resolution
 
 (a) Check generic runs work (ignores unneccessary packages or adjusts functionality for matlab versions) for Taylor's comments
