@@ -39,7 +39,8 @@ umwm_titan
 ```
 ## To do
 ```
-(1) Spatially varying wind climate
+(1) Unit testing for UMWM-PlanetWaves comparison with Lake Superior 
+(2) Spatially varying wind climate
 (2) Temporally varying wind climate
 (3) Radar scattering from MSS
 (4) Parallelize code for higher grid resolution
