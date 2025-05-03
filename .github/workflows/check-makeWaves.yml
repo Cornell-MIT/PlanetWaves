@@ -1,0 +1,30 @@
+name: Test LakeSuperior When makeWaves.m Changes
+
+on: [push]
+
+jobs:
+  test-makeWaves:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v1
+
+    - name: Check if makeWaves.m changed
+      id: check_diff
+      run: |
+        changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'makeWaves\.m' || true)
+        if [[ -n "$changed" ]]; then
+          echo "changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "changed=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run test if makeWaves.m changed
+      if: steps.check_diff.outputs.changed == 'true'
+      uses: matlab-actions/run-command@v1
+      with:
+        command: test_LakeSuperior
