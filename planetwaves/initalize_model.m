@@ -191,7 +191,17 @@ elseif strcmp(planet_name,'55-Cancrie')
     Planet.surface_press = 0.9869*ATM_2_PASCAL;                            % [1 bar] Hu+2024 (0.01 - 100 bars)     
     Planet.surface_tension = 0.425;                                        % liquid Mount Hood Andesite at 1500 C Nurase & McBirney 1973 (Fig. 31)
     Planet.kgmolwt = 0.044;                                                % (CO2)
-                                  
+         
+elseif strcmp(planet_name,'Lake-Titicaca')
+    % high altitude lake on Earth
+    Planet.rho_liquid = 998.21;                                            % Liquid density [kg/m3]                               
+    Planet.nu_liquid = 1.2e-6;                                             % Liquid Viscosity [m2/s]                        
+    Planet.nua = 1.8153e-8;                                                % Atmospheric gas viscosity [m2/s] (at zero elevation: 1.81206E-5/998.21)
+    Planet.gravity = 9.81;                                                 % Gravity [m/s2]
+    Planet.surface_temp = 288;                                             % Surface Temperature [K]
+    Planet.surface_press = 63165.48;                                       % Surface Pressure at 3812 m above sea level [Pa]       
+    Planet.surface_tension = 0.074;                                        % Liquid Surface Tension [N/m]
+    Planet.kgmolwt = 0.028;                                                % gram molecular weight [Kgm/mol] (N2)
 else
     error('%s not part of default list: %s',planet_name)
 end

@@ -331,31 +331,54 @@ sigH = zeros(1,length(1:model.num_time_steps));                            % ini
 htgrid = cell(1,length(1:model.num_time_steps));                           % initialize htgrid for returning
 wn_e_spectrum =  cell(1,length(1:model.num_time_steps));                          % initialize E-spectrum for returning
 
-UU = wind.speed;                                                 
+if isscalar(wind.speed)
+    mode = 'stationary';
 
-U = UU.*ones(model.LonDim,model.LatDim);                                   % set wind velocity everywhere in x-y plane
-windir = wind.dir.*ones(model.LonDim,model.LatDim);                        % set wind direction everywhere in x-y plane
-windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                     % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
+    UU = wind.speed;                                                 
+    
+    U = UU.*ones(model.LonDim,model.LatDim);                                   % set wind velocity everywhere in x-y plane
+    windir = wind.dir.*ones(model.LonDim,model.LatDim);                        % set wind direction everywhere in x-y plane
+    windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                     % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
+    
+    U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
+    
+    % drag coefficient 
+    Cd = 1.2*ones(size(U));                                                    % drag coefficient for weak/moderate winds 
+    Cd(U > 11) = 0.49 + 0.065*U(U > 11);                                       % drag coefficient for strong winds (Large&Pond1981, Donelan2004)
+    Cd = Cd/1000;                                                              % fix units 
+    
+    modt = 0;                                                                  % model time initialization
+    
+    % Currents superimposed onto wave-driven flow
+    Uer = 0*D + 0.0;                                                           % Eastward current [m/s] 
+    Uei = 0*D + 0.0;                                                           % Northward current [m/s] 
+else
+    mode = 'variable';
 
-U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
+    UU = wind.speed(1);                                                 
+    
+    U = UU.*ones(model.LonDim,model.LatDim);                                   % set wind velocity everywhere in x-y plane
+    windir = wind.dir(1).*ones(model.LonDim,model.LatDim);                        % set wind direction everywhere in x-y plane
+    windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                     % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
+    
+    U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
+    
+    % drag coefficient 
+    Cd = 1.2*ones(size(U));                                                    % drag coefficient for weak/moderate winds 
+    Cd(U > 11) = 0.49 + 0.065*U(U > 11);                                       % drag coefficient for strong winds (Large&Pond1981, Donelan2004)
+    Cd = Cd/1000;                                                              % fix units 
+    
+    modt = 0;                                                                  % model time initialization
+    
+    % Currents superimposed onto wave-driven flow
+    Uer = 0*D + 0.0;                                                           % Eastward current [m/s] 
+    Uei = 0*D + 0.0; 
 
-% drag coefficient 
-Cd = 1.2*ones(size(U));                                                    % drag coefficient for weak/moderate winds 
-Cd(U > 11) = 0.49 + 0.065*U(U > 11);                                       % drag coefficient for strong winds (Large&Pond1981, Donelan2004)
-Cd = Cd/1000;                                                              % fix units 
-
-modt = 0;                                                                  % model time initialization
-
-% Currents superimposed onto wave-driven flow
-Uer = 0*D + 0.0;                                                           % Eastward current [m/s] 
-Uei = 0*D + 0.0;                                                           % Northward current [m/s] 
-
+end
 %% -- loop through model time to grow waves --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 disp('================================================================')
 disp('starting model time iteration')
 disp('================================================================')
-
-ks = eps(1); % start with still surface but can't be exactly zero to define the rough boundary lengthscale
 
 if Etc.showplots
    figure;
@@ -364,6 +387,17 @@ for t = 1:model.num_time_steps                                                  
   
    sumt = 0;                                                                                                                                                     % initialize total time within time-step t
    tplot = - 1; 
+
+   if strcmp(mode,'variable')
+        UU = wind.speed(t);                                                 
+        
+        U = UU.*ones(model.LonDim,model.LatDim);                                   % set wind velocity everywhere in x-y plane
+        windir = wind.dir(t).*ones(model.LonDim,model.LatDim);                        % set wind direction everywhere in x-y plane
+        windir = repmat(windir,[1 1 model.Fdim model.Dirdim]);                     % reshape wind direction matrix by repeating over the frequency and direction arrays in o and p
+        
+        U_z = U; %+ 0.005;                                                         % wind at modeled height (plus small number to wind speed to avoid division by zero)
+        
+   end
 
    while ((model.time_step - sumt) > 0)                                                                                                                          % each time step is determined as min[max(0.1/(Sin-Sds) 0.0001) 2000 UserDefinedTime CourantGrid], iterate until the user-defined time is larger than the time passed within time-step t
       
@@ -788,8 +822,11 @@ for t = 1:model.num_time_steps                                                  
             for yy = 1:model.LatDim
                 if model.bathy_map(yy,xx) > 0
 
+
+                    weighted_peak_f  = weighted_mean_freq(E,xx,yy,model);
                     [peak_freq,peak_freq_ind,loc_peak,dir_ind] = loc_peak_freq(E,xx,yy,model);
                     
+                    m5_f(t,yy,xx) = weighted_peak_f;
                     f_peak(t,yy,xx) = peak_freq;
                     dir_peak(yy,xx) = loc_peak;
                     c_peak(t,yy,xx) = abs(squeeze(c(xx,yy,peak_freq_ind,dir_ind)));
@@ -799,6 +836,7 @@ for t = 1:model.num_time_steps                                                  
                         cg_peak(t,yy,xx) = abs(squeeze(Cg(xx,yy,peak_freq_ind,dir_ind)));
     
                         T_peak(t,yy,xx) = 1/peak_freq;
+                        T_weighted(t,yy,xx) = 1/weighted_peak_f;
 
                         d_L = model.bathy_map(yy,xx)/L_peak(t,yy,xx);
                         d0(t,yy,xx) = ht(xx,yy)/sinh(2*pi*d_L);
@@ -812,6 +850,7 @@ for t = 1:model.num_time_steps                                                  
                         L_peak(t,yy,xx) = NaN;
                         d0(t,yy,xx) = NaN;
                         um(t,yy,xx) = NaN;
+                        T_weighted(t,yy,xx) = NaN;
                     end
                 end
                 
@@ -832,6 +871,8 @@ for t = 1:model.num_time_steps                                                  
         PeakWave.cg = cg_peak';
         T_peak = smooth_ringing(T_peak,sigH);
         PeakWave.T = T_peak';
+        T_weighted = smooth_ringing(T_weighted,sigH);
+        PeakWave.T_weighted = T_weighted';
         L_peak = smooth_ringing(L_peak,sigH);
         PeakWave.L = L_peak';
         c_peak = smooth_ringing(c_peak,sigH);
@@ -846,15 +887,18 @@ for t = 1:model.num_time_steps                                                  
         PeakWave.um = um';
         f_peak = smooth_ringing(f_peak,sigH);
         PeakWave.f = f_peak';
+        
     else
         PeakWave.cg = NaN;
         PeakWave.T = NaN;
+        PeakWave.T_weighted = NaN;
         PeakWave.L = NaN;
         PeakWave.c = NaN;
         PeakWave.H = NaN;
         PeakWave.d0 = NaN;
         PeakWave.um = NaN;
         PeakWave.f = NaN;
+        
         
     end
   end
