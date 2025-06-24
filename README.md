@@ -1,4 +1,4 @@
-# PLANETWAVES is a four dimensional spectral wave model adapted from the University of Miami wave model ([UMWM](https://github.com/umwm/umwm)) to produce surface waves for a given bathymetry and a given wind climate on different planets. The model has been validated using buoy data at the Great Lakes and previous wave tank experiments for different surface pressure, temperature, salinity.
+# PLANETWAVES is a four-dimensional spectral wave model adapted from the University of Miami wave model ([UMWM](https://github.com/umwm/umwm)) to produce surface waves for a given bathymetry and a given wind climate on different planets. The model has been validated using buoy data at the Great Lakes and previous wave tank experiments for different surface pressure, temperature, and salinity.
 
 ```
 umwm_titan
@@ -45,7 +45,9 @@ umwm_titan
 (4) Temporally varying wind climate
 (5) Radar scattering from MSS
 (4) Parallelize code for higher grid resolution
-
+(5) Error message explaining
+    - energy leakage for T_peak = T_max
+    - cutoff frequency limitations
 (a) Check generic runs work (ignores unneccessary packages or adjusts functionality for matlab versions) for Taylor's comments
 (b) update docs
 (c) migrate to final repo location
