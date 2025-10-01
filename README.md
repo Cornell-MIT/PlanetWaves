@@ -37,18 +37,4 @@ umwm_titan
 |   └── unit_testing : scripts for unit testing model
 └── validation : scripts comparing wave heights in model to buoy data on Earth and past empirical models
 ```
-## To do
-```
-(1) Unit testing for UMWM-PlanetWaves comparison with Lake Superior
-(2) Mex for smooth_nu, wavekgt, short
-(3) Spatially varying wind climate
-(4) Temporally varying wind climate
-(5) Radar scattering from MSS
-(4) Parallelize code for higher grid resolution
-(5) Error message explaining
-    - energy leakage for T_peak = T_max
-    - cutoff frequency limitations
-(a) Check generic runs work (ignores unneccessary packages or adjusts functionality for matlab versions) for Taylor's comments
-(b) update docs
-(c) migrate to final repo location
-```
+
