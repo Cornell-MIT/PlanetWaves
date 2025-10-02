@@ -1,5 +1,13 @@
 # PLANETWAVES is a four-dimensional spectral wave model adapted from the University of Miami wave model ([UMWM](https://github.com/umwm/umwm)) to produce surface waves for a given bathymetry and a given wind climate on different planets. The model has been validated using buoy data at the Great Lakes and previous wave tank experiments for different surface pressure, temperature, and salinity.
 
+## Mars
+<img width="6998" height="8840" alt="MarsJezero" src="https://github.com/user-attachments/assets/0141fd77-4f6a-4474-bb8f-e54a7a4c274e" />
+
+## Titan
+<img width="7411" height="9047" alt="TitanWaves" src="https://github.com/user-attachments/assets/b1848b39-5ae7-444b-9958-8034a63808ae" />
+
+
+## Directory 
 ```
 umwm_titan
 ├── applications : model run scripts
@@ -37,4 +45,3 @@ umwm_titan
 |   └── unit_testing : scripts for unit testing model
 └── validation : scripts comparing wave heights in model to buoy data on Earth and past empirical models
 ```
-
