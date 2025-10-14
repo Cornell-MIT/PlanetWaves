@@ -1,11 +1,12 @@
-function LST = CERC(H,T,relative_angle)
-    
-    for a = 1:numel(relative_angle)
-        if relative_angle(a) >= -pi/2 &&  relative_angle(a) <= pi/2
-            LST(a) = (H^(12/5))*(T^(1/5))*(cos(relative_angle(a))^(6/5))*sin(relative_angle(a));
-        else
-            LST(a) = NaN;
-        end
-    end
+function LST = CERC(H,T,ang)
+% takes in angles in degree
+
+ang_rad = deg2rad(ang);
+valid_idx = (ang_rad >= -pi/2) & (ang_rad <= pi/2);
+
+LST = NaN(size(ang));
+LST(valid_idx) = (H^(12/5)) * (T^(1/5)) * ...
+                 (cosd(ang(valid_idx)).^(6/5)) .* sind(ang(valid_idx));
+
 end
 
