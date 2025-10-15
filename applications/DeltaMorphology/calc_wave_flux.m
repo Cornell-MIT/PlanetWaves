@@ -1,4 +1,4 @@
-function Qsmax = wave_flux(E_pdf,sang)
+function Qsmax = calc_wave_flux(E_pdf,sang)
     % Calculates the maximum wave transport to the left or right of a shoreline by waves
     % can be compared with riverine input to get R = Q_river / Qsmax where Qsmax is this function
 
