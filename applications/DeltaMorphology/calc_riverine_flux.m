@@ -1,36 +1,40 @@
-function [sand_river,gravel_river] = riverine_flux(rho_s,rho,nu,g,gravel_D50,fines_D50,width,slope)
-% riverine sediment flux based on Birch+2023 
+function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet,river)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% riverine sediment flux based on Birch+2023 based on river's width and slope
 % INPUTS:
-%   rho_s  = sediment density [kg/m3]
-%   rho    = liquid density [kg/m3]
+%   planet
+%       rho_s  = sediment density [kg/m3]
+%       rho    = liquid density [kg/m3]
+%       g      = gravity [m/s^2]
+%       nu     = viscosity [m^2/s]
+%   river
+%       width      = width of river cross-stream [m]
+%       slope      = slope of river downstream [m/m]
+% OUTPUTS:
+%   bedload_dominated
+%       D50    = grain size [m]
+%       H      = river depth [m]
+%       Q      = flow discharge [m3/s]
+%       Qs     = sediment flux [m3/s]
+%   suspendedload_dominated
+%       D50    = grain size [m]
+%       H      = river depth [m]
+%       Q      = flow discharge [m3/s]
+%       Qs     = sediment flux [m3/s]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    if isnan(width)
-        mode = 'slope-derivation';
-        %disp('Computing non-dimensional flow parameters using slope-estimate')
-    end
-    if isnan(slope)
-        mode = 'width-derivation';
-        %disp('Computing non-dimensional flow parameters using width-estimate')
-    end
 
+    R = planet.rho_s/planet.rho - 1;
+
+    % calculate river discharge, sediment size, and sediment flux for bedload dominated
+    bedload_dominated = calc_bedload_dominated(river.width,river.slope,planet.g,constants_bedload(R));
     
-    R = rho_s/rho - 1;
-    Re_p = fines_D50*sqrt((R*g*fines_D50)/nu);
-    
-
-    if strcmp(mode,'width-derivation')
-        bedload_constants = constants_bedload(R);
-        gravel_river = bedload(g,width,gravel_D50,bedload_constants);
-
-        susload_constants = constants_suspended_load(R,Re_p);
-        sand_river = sus_load(g,width,fines_D50,R,nu,susload_constants);
-
-    else
-        error('slope derivation not implemented')
-    end
+    Re_p = (bedload_dominated.D50*sqrt(R*planet.g*bedload_dominated.D50))/planet.nu;
+    % calculate river discharge, sediment size, and sediment flux for suspended load dominated river
+    suspendedload_dominated = calc_susload_dominated(river.width,river.slope,planet.g,planet.nu,R,constants_suspended_load(R,Re_p));
 
 % -- BEDLOAD -------------------------------------------------------------------------- %
-    function gravel_river = bedload(g,width,D50,constants)
+    function bedload_dominated = calc_bedload_dominated(B,S,g,constants)
 
         alpha_b = constants.alpha_b;
         alpha_h = constants.alpha_h;
@@ -42,22 +46,24 @@ function [sand_river,gravel_river] = riverine_flux(rho_s,rho,nu,g,gravel_D50,fin
         n_s = constants.n_s;
         n_y = constants.n_y;
 
-        Q = (((1/alpha_b)*(width*(g^(0.5*n_b + 0.2))*(D50^(2.5*n_b)))))^(1/(n_b + 0.4)); % eqn 4aa
-        H = alpha_h*(Q^(n_h + 0.4))*(g^(-(0.5*n_h + 0.2)))*(D50^(-(2.5*n_h))); % eqn 10a
-        B = alpha_b*((Q^(n_b + 0.4))*(g^(-(0.5*n_b + 0.2)))*(D50^(-2.5*n_b))); % eqn 10b
-        S = alpha_s*((Q^n_s)*(g^(-0.5*n_s))*(D50^(-2.5*n_s))); % eqn 10c
-        Qs = alpha_y*((Q^n_y)*(g^(0.5*(1-n_y)))*(D50^(2.5*(1-n_y)))); % eqn 10d
-
         % returns the values with SI units (not the non dimensional forms)
-        gravel_river.B = B;
-        gravel_river.H = H;
-        gravel_river.S = S;
-        gravel_river.Q = Q;
-        gravel_river.Qs = Qs;
+        D50 = (B/alpha_b)*((alpha_s/S)^((n_b + 0.4)/n_s)); % Eqn. 4bb
+        Q = ((S/alpha_s)^(1/n_s))*(g^0.5)*(D50^2.5); % Eqn. 4aa
+        H = alpha_h*(Q^(0.4+n_h)*g^(-0.2 - 0.5*n_h)*(D50^(-2.5*n_h)));
+
+        Q_nondim = Q/((g^0.5)*(D50^2.5));
+
+        Qs = alpha_y*(Q_nondim^n_y);
+
+        bedload_dominated.D50 = D50;
+        bedload_dominated.H = H;
+        bedload_dominated.Q = Q;
+        bedload_dominated.Qs = Qs;
+        
 
     end
 
-    function sand_river = sus_load(g,width,D50,R,nu,constants)
+    function susload_dominated = calc_susload_dominated(B,S,g,nu,R,constants)
         alpha_b = constants.alpha_b;
         alpha_h = constants.alpha_h;
         alpha_s = constants.alpha_s;
@@ -73,18 +79,19 @@ function [sand_river,gravel_river] = riverine_flux(rho_s,rho,nu,g,gravel_D50,fin
         n_s = constants.n_s;
         n_y = constants.n_y;
 
-        Q = (((width/alpha_b))*(g^(0.5*(n_b - m_b) + 0.2))*(D50^(2.5*n_b - 1.5*m_b))*(R^(-0.5*m_b))*(nu^m_b))^(1/(n_b + 0.4)); % eqn 5a
-        
-        H = alpha_h*(Q^(n_h + 0.4))*(g^(0.5*(m_h - n_h) - 0.2))*(D50^(1.5*m_h - 2.5*n_h))*(R^(0.5*m_h))*(nu^(-m_h)); % eqn 11a
-        B = alpha_b*(Q^(n_b + 0.4))*(g^(-(0.5*n_b + 0.2) + 0.5*m_b))*(D50^(-2.5*n_b + 1.5*m_b))*(nu^-m_b)*(R^(0.5*m_b)); % eqn 11b
-        S = alpha_s*(Q^n_s)*(g^(0.5*(m_s - n_s)))*(D50^(-2.5*n_s + 1.5*m_s))*(nu^(-m_s))*(R^(0.5*m_s)); % eqn 11c
-        Qs = (3.6e-5)*(Q^n_y)*(g^(0.5*(1-n_y) -0.06))*(D50^(2.5*(1-n_y) - 0.18))*(nu^0.12)*(R^-0.06);
+        exp1 = (n_b + 0.4)/n_s;
+        exp2 = -0.5*n_b*(m_s/n_s) - 0.2*(m_s/n_s) + 0.5*m_b;
+        exp3 = 1/(1.5*n_b*(m_s/n_s) + 0.6*(m_s/n_s) - 1.5*m_b - 1);
+        D50 = ((alpha_b/B)*((S/alpha_s)^(exp1))*(((R*g)/(nu^2))^exp2))^exp3; % Eqn. 5b
+        Q = ((B/alpha_b)*(g^(0.5*(n_b - m_b)+0.2))*(D50^(2.5*n_b - 1.5*m_b))*(R^(-0.5*m_b))*(nu^m_b))^(1/(n_b + 0.4)); % Eqn. 5a
+        H = alpha_h*(Q^(n_h + 0.4)*(g^(0.5*(m_h - n_h)-0.2)*(D50^(1.5*m_h - 2.5*n_h))*(R^(0.5*m_h))*(nu^(-m_h)))); 
+        Qs = alpha_y*(Q^n_y)*(g^((1-n_y)/2))*(D50^(2.5*(1-n_y)));
 
-        sand_river.B = B;
-        sand_river.H = H;
-        sand_river.S = S;
-        sand_river.Q = Q;
-        sand_river.Qs = Qs;
+
+        susload_dominated.D50 = D50;
+        susload_dominated.H = H;
+        susload_dominated.Q = Q;
+        susload_dominated.Qs = Qs;
     end
 
 % -- POWER LAW CONSTANTS ---------------------------------------------------------------- %

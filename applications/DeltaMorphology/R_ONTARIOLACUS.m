@@ -42,13 +42,12 @@ Titan_cold.rho = 0.67*1000;
 Titan_cold.nu = 0.003/10000;
 Titan_cold.g = 1.35;
 
-vidflumina.coldbedload_D50 = [3.8 10]/100;
-vidflumina.susload_D50 = 6.35e-5;
 vidflumina.width = [100 175];
 vidflumina.slope = [0.0011 0.0015];
 
-[river_susload,river_bedload] = riverine_flux(Titan_cold.rho_s,Titan_cold.rho,Titan_cold.nu,Titan_cold.g,vidflumina.coldbedload_D50(1),vidflumina.susload_D50,vidflumina.width(1),NaN);
-
+for i = 1:numel(vidflumina.width)
+    [river_susload(i),river_bedload(i)] = calc_riverine_flux(Titan,vidflumina.width(i),vidflumina.slope(i));
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate fluvial dominance R (Qriver/Qwaves)
 
