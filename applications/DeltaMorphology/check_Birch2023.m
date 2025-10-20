@@ -31,9 +31,11 @@ Mars_DistalFan.width = 27;
 Mars_CentralFan.slope = 0.01;
 Mars_CentralFan.width = 27;
 
-[suspendedload_dominated,bedload_dominated] = calc_riverine_flux(Mars,Mars_DistalFan);
+[~,bedload_dominated] = calc_riverine_flux(Mars,Mars_DistalFan);
+display_results(ab,bedload_dominated,'MARS','DISTAL FAN')
+[~,bedload_dominated] = calc_riverine_flux(Mars,Mars_CentralFan);
+display_results(bc,bedload_dominated,'MARS','CENTRAL FAN')
 
-display_results(suspendedload_dominated,bedload_dominated,'MARS','DISTAL FAN')
 
 % Table S4
 Jezero.slope = 0.03;
@@ -54,12 +56,11 @@ Titan_VidFlum_max.width = 175;
 
 
 
-    
-
-
 
 function display_results(suspended_load,bedload,planet,rivername)
 
+        
+    
     fprintf('For %s on %s:\n',rivername,planet)
     disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     disp('BEDLOAD DOMINATED')

@@ -1,4 +1,4 @@
-function Qsmax = calc_wave_flux(E_pdf,sang)
+function Qsmax = calc_wave_flux(E_pdf,wave,sang)
     % Calculates the maximum wave transport to the left or right of a shoreline by waves
     % can be compared with riverine input to get R = Q_river / Qsmax where Qsmax is this function
 
@@ -8,19 +8,18 @@ function Qsmax = calc_wave_flux(E_pdf,sang)
     %   for example, 
     %       if wave = 0 then waves traveling East->West, if wave = 90 then waves traveling from
     %       North -> South
-    
-    % (2) sang is the angle (deg) of the normal vector CCW from East of the regional shoreline without a delta
+    % (2) wave is direction waves coming from (degrees CCW from east)
+    % (3) sang is the angle (deg) of the normal vector CCW from East of the regional shoreline without a delta
     %   for example,
     %       if sang = 0 then shoreline goes from North -> South with liquid on the East side
     %       if sang = 90 then shoreline goes from West -> East with liquid on top
 
     
-    make_main_plot = 1;                                                    % make a plot of the wave energy pdf & the Qsmax as a function of the regional shoreline orientation 
+    make_main_plot = 0;                                                    % make a plot of the wave energy pdf & the Qsmax as a function of the regional shoreline orientation 
     make_subplot = 0;                                                      % shows intermediate plots for comparison with Nienhuis+2015
 
 
-    % direction waves coming from
-    wave = 0:359;                                                          % degrees CCW from E
+
 
     if make_main_plot 
         figure

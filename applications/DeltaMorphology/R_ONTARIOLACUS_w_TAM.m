@@ -2,13 +2,16 @@ clc
 clear
 close all
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Housekeeping
 
 % Ontario Lacus shoreline
 addpath(fullfile('..','..','\data\Titan\TitanLakes\shoreline'))
 
-
+% Juan's GCM winds
+fl = 'C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\PlanetWaves\data\Titan\TAMwTopo';
+load('OL_winds.mat','mag_wind','angle_wind')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate max flux from waves
@@ -17,7 +20,7 @@ addpath(fullfile('..','..','\data\Titan\TitanLakes\shoreline'))
 load('ontariolacus_shoreline.mat')
 x = lon; y = lati;
 x(1) = []; y(1) = [];
-%[x, y] = make_circle(x,y); % make a simple shape for testing
+[x, y] = make_circle(x,y); % make a simple shape for testing
 
 % Calculate the regional shoreline orientaiton at each point
 window_size_ang = 5; % size of window to define the regional shoreline orientation over
@@ -25,13 +28,10 @@ shoreline_angle = calc_regional_shoreline_angle(x, y,window_size_ang);
 
 
 % Specify wave climate
-wave_mean = 180; % degrees CCW from E
-wave_std = 500;
-wave = 0:359;
-E_pdf = vonMises(deg2rad(wave_mean),deg2rad(wave_std),deg2rad(wave));
+[E_pdf, wave] = make_wind_rose(mag_wind,mod(angle_wind+180,360),1);
 
 % Calculate wave flux of sediment
-wave_sed_flux = calc_wave_flux(E_pdf,rad2deg(shoreline_angle)); % this is not specific to a size?
+wave_sed_flux = calc_wave_flux(E_pdf,rad2deg(shoreline_angle)); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate max flux from largest unobservable rivers
@@ -41,16 +41,18 @@ Titan_cold.rho = 0.67*1000;
 Titan_cold.nu = 0.003/10000;
 Titan_cold.g = 1.35;
 
-vidflumina.width = [100 175];
-vidflumina.slope = [0.0011 0.0015];
+vidflumina(1).width = 100;
+vidflumina(1).slope = 0.0011;
+vidflumina(2).width = 175;
+vidflumina(2).slope = 0.0015;
 
 for i = 1:numel(vidflumina.width)
-    [river_susload(i),river_bedload(i)] = calc_riverine_flux(Titan,vidflumina.width(i),vidflumina.slope(i));
+    [river_susload(i),river_bedload(i)] = calc_riverine_flux(Titan_cold,vidflumina(i));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate fluvial dominance R (Qriver/Qwaves)
 
-R = river_bedload.Qs./wave_sed_flux;
+R = river_bedload(1).Qs./wave_sed_flux;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOTS 
@@ -93,7 +95,7 @@ figure('Name','Delta Morph R')
 scatter(x,y,10,log10(R))
 colormap(distinct_cmap)
 colorbar;
-clim([-10 10])
+clim([-2 2])
 title('log10 R')
 axis equal padded
 

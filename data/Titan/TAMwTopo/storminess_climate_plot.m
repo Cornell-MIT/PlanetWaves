@@ -7,11 +7,11 @@ duration_years = 10;
 %stopi = round(total/(10/duration_years));
 stopi = total;
 % ONTARIO LACUS
-% loni = 34;
-% lati = 3; 
+loni = 34;
+lati = 3; 
 % LIGEIA MARE
-loni = 45; 
-lati = 31; 
+% loni = 45; 
+% lati = 31; 
 
 
 % 1 Titan Year = 29.5 Earth Year = 258420 hours
@@ -22,7 +22,8 @@ lati = 31;
 % Measurements per Year = (258420 / 6) = 43070
 
 
-fn = "C:\Users\Owner\OneDrive\Desktop\Main\Work\MIT\External_Data\TAM.10mwinds.L24.table950.k1e-4.y181-190.6-hourly.nc";
+fn = "C:\Users\Owner\OneDrive\Documents\00_Main\Work\MIT\External_Data\TAM.10mwinds.L24.table950.k1e-4.y181-190.6-hourly.nc";
+
 fileinfo = ncinfo(fn);
 lon = ncread(fn, 'lon');
 lat = ncread(fn, 'lat');
@@ -39,9 +40,7 @@ mag_wind = sqrt(u_ol.^2 + v_ol.^2);
 angle_wind = mod(rad2deg(atan2(v_ol,u_ol)) + 360,360);
 
 
-
-
-figure;
+figure('Name','Wave Energy PDF');
 plot((1:length(mag_wind))./64,mag_wind);
 xlabel('days')
 ylabel('|u|')
