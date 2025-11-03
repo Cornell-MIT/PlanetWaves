@@ -24,6 +24,15 @@ size_lake = size(depth_profile);
 
 Model.LonDim = size_lake(2);                                               % Number of Grid Cells in X-Dimension (col count)
 Model.LatDim = size_lake(1);                                               % Number of Grid Cells in Y-Dimension (row count)
+
+if ( (buoy_loc(1) == 1 || buoy_loc(2) == 1 || ...
+         buoy_loc(1) == Model.LonDim || buoy_loc(2) == Model.LatDim))
+
+    error('Buoy cannot be located at the edge of the grid. Choose different buoy_loc')
+end
+
+
+
 Model.Fdim = 50;                                                           % Number of Frequency bins
 Model.Dirdim = 72;                                                         % Number of angular (th) bins, must be factorable by 8 for octants to satisfy the Courant condition of numerical stability
 Model.long = buoy_loc(1);                                                  % longitude grid point for sampling during plotting

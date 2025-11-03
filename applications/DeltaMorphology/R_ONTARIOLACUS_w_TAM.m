@@ -22,6 +22,10 @@ angle_wind_rad = deg2rad(angle_wind);
 angle_wind_deg = angle_wind;
 clearvars angle_wind
 
+figure;
+wind_rose(angle_wind_deg,mag_wind)
+figure;
+histogram(mag_wind)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate max flux from waves
 

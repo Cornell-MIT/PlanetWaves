@@ -5,7 +5,7 @@ close all
 make_plot = 0;
 
 % Add path to shoreline data
-addpath(fullfile('..','..','\data\Titan\TitanLakes\shoreline'))
+addpath(genpath(fullfile('..','subroutines','waveflux')));
 
 % Load in shoreline
 load('ontariolacus_shoreline.mat')
@@ -19,8 +19,13 @@ x = x ./ 1000;
 y = y ./ 1000;
 
 num_directions = 360;
-fetch_matrix = calc_fetch(x, y, num_directions);
+fetch_matrix_km = calc_fetch(x, y, 1:numel(x),1:360);
 max_fetch = max(fetch_matrix,[],2,'omitmissing');
+
+figure;
+scatter(x,y,50,max_fetch)
+colorbar
+
 
 my_dir = linspace(0, 360 - 360/num_directions, num_directions);
 

@@ -1,4 +1,4 @@
-function [Qsmax_total, Qsmax_ts] = calc_wave_flux_per_wave(wind_angle, wind_mag, x,y,sang)
+function [Qsmax_total, Qsmax_ts] = calc_wave_flux_per_wave(wind_angle, wind_mag, x,y)
     % Calculates Qsmax over a time series of wave angle/mag for multiple shoreline orientations
     % 
     % INPUTS:
@@ -11,7 +11,7 @@ function [Qsmax_total, Qsmax_ts] = calc_wave_flux_per_wave(wind_angle, wind_mag,
     %   Qsmax_ts:    [N x T] time series of Qsmax per shoreline
 
     % Calculate the regional shoreline orientaiton at each point
-    window_size_ang = 50; % size of window to define the regional shoreline orientation over
+    window_size_ang = 10; % size of window to define the regional shoreline orientation over
     shoreline_angle_rad = calc_regional_shoreline_angle(x, y,window_size_ang);
     sang = rad2deg(shoreline_angle_rad);
 
@@ -20,15 +20,16 @@ function [Qsmax_total, Qsmax_ts] = calc_wave_flux_per_wave(wind_angle, wind_mag,
     N = numel(sang);                        % Number of shoreline angles
 
     Qsmax_total = zeros(1, N);              % Output: total Qsmax per shoreline
-    Qsmax_ts = zeros(N, T);                 % Output: per-time-step Qsmax per shoreline
+    Qsmax_ts = NaN(N, T);                 % Output: per-time-step Qsmax per shoreline
+    
+    figure;
+    Qsnet_total = zeros(size(thetas));  % Accumulate over time is this keep resetting to zero?
 
-    % Loop over shoreline orientations
-    for c = 1:N
-        regional_shoreline = sang(c);
-        Qsnet_total = zeros(size(thetas));  % Accumulate over time
-
-        for t = 1:T
-            angle = wind_angle(t);
+    for t = 1:T     % Loop over time
+        angle = wind_angle(t);
+        for c = 1:N % loop over shoreline points
+            regional_shoreline = sang(c);
+            
 
             fetch = calc_fetch(x,y,c,mod(angle + 180, 360)); 
             [wave_height,wave_period,~] = wind2wave(wind_mag(t),fetch);
@@ -55,11 +56,39 @@ function [Qsmax_total, Qsmax_ts] = calc_wave_flux_per_wave(wind_angle, wind_mag,
             Qsmaxright = max(Qsnet(thetas <= 0));
             Qsminleft = min(Qsnet(thetas >= 0));
             Qsmax_ts(c, t) = Qsmaxright - Qsminleft;
+          
         end
 
-        % Compute total Qsmax after all time steps
+            clf
+            hold on;
+            axis equal;
+            
+            % Plot shoreline polygon
+            plot(x, y, 'k-', 'LineWidth', 2);
+            scatter(x, y, 50,Qsmax_ts(:,t), 'filled' );
+                       
+            % Plot wind direction arrows
+            % Convert wind angle (degrees CCW from East) to dx, dy for quiver
+            theta_rad = deg2rad(wind_angle(1));  % constant wind
+            dx = cos(theta_rad);
+            dy = sin(theta_rad);
+            
+            % Scale arrows
+            arrow_scale = 10;
+            
+            quiver(mean(x), mean(y), dx*arrow_scale, dy*arrow_scale, 'r', 'LineWidth', 2, 'MaxHeadSize', 2);
+            text(mean(x)+dx*arrow_scale, mean(y)+dy*arrow_scale, 'Wind', 'Color','r','FontSize',12);
+            
+            xlabel('X');
+            ylabel('Y');
+            title('Shoreline and Wind Direction');
+            grid on;
+            hold off;
+            drawnow
+
+    end
+            % Compute total Qsmax after all time steps
         Qsmaxright_total = max(Qsnet_total(thetas <= 0));
         Qsminleft_total = min(Qsnet_total(thetas >= 0));
         Qsmax_total(c) = Qsmaxright_total - Qsminleft_total;
-    end
 end
