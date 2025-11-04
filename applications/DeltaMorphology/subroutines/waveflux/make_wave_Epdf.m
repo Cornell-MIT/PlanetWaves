@@ -43,7 +43,8 @@ function [theta_centers, Epdf] = make_wave_Epdf(H, theta,rho,g)
 
     if make_plot
         figure;
-        polarplot(deg2rad(theta_centers),Epdf)
+        polarplot(deg2rad(theta_centers),Epdf,'-k','LineWidth',2)
+        title('energy pdf')
     end
 
 end

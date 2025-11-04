@@ -7,7 +7,7 @@ function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
 %   min_fetch_distance  : minimum distance to consider a valid fetch (optional)
 % Outputs:
 %   fetch : [numel(wind_to_deg) x numel(x)] matrix of fetch distances
-%
+%           distance along ray in direction of wind until ray exits the lake polygon
     make_plot = 0; 
     % Cyan: test point along ray
     % Red: invalid fetch

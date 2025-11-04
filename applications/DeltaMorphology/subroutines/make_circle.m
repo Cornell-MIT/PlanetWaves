@@ -1,4 +1,4 @@
-function [x_circle, y_circle] = make_circle(x,y)
+function [x_circle, y_circle] = make_circle(x,y,N)
 
     polyin = polyshape(x,y);
     [xc,yc] = centroid(polyin);
@@ -9,7 +9,7 @@ function [x_circle, y_circle] = make_circle(x,y)
 
     my_r = max(mydist);
 
-    theta = linspace(0, 2*pi, 1000);
+    theta = linspace(0, 2*pi, N);
     x_circle = xc + my_r.*cos(theta);
     y_circle = yc + my_r.*sin(theta);
 
