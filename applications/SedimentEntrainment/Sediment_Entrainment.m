@@ -65,8 +65,9 @@ for c = 1:numel(lakes)
     for u = 1:numel(test_speeds)
 
             % shoaling waves
-            L_shoal = L0(c,u) * sqrt(tanh(4*(pi^2)*d/(T(c,u)^2*Planet.gravity)));
+            L_shoal = L0(c,u) * sqrt(tanh(4*(pi^2)*d/(T(c,u)^2*Planet.gravity))); % Eckhart aproximation to not solve recursively 
             d_L = d ./ L_shoal;
+      
             alpha = asin(tanh((2*pi.*d_L).*sin(alpha_0)));
             C_shoal = C0(c,u) * tanh(2*pi*d_L);
             n = 0.5 * (1 + ((4*pi*d_L)./sinh(4*pi*d_L)));
@@ -75,11 +76,11 @@ for c = 1:numel(lakes)
             KS = sqrt(Cg0(c,u)./Cg_shoal);
             H_shoal = KR .* KS .* H0(c,u);
             % orbital size, velocity, breaking wave condition
-            d0_shoal = (H_shoal / 2) .* (1 ./ sinh(2*pi*d_L));
+            d0_shoal = (H_shoal / 2) .* (1 ./ sinh(2*pi*d_L)); % <-- from Komar/Miller, for z = -d
             if test_speeds(u) == 0.7 || test_speeds(u) == 0.8
                 max_d0_shoal = [max_d0_shoal max(d0_shoal,[],'omitnan')];
             end
-            um_shoal = (H_shoal / 2) .* ((Planet.gravity * T(c,u)) ./ L_shoal) .* (1 ./ cosh(2*pi*d_L));
+            um_shoal = (H_shoal ) .* ((Planet.gravity * T(c,u)) ./ L_shoal) .* (1 ./ cosh(2*pi*d_L)); % <-- from Komar/Miller, deep-water
             break_frac = H_shoal ./ L_shoal;
             break_frac(break_frac >= max_steepness) = NaN;
 
@@ -123,7 +124,6 @@ for c = 1:numel(lakes)
     end
 end
 
-fprintf('Bedforms for wind speeds 0.7-0.8 m/s = %0.2f')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT ONE: PLOT OF ENTRAINMENT DEPTH VS WIND SPEED (w LAKE COMPOSITION)

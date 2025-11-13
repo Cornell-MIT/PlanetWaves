@@ -72,8 +72,8 @@ function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
             end
 
             [in, on] = inpolygon(first_step(1), first_step(2), x, y);
-            if ~any(in) && ~any(on)
-                % if test point is outside polygon then invalid direction
+            if ~in || on
+                % if test point is outside or parallel to the boundary polygon then invalid direction
                 fetch(wind_idx, pt_idx) = 0;
                 if make_plot
                     % if test point is outside the polygon then fetch is invalid and cross out with a red x

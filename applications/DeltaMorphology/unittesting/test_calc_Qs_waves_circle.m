@@ -14,8 +14,8 @@ g = 9.81;
 rho = 1000;
 
 % simple climate
-wind_mag = [5 10];
-wind_angle = [0 90]; % wind going from west to east = 0, positive CCW
+wind_mag = [5 10 5];
+wind_angle = [0 90 310]; % wind going from west to east = 0, positive CCW
 
 % run model
 [a,b] = calc_Qs_waves(x,y,wind_mag(:),wind_angle(:),rho,g);
