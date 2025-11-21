@@ -1,17 +1,13 @@
-function [wave_height, wave_period, wave_length] = wind2wave(wind_speed, fetch, g)
+function [wave_height, wave_period, wave_length] = wind2wave(wind_speed, fetch, rho, g)
 % WIND2WAVE: Compute steady-state wave properties from wind & fetch
 % and plot results cumulatively across multiple calls.
 % wind_speed has size [1 x numel(timesteps)]
 % fetch has size [numel(wind_speed) x numel(points)])
 % returns waves with properties with size [numel(wind_speed) x numel(points)]
 
-    persistent warning_shown 
-
-    if isempty(warning_shown)
-        warning('wind2wave: Using SMB/Young(1991) Fetch-Limited Growth with JONSWAP comparison.');
-        warning_shown = true;
-    end
-
+  
+    warning('wind2wave: Using SMB/Young(1991) Fetch-Limited Growth with JONSWAP comparison.');
+    
     F = fetch;
     U = wind_speed(:);
     U = repmat(U, 1, size(F, 2)); % copies u where each row has same value of u to match fetch dimensions for vectorization

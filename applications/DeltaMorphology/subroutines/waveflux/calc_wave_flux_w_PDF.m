@@ -1,4 +1,4 @@
-function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
+function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
     % Calculates the maximum wave transport to the left or right of a shoreline by waves
     % can be compared with riverine input to get R = Q_river / Qsmax where Qsmax is this function
 
@@ -6,9 +6,9 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
     % INPUTS
     % (1) E_pdf is wave climate energy pdf defined over range 0:359 degrees (wave) for direction waves coming from
     %   for example, 
-    %       if wave = 0 then waves traveling East->West, if wave = 90 then waves traveling from
+    %       if wave_dir = 0 then waves traveling East->West, if wave = 90 then waves traveling from
     %       North -> South
-    % (2) wave is direction waves coming from (degrees CCW from east)
+    % (2) wave_dir_deg is direction waves coming from (degrees CCW from east)
     % (3) sang is the angle (deg) of the normal vector CCW from East of the regional shoreline without a delta
     %   for example,
     %       if sang = 0 then shoreline goes from North -> South with liquid on the East side
@@ -18,15 +18,7 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
     make_main_plot = 0;                                                    % make a plot of the wave energy pdf & the Qsmax as a function of the regional shoreline orientation 
     make_subplot = 0;                                                      % shows intermediate plots for comparison with Nienhuis+2015
 
-
-
-
-    if make_main_plot 
-        figure
-        polarplot(deg2rad(wave),E_pdf)
-        title('direction waves coming from')
-    end
-
+    wave_mean = mean(wave_dir_deg);
     thetas = -90:90;          % all possible delta flank orientation (CCW) theta = 0 corresponds to
                               % the same orientation as the regional shoreline. positive theta 
                               % corresponds to the left flank of the delta (with theta = 90 meaning 
@@ -43,7 +35,7 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
     regional_shoreline = sang(c);
 
     
-    phi0 = wrapTo180(wave - regional_shoreline); % Calculate phi0, the wave approach directions relative to the current
+    phi0 = wrapTo180(wave_dir_deg - regional_shoreline); % Calculate phi0, the wave approach directions relative to the current
                                                       % shoreline orientation. phi0 = 0 means waves are coming straight on
                                                       % towards the coast. phi0 = 90 means waves are propagating to the
                                                       % right as you look offshore. phi0 = -90 means waves are propagating 
@@ -67,8 +59,10 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
        
 
         % longshore transport
-        LST = CERC(1, 1, wrapTo180(phi0 - theta));  
+        LST = CERC(wrapTo180(phi0 - theta));  
         LST(isnan(LST)) = 0;
+     
+    
         Qsnet(i) = sum(E_pdf_relative.*LST);                               % Nienhuis2015 supplement Equation 4
 
     end
@@ -95,7 +89,7 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave,sang)
         title(['Regional shoreline angle: ' num2str(regional_shoreline) '\circ'])
     
         nexttile
-        plot(thetas,CERC(1,1,thetas),'-k')                                 % Nienhuis2015, Fig. 1C
+        plot(thetas,CERC(thetas),'-k')                                 % Nienhuis2015, Fig. 1C
         xline(0)
         yline(0)
         grid on

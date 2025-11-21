@@ -2,6 +2,9 @@ clc
 clear
 close all
 
+% Test script for wave flux calculations for a simple square shoreline
+
+
 addpath(genpath(fullfile('..','subroutines')));
 
 %  square shoreline w equal sides

@@ -1,24 +1,26 @@
 function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
 % Calculates the fetch distance from all points on shoreline [x,y]
 % along wind directions wind_to_deg
-% Inputs:
-%   x, y                : vectors of shoreline coordinates
-%   wind_to_deg         : vector of wind directions in degrees (where wind blows to, degrees CCW from east)
-%   min_fetch_distance  : minimum distance to consider a valid fetch (optional)
-% Outputs:
-%   fetch : [numel(wind_to_deg) x numel(x)] matrix of fetch distances
-%           distance along ray in direction of wind until ray exits the lake polygon
-    make_plot = 0; 
-    % Cyan: test point along ray
-    % Red: invalid fetch
-    % Yellow: ignored small segments
-    % Green: valid fetch
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% INPUTS:
+%   x                   = x-coordinates of shoreline [1 x numel(points)] 
+%   y                   = y-coordinates of shoreline [1 x numel(points)]
+%   wind_to_deg         = vector of wind directions in degrees (where wind blows to, degrees CCW from east)
+%   min_fetch_distance  = minimum distance to consider a valid fetch (optional)
+% OUTPUTS:
+%   fetch :             = [numel(wind_to_deg) x numel(x)] matrix of fetch distances
+%                         distance along ray in direction of wind until ray exits the lake polygon
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    make_plot = 0;  % makes a plot for each shoreline point over all directions possible
+                    % Cyan: test point along ray to see if within polygon (x-ed out with a red x if not inside--invalid fetch)
+                    % Red: invalid fetch
+                    % Yellow: ignored small segments
+                    % Green: valid fetch
 
     if nargin < 4
         min_fetch_distance = 1e-6; % minimum fetch distance that is considered non-zero 
     end
-
-    
 
     num_points = numel(x); % number of shoreline points
     num_wind = numel(wind_to_deg); % number of wind directions
@@ -45,16 +47,17 @@ function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
         start_point = [x(pt_idx); y(pt_idx)];
 
         if make_plot
-            figure(1); clf;
+            figure('Name','All Possible Fetches');
+            clf;
             buffer = 0.05 * max([range(x), range(y)]);
             axis([min(x)-buffer, max(x)+buffer, min(y)-buffer, max(y)+buffer]);
             hold on;
             % fill in lake as grey
             fill(x, y, [0.9 0.9 0.9], 'EdgeColor', 'k', 'LineWidth', 1.2);
             xlabel('x'); ylabel('y');
-            if pt_idx == 1
-                gif('all_fetch.gif')
-            end
+            % if pt_idx == 1
+            %     gif('all_fetch.gif')
+            % end
             % Plot current shoreline point of interest as a blue dot
             plot(start_point(1), start_point(2), 'ob', 'MarkerFaceColor', 'b'); % start point
         end
@@ -147,7 +150,7 @@ function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
             end
             if make_plot
                 drawnow;
-                gif;
+                % gif;
             end
 
         end
