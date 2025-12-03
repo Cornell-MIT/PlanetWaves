@@ -7,29 +7,20 @@ close all
 addpath(fullfile('..','..','planetwaves'))  
 addpath(fullfile('..','..','planetwaves/pre_analysis/'))  
 
-
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % RUN MODEL
-test_speeds = [0.2:0.1:40];
-time_to_run = 60*10;  
+test_speeds = 1:40;
+time_to_run = 60*10; % 10 hours  
 wind_direction = 0;  
 buoy_loc = [5 5];    
 grid_resolution = [20*1000 20*1000];
 zDep = 100.*ones(10,10);
 
-all_planets = {'Earth','Mars-low','Mars-high','Titan-OntarioLacus','Exo-Venus','Titan-N2','LHS-1140b','55-Cancrie'};
-% THRESHOLDS:
-% EARTH : 1.9
-% MARS-LOW : 1.4
-% MARS-HIGH : 1.0 
-% TITAN-ONTARIOLACUS : 0.5
-% EXO=VENUS : 4.9
-% TITAN-N2 : 0.3
-% LHS-1140b : 2.3
-% 55-Cancri-e : 36.4
+ 
+all_planets = {'Earth','Mars-low','Mars-high','Titan-OntarioLacus', 'Titan-N2', 'Kepler-1649-b','LHS-1140-b','55-Cancri-e'};
 
 
-figure;
+figure('Name','Sig Wave Heights');
 sigH_ax = axes;
 xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
 ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
@@ -40,7 +31,6 @@ set(gca,'FontWeight','bold')
 hold on;
 
 
-
 for pp = 1:numel(all_planets)
 
     planet_to_run = all_planets{pp};
@@ -49,7 +39,7 @@ for pp = 1:numel(all_planets)
     Model.gridX = grid_resolution(1);                                              
     Model.gridY = grid_resolution(2);   
 
-    figure;
+    figure('Name',['Time Evolution of Waves on ',Planet.name]);
     time_evolve_ax = axes;
     grid on;
     legend('show', 'Location', 'northwest','interpreter','latex');
@@ -60,7 +50,7 @@ for pp = 1:numel(all_planets)
     
 
     if strcmp(planet_to_run,'55-Cancrie') % skip non-growth values to run faster
-        test_speeds = [35.0:0.1:40];
+        test_speeds = [35:40];
     end
     
  

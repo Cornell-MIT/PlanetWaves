@@ -97,11 +97,14 @@ assert(rem(model.Dirdim,8)==0,'Model input parameter p must be factorable by 8.'
 TitanResults = make_log(planet,model,wind,uniflow,Etc);
 % -- prepare .mat files to be saved during loops -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 file = 1;
+% -- initalize progress bar -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+last_percent = -1;  
+% -- tracks if there was numerical instability in growth  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ringing_detected = 0;
 % -- MODEL SET UP ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % global constants
 kappa = 0.4;                                                               % Von-Karman constant
 i = sqrt(-1);                                                              % imaginary number i
-RRR = 8.314;                                                               % Universal gas constant [J/K/mol]
 % frequency and direction bins
 dr = pi/180;                                                               % conversion from degrees to radians
 dthd = 360/(model.Dirdim);                                                 % step size for angular direction [degrees]
@@ -113,11 +116,9 @@ delx = model.gridX*ones(model.LonDim,model.LatDim,model.Fdim,model.Dirdim);
 gust = 0;                                                                  % Gust factor applied to wind at each time step
 zref = 20;                                                                 % height of reference wind speed, normally at 20m [m]
 wfac = 0.035;                                                              % wind drift fraction of Uz ffor U10m
-% Ideal gas law: PV = nRT
 % Densities:
-rhoa = planet.surface_press*planet.kgmolwt/(RRR*planet.surface_temp);      % air density [kg/m3]
-fprintf('Atmospheric density: %f [kg/m^3]\n',rhoa )
-rhorat=rhoa/planet.rho_liquid;                                             % air-water density ratio.
+fprintf('Atmospheric density: %f [kg/m^3]\n',planet.rhoa )
+rhorat=planet.rhoa/planet.rho_liquid;                                      % air-water density ratio.
 % Wavenumber limits:
 kutoff = 1000;                                                             % wavenumber cut-off due to Kelvin-Helmholtz instabilities (Donelan 2012, pg. 3)
 kcg = sqrt(planet.gravity*planet.rho_liquid/planet.surface_tension);       % wavenumber of slowest waves defined by the capillary-gravity waves, from Airy dispersion: omega^2 =gktanh{k)
@@ -258,8 +259,6 @@ Uei = uniflow.North*D + 0.0;                                                    
 %% -- wave speed and group velocity --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 c = (2*pi*f)./wn;                                                                                                            % phase velocity                                                                                                                                                                                            % phase speed
 c(D<=0) = 0;                                                                                                                 % set phase speed on land to zero                                                                                        
-
-
 
 % if Etc.showplots
 % 
@@ -648,7 +647,7 @@ for t = 1:model.num_time_steps                                                  
        tauN = planet.rho_liquid*(sum((planet.gravity+planet.surface_tension.*squeeze(wn(:,:,:,1)).^2./planet.rho_liquid).*squeeze(dwn(:,:,:,1)).*tauN,3) + ...
            (planet.gravity+planet.surface_tension.*squeeze(wn(:,:,model.Fdim,1)).^2./planet.rho_liquid).*squeeze(tauN(:,:,model.Fdim)).*wnh.^(-mtail).*(kutoff.^(mtail+1)-wnh.^(mtail+1))./(mtail+1));    % eqn. 5, Donelan+2012
       
-       Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % shear stress and law of the wall
+       Cd = abs(tauE + i*tauN)./planet.rhoa./(U_z.^2);                                                                                      % shear stress and law of the wall
        Cdf = Cd;
        Ustar_smooth = smooth_nu((1-wfac)*U_z(:),model.z_data,planet.nua);
        Ustar_smooth = reshape(Ustar_smooth,model.LonDim,model.LatDim);                                                                      % Surface current (friction velocity for hydraulically smooth interface)
@@ -657,10 +656,10 @@ for t = 1:model.num_time_steps                                                  
        Cds =  Ustar_smooth;
       
        Ustar_smooth = U_z.^2.*((1/3)*Ustar_smooth + (2/3)*(Ustar_smooth.^2)./(Ustar_smooth + Cd));
-       tauE = tauE + rhoa*Ustar_smooth.*cos(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Eastward direction
-       tauN = tauN + rhoa*Ustar_smooth.*sin(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Northward direction
+       tauE = tauE + planet.rhoa*Ustar_smooth.*cos(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Eastward direction
+       tauN = tauN + planet.rhoa*Ustar_smooth.*sin(squeeze(windir(:,:,1,1)));                                                                      % wind stress + wind momentum in Northward direction
 
-       Cd = abs(tauE + i*tauN)./rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan+2012)
+       Cd = abs(tauE + i*tauN)./planet.rhoa./(U_z.^2);                                                                                             % form drag coefficient (eqn. 8, Donelan+2012)
        Cd_sat = 3.01e-3;                                                                                                                    % drag coefficient saturates at around U_10 = 25 m/s on Earth (Curcic+2020)
        max_Cd = Cd_sat;                                                                                                                     % scale drag coefficient to planetary conditions given all drag force is from surface pressure
        Cd = clip(Cd,0,max_Cd);                                                                                                              % put a cap here on the absolute size of the drag coefficient so U at lambda/2 doesn't go negative and become unphysical
@@ -673,8 +672,6 @@ for t = 1:model.num_time_steps                                                  
        sigH(t) = ht(model.long,model.lat);                                                                                                 % return significant wave height at specified lat,lon coordinates 
        htgrid{t} = ht;                                                                                                                 % return significant wave height at each spatial point (m,n) on the grid
        
-          
-
 % -- mean slope ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        % integrate spectrum to find mean slope                                                                                                                         
         ms = sum(dwn.*wn.^3.*E,4)*dth;                                                                                                                  % slope = angle water surface makes with flat surface
@@ -684,7 +681,7 @@ for t = 1:model.num_time_steps                                                  
         if nargout > 3
             mean_slope = ms;
         end
-                                                                                                             % average wave direction [-pi to pi]
+                                                                                                                                                        
       
        cgmax = max(max(max(max((E>1e-320).*Cg))));                                                                                                      % Adjust cgmax for active energy components.
       
@@ -783,8 +780,23 @@ for t = 1:model.num_time_steps                                                  
    end % end while loop for sub-time steps
   
 
-   fraction_time_completed = t/model.num_time_steps;
-   fprintf('u = %.2f: fraction time completed: %.2f\n',UU,fraction_time_completed);
+    % makes a progress bar that updates dynamically
+    % e.g., (Earth) u = 1.25 m/s: [##########################.................] 57%
+    percent_complete = floor((t / model.num_time_steps) * 100);
+    if percent_complete ~= last_percent
+        barWidth = 50;                          
+        filled = round(percent_complete / 100 * barWidth);  
+        bar = [repmat('#', 1, filled), repmat('.', 1, barWidth - filled)];
+        fprintf(1, '\r(%s) u = %.2f m/s: [%s] %3d%%', planet.name,UU, bar, percent_complete);
+        last_percent = percent_complete;
+    end
+
+
+
+
+
+
+
     
 
   if nargout > 2
@@ -909,16 +921,21 @@ for t = 1:model.num_time_steps                                                  
    
    
    if t > 100 && sigH(t-1)/sigH(t) >= model.tolH                                                                                                          % will break out of wind speed loop if waves haven't changed by more than the tolerance level tolH 
-       disp('Waves have reached maturity.')
+       fprintf('\n')
+       disp('WAVES HAVE REACHED MATURITY.')
        break
-   elseif t > 1 && ~isnan(sigH(t-1)/sigH(t)) 
-       fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
+   end
+
+   if t > 1 && ~isnan(sigH(t-1)/sigH(t)) 
+       %fprintf('t_n-1/t_n: %.6f\n',sigH(t-1)/sigH(t));
        if sigH(t-1)/sigH(t) > 1
-           txt_warn = 'Numerical ringing.';
-           warning(txt_warn)
+           ringing_detected = 1;
        end
-   elseif t > 1 && isnan(sigH(t-1)/sigH(t))
-       disp('wind below wave threshold')
+   end
+
+   if t > 1 && isnan(sigH(t-1)/sigH(t))
+       fprintf('\n')
+       disp('WIND BELOW THRESHOLD OF WAVE GENERATION')
        break
    end
 
@@ -927,6 +944,11 @@ for t = 1:model.num_time_steps                                                  
 end % end of loop for Tsteps
 
 [~,minind] = min(abs(wind.speed-UU));
+if ringing_detected
+    fprintf('\n')
+    warning('Numerical ringing detected during time evolution of wave height')
+end
+fprintf('\n')
 disp(['Finished Wind Speed ' num2str(UU) ' m/s (' num2str(minind) ' Of ' num2str(numel(wind.speed)) ' )']);
   
 

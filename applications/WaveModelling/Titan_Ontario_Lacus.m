@@ -24,9 +24,9 @@ zDep_orig = zDep;
 planet_to_run = 'Titan-OntarioLacus';
 buoy_loc = [40 35];                                                        % grid location [x,y]
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.3 1 1.5 2 2.5 3 3.5 4];                                                % wind speed
-time_to_run = 60*10;                                                          % time to run model
-wind_direction = 0;                                                       % wind direction
+test_speeds = [0.3 1 1.5 2 2.5 3 3.5 4];                                   % wind speed
+time_to_run = 60*10;                                                       % time to run model
+wind_direction = 0;                                                        % wind direction
 
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.3);
 

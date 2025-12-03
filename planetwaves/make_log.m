@@ -47,7 +47,17 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
 
 % adds run details to console and saves to log file 
     disp('================================================================')
-    disp(['Directional Wave Spectrum -- last updated: ' dir('makeWaves.m').date])
+
+    targetDir = fullfile(pwd, '..', '..', 'planetwaves');                  % path to core model files
+    targetDir = char(java.io.File(targetDir).getCanonicalPath);            % fixes annoying path problem
+    dinfo = dir(fullfile(targetDir, '*.m'));                               % all files in planetwaves folder
+    % Find the most recently modified .m file
+    [~, idx] = max([dinfo.datenum]);
+    latestFile = dinfo(idx);
+    lastModStr = string(datetime(latestFile.datenum, 'ConvertFrom','datenum'));
+
+    fprintf('Directional Wave Spectrum:\nLast modified: %s (%s)\n', lastModStr,latestFile.name);
+
     disp(['Wind Speed(s) to Run: ' regexprep(mat2str(wind.speed),{'\[', '\]', '\s+'}, {'', '', ','}) ' m/s']);
     disp('================================================================')
 
