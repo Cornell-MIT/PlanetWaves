@@ -1,16 +1,13 @@
-function [x_circle, y_circle] = make_circle(x,y,N)
+function [x_circle, y_circle] = make_circle(radius,N)
 
-    polyin = polyshape(x,y);
-    [xc,yc] = centroid(polyin);
+    % Angles from 0 to 360 degrees, step every N degrees
+    theta = 0 : N : 360;
 
-    for i = 1:numel(x)
-        mydist(i) = sqrt((xc - x(i))^2 + (yc - y(i))^2);
-    end
+    % Convert to radians
+    t = deg2rad(theta);
 
-    my_r = max(mydist);
-
-    theta = linspace(0, 2*pi, N);
-    x_circle = xc + my_r.*cos(theta);
-    y_circle = yc + my_r.*sin(theta);
+    % Circle coordinates
+    x_circle = radius * cos(t);
+    y_circle = radius * sin(t);
 
 end

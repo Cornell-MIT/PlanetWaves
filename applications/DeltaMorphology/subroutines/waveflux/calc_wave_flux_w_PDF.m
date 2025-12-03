@@ -1,4 +1,4 @@
-function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
+function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
     % Calculates the maximum wave transport to the left or right of a shoreline by waves
     % can be compared with riverine input to get R = Q_river / Qsmax where Qsmax is this function
 
@@ -8,8 +8,8 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
     %   for example, 
     %       if wave_dir = 0 then waves traveling East->West, if wave = 90 then waves traveling from
     %       North -> South
-    % (2) wave_dir_deg is direction waves coming from (degrees CCW from east)
-    % (3) sang is the angle (deg) of the normal vector CCW from East of the regional shoreline without a delta
+    % (2) wave_dir_deg is wave crest (perpendicular to direction waves coming from (degrees CCW from east)), Ashton+2006, Fig. 1
+    % (3) sang is the shoreline angle (deg) of the normal vector CCW from East of the regional shoreline without a delta
     %   for example,
     %       if sang = 0 then shoreline goes from North -> South with liquid on the East side
     %       if sang = 90 then shoreline goes from West -> East with liquid on top
@@ -18,51 +18,52 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
     make_main_plot = 0;                                                    % make a plot of the wave energy pdf & the Qsmax as a function of the regional shoreline orientation 
     make_subplot = 0;                                                      % shows intermediate plots for comparison with Nienhuis+2015
 
-    wave_mean = mean(wave_dir_deg);
-    thetas = -90:90;          % all possible delta flank orientation (CCW) theta = 0 corresponds to
-                              % the same orientation as the regional shoreline. positive theta 
-                              % corresponds to the left flank of the delta (with theta = 90 meaning 
-                              % a left delta flank that juts out perpendicular to the coast)
-                              % and negative theta corresponds to the right flank of the delta
-                              % (with theta = 90 meaning a right delta flank that juts out 
-                              % perpendicular to the coast). The left and right flanks are defined
-                              % looking towards the liquid.
+    %wave_mean = wrapTo180(mean(wave_dir_deg));
+    thetas = -90:90;                                                     % all possible delta flank orientation (CCW) theta = 0 corresponds to
+                                                                           % the same orientation as the regional shoreline. positive theta 
+                                                                           % corresponds to the left flank of the delta (with theta = 90 meaning 
+                                                                           % a left delta flank that juts out perpendicular to the coast)
+                                                                           % and negative theta corresponds to the right flank of the delta
+                                                                           % (with theta = 90 meaning a right delta flank that juts out 
+                                                                           % perpendicular to the coast). The left and right flanks are defined
+                                                                           % looking towards the liquid.
 
-   Qsmax = zeros(size(sang));
+   Qsmax = -999.*ones(size(sang));
 
-   for c = 1:numel(sang)                                                   % orientation of non-deltaic shoreline
+   for c = 1:numel(sang)                                                   % orientation of non-deltaic shoreline (regional shoreline)
 
     regional_shoreline = sang(c);
 
     
-    phi0 = wrapTo180(wave_dir_deg - regional_shoreline); % Calculate phi0, the wave approach directions relative to the current
-                                                      % shoreline orientation. phi0 = 0 means waves are coming straight on
-                                                      % towards the coast. phi0 = 90 means waves are propagating to the
-                                                      % right as you look offshore. phi0 = -90 means waves are propagating 
-                                                      % to the left as you look offshore. Compare with Jaap's Fig. 1A,B.
+    phi0 = wrapTo180(wave_dir_deg - regional_shoreline);                   % Calculate phi0, the wave approach directions relative to the current
+                                                                           % shoreline orientation. phi0 = 0 means waves are coming straight on
+                                                                           % towards the coast. phi0 = 90 means waves are propagating to the
+                                                                           % right as you look offshore. phi0 = -90 means waves are propagating 
+                                                                           % to the left as you look offshore. Compare with Jaap's Fig. 1A,B.
 
     % Zero out portions of wave climate not seen for a given regional 
     % shoreline orientation. Should be zero for winds coming from land 
-    % (zero fetch, so no waves).
+    % (zero fetch, so no waves). Already being done with fetch calculation
+    % but just in case not using those and using a buoy then this will
+    % take care of the land->ocean cases.
     E_pdf_relative = E_pdf;
     E_pdf_relative(phi0<-90) = 0;
     E_pdf_relative(phi0>90) = 0;
 
 
     Qsnet = zeros(size(thetas));
-    for i = 1:numel(thetas)                                                % all possible delta morphs 
+    for i = 1:numel(thetas)                                                % all possible delta morphs (just starting nub of a delta sticking out at angle theta)
     
-        theta = thetas(i); % the delta shoreline orientation relative to the local shoreline. 
-                           % Values between 0 and -90 are the right flank of the delta 
-                           % (looking offshore), and values between 0 and 90 are the left 
-                           % flank (looking offshore).
+        theta = thetas(i);                                                 % the delta shoreline orientation relative to the local shoreline. 
+                                                                           % Values between 0 and -90 are the right flank of the delta 
+                                                                           % (looking offshore), and values between 0 and 90 are the left 
+                                                                           % flank (looking offshore).
        
 
         % longshore transport
-        LST = CERC(wrapTo180(phi0 - theta));  
+        LST = CERC(H,T,rho,rho_s,g,wrapTo180(phi0 - theta));  
         LST(isnan(LST)) = 0;
      
-    
         Qsnet(i) = sum(E_pdf_relative.*LST);                               % Nienhuis2015 supplement Equation 4
 
     end
@@ -82,21 +83,21 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
         [phi0sort, I] = sort(phi0);
         plot(phi0sort,E_pdf_relative(I),'-k')                              % Nienhuis2015, Fig. 1B
         hold on;
-        xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
+        %xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
         set(gca,'xdir','reverse','xlim',[-180 180])
         xlabel('Waves wrt Regional, \phi_0 = wave - regional (\circ)')
         ylabel('Wave energy PDF')
         title(['Regional shoreline angle: ' num2str(regional_shoreline) '\circ'])
     
         nexttile
-        plot(thetas,CERC(thetas),'-k')                                 % Nienhuis2015, Fig. 1C
+        plot(thetas,CERC(1,1,1,1,1,thetas),'-k')                                 % Nienhuis2015, Fig. 1C
         xline(0)
         yline(0)
         grid on
         set(gca,'xdir','reverse','xlim',[-90 90])
         xlabel('Delta angle \theta (\circ)')
         ylabel('Q_s')
-        title(['wave mean  - regional shore: ' num2str(wave_mean - sang(c))])
+        %title(['wave mean  - regional shore: ' num2str(wave_mean - sang(c))])
         
         nexttile
         plot(thetas,Qsnet,'-k')                                            % Nienhuis2015, Fig. 1D
@@ -105,7 +106,7 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,wave_dir_deg,sang)
         plot(thetamaxR,Qsmaxright,'or')
         xline(0)
         yline(0)
-        xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
+        %xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
         grid on
         set(gca,'xdir','reverse','xlim',[-90 90])
         xlabel('Deltaic shoreline angle, \theta (\circ)')

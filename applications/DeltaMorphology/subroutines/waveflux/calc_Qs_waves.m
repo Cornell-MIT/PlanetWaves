@@ -1,4 +1,4 @@
-function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
+function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
 % Calculates maximum wave-driven littoral transport (Nienhuis+2015) for 
 % a shoreline (x,y) undergoing a time series of winds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -12,16 +12,20 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
 % OUTPUTS:
 %   Qs_max            = maximum wave-driven littoral transport 
 %                       (denominator in eqn. 2, Nienhuis+2015, 
-%                       eqn. 6 in suppplement of Nienhuis+2015)
+%                       eqn. 6 in suppplement of Nienhuis+2015) [1 x numel(points)]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    make_plot = 0;
+    % pre-allocate size  with dummy values
+    Qs_max = -999.*size(x);
+
+    make_plot = 0; 
     % Plots:
     % (1) Figure 1: Scatter plot of regional shoreline angles at each point
     % (2) Figure 2: Fetch for all shoreline points for all possible wind directions
     % (3) Figure 3: Fetch for each wind direction in the time series of winds
     % (4) Figure 4: Comparison of non-dimensional growth curve with JONSWAP
     % (5) Figure 5: Plot of shoreline points with labels for point index
+    % (6) Figure 6: Wave energy PDFs for each point
 
     if numel(wind_mag) ~= numel(wind_angle_deg)
         % each value of time has a value of wind_mag and wind_angle_deg
@@ -32,18 +36,33 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
         error('Calc_Qs_waves: time series of wind speed and angles must be the same size')
     end
 
+    % check that shoreline is a closed vector (beginning = end)
+    if abs((x(end) - x(1))) > 1e-6 || abs((y(end) - y(1))) >  1e-6
+        disp('Calc_Qs_waves: Shoreline points are not a closed shape, closing the shoreline points by appending start to end')
+        x = [x; x(1)];
+        y = [y; y(1)];
+        added_point = true;
+    else
+        added_point = false;
+    end
+
+    % check if shoreline points are evenly sampled
+    all_pts = [x' y']; all_dist = sqrt(sum(diff(all_pts).^2, 2)); tol_dist = 10;
+    if max(all_dist) - min(all_dist) > tol_dist
+        disp('Points not evenly spaced. Recomputed so points are evenly spaced.')
+        % resample along the path with even spacing
+        even_spacing = interparc(numel(x), x, y, 'spline'); % https://www.mathworks.com/matlabcentral/fileexchange/34874-interparc
+        x = even_spacing(:,1);
+        y = even_spacing(:,2);
+        x = x(:);
+        y = y(:);
+    end
+
     % check that x and y are row vectors
     if ~isrow(x) || ~isrow(y)
         disp('Calc_Qs_waves: Shoreline points given as column vector, converting to row vectors')
         x = x';
         y = y';
-    end
-
-    % check that shoreline is a closed vector (beginning = end)
-    if abs((x(end) - x(1))) > 1e-6 || abs((y(end) - y(1))) >  1e6
-        disp('Calc_Qs_waves: Shoreline points are not a closed shape, closing the shoreline points by appending start to end')
-        x = [x x(end)];
-        y = [y y(end)];
     end
 
      % check that shoreline points are in CCW
@@ -53,10 +72,6 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-    % pre-allocate size of output
-    Qs_max = NaN(size(x));
-
     %%%%%%%%%
     % Step 1: calculate regional shoreline angle
     %%%%%%%%%
@@ -64,7 +79,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
     % shoreline angle is oriented CCW tangential to the chord length
     % connecting points along the window size
     
-    window_size_ang = round(numel(x)/5);  % window size over which angle is being calculated
+    window_size_ang = 1;%round(numel(x)/100);  % number of points which angle is being calculated (1% of total number)
 
     shoreline_angle_rad = calc_regional_shoreline_angle(x, y,window_size_ang); 
     shoreline_angle_deg = rad2deg(shoreline_angle_rad);
@@ -80,18 +95,17 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
         ylabel(cb,'Shoreline Angle [Deg]','FontSize',16, 'Rotation',270)
         axis equal padded
     end
-
+    disp('Regional shoreline angle computed')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      %%%%%%%%%
      % Step 2: Calculate fetches for all points in all directions
      %%%%%%%%%
-
+     disp('Fetch calculation begun')
      
      theta_fetch_deg = 0:359; % angles computing fetch over (all possible directions)
      fetch = calc_fetch(x,y,theta_fetch_deg);  
 
-     
-     if 0
+     if make_plot
 
         figure('Name','Fetch for Each Direction');
         
@@ -104,7 +118,8 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
             plot_fetch = fetch(i,1:end-1);
             plot_fetch(plot_fetch==0) = NaN;
             scatter(x(1:end-1),y(1:end-1),50,plot_fetch./max_fetch,'filled')
-            quiver(mean(x), mean(y), 10*mean(x).*cosd(theta_fetch_deg(i)),  10*mean(x).*sind(theta_fetch_deg(i)), 1, 'r', 'LineWidth', 2, 'MaxHeadSize', 2); % scale=1
+            L = 0.3*(min(range(x),range(y)));
+            quiver(mean(x), mean(y), L.*cosd(theta_fetch_deg(i)),  L.*sind(theta_fetch_deg(i)), 1, 'r', 'LineWidth', 2, 'MaxHeadSize', 2); % scale=1
             cb = colorbar();
             ylabel(cb,'Fetch Relative to Max Fetch','FontSize',16, 'Rotation',270)
             clim([0.5 1])
@@ -119,12 +134,12 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
             end   
         end
      end
-
+    disp('Fetch lengths computed')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%
     % STEP 3: Get time series of waves at all points
     %%%%%%%%%
-
+    
     % Map each wind direction to its closest directional index
     theta_fetch_deg = theta_fetch_deg(:);
     [~, dir_idx] = min(abs(theta_fetch_deg - wind_angle_deg(:)'), [], 1);  % [1 x numel(wind)]
@@ -143,14 +158,20 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
             plot_fetch = fetch_at_pt(i,1:end-1);
             plot_fetch(plot_fetch==0) = NaN;
             scatter(x(1:end-1),y(1:end-1),100,plot_fetch,'filled')
-            quiver(mean(x), mean(y), 5*mean(x).*cosd(wind_angle_deg(i)),  5*mean(x).*sind(wind_angle_deg(i)), 1, 'r', 'LineWidth', 2, 'MaxHeadSize', 2); % scale=1
+            L = 0.3*(min(range(x),range(y)));
+            quiver(mean(x), mean(y), L.*cosd(wind_angle_deg(i)),  L.*sind(wind_angle_deg(i)), 1, 'r', 'LineWidth', 2, 'MaxHeadSize', 2); % scale=1
             cb = colorbar();
             ylabel(cb,'Fetch [m]','FontSize',16, 'Rotation',270)
             clim([0 max_fetch])
             axis equal padded
             title(['fetches for time t = ',num2str(i)])
-            drawnow
-            pause(0.5)
+            %pause(0.5);
+            drawnow;
+            if i == 1
+                gif('fetch_time_series.gif')
+            else
+                gif;
+            end   
         
         end
 
@@ -159,9 +180,44 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
     [wave_height, wave_period, wave_length] = wind2wave(wind_mag, fetch_at_pt, rho,g);  %  [numel(wind) x numel(x)]
 
     if make_plot
+
+        figure('Name','Wave Height Time Series')
+
+        for  i = 1:numel(x)
+            plot(1:numel(wind_mag),wave_height(:,i))
+            hold on;
+        end
+
+        xlabel('time step')
+        ylabel('wave height m')
+        title('at each point')
+        grid on;
+        
+
+    end
+
+    if make_plot
+        figure('Name','Wave Height (Rose)')
+        for pt = 1:numel(x)
+            clf
+            plt_H = wave_height(:,pt);
+            plt_H(plt_H == 0) = NaN;
+            wind_rose(wind_angle_deg,plt_H,'ci',[1 5 10 15])
+            title(['Point: ',num2str(pt)])
+            drawnow
+            if pt == 1
+                gif('waveroseforpoints.gif','DelayTime',1)
+            else
+                gif;
+            end
+        end
+    end
+
+    if make_plot
         % make table comparing estimates for wave height and wave period with JONSWAP
         compare2jonswap(wind_mag,fetch_at_pt,g,wave_height,wave_period)
     end
+    disp('Wave time series computed')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
      %%%%%%%%%
      % STEP 4: Turn time series of waves at each point into Epdf for each point
@@ -183,7 +239,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
      % STEP 5: Calculate maximum littoral transport of waves
      %%%%%%%%%
 
-     if make_plot 
+     if 1 
         fig = figure('Name','Energy PDFs for Each Point'); 
         t = tiledlayout(fig,1,2);        
         
@@ -193,7 +249,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
         
         % Right panel (polar)
         pax = polaraxes(t);
-        pax.ThetaZeroLocation = 'right';   % 0° to the right 
+        pax.ThetaZeroLocation = 'right';          % 0 deg to the right 
         pax.ThetaDir = 'counterclockwise';        % make angles increase clockwise
         pax.Layout.Tile = 2;
 
@@ -202,7 +258,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
      for pt = 1:numel(x) 
         
         % convert wind -> wave crest direction
-        wave_crests_angle_deg = wrapTo180(wind_angle_deg + 90);   
+        wave_crests_angle_deg = wrapTo360(wind_angle_deg + 90);         % angle phi0 in Ashton+2006, Figure 1
         
         [wave_crests, Epdf] = make_wave_Epdf(wave_height(:,pt), wave_crests_angle_deg,wave_period(:,pt));
         
@@ -211,11 +267,11 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
             % Energy PDF
             cla(pax); hold(pax,'on')
             % uncomment next two lines to plot using wind direction
-            polarplot(pax, deg2rad(wrapTo180(wave_crests-90)), Epdf,'LineWidth', 2); % show in direction of where wind is going
-            title(pax, ['Energy PDFs (wind dir) for point: ', num2str(pt)])
+            %polarplot(pax, deg2rad(wrapTo180(wave_crests-90)), Epdf,'LineWidth', 2); % show in direction of where wind is going
+            %title(pax, ['Energy PDFs (wind dir) for point: ', num2str(pt)])
             % uncomment next two lines to plot using wave crests
-            %polarplot(pax, deg2rad(wave_crests), Epdf,'LineWidth', 2); % show in direction of wave crest not wind direction!
-            % title(pax, ['Energy PDFs (wave crests) for point: ', num2str(pt)])
+            polarplot(pax, deg2rad(wave_crests), Epdf,'LineWidth', 2); % show in direction of wave crest not wind direction!
+            title(pax, ['Energy PDFs (wave crests) for point: ', num2str(pt)])
             rlim(pax, [0 1])
             
             % shoreline
@@ -238,16 +294,16 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,g)
 
        end
 
-        Qs_max(pt) = calc_wave_flux_w_PDF(Epdf,wave_crests,shoreline_angle_deg(pt)); % [1 x numel(points)-1] ,wave_height(1:end,1:end-1),wave_period(1:end,1:end-1)
+        Qs_max(pt) = calc_wave_flux_w_PDF(Epdf,wave_height(:,pt),wave_period(:,pt),rho,rho_s,g,wave_crests,shoreline_angle_deg(pt)); % [1 x numel(points)-1] ,wave_height(1:end,1:end-1),wave_period(1:end,1:end-1)
      
-        if pt == numel(x)
-            Qs_max(pt) = Qs_max(1); % closed shape so start and end are the same
-        end
+        % if pt == numel(x)
+        %     Qs_max(pt) = Qs_max(1); % closed shape so start and end are the same
+        % end
      end
     
-    
+     if added_point
+         Qs_max(end) = [];
+     end
+    disp('Littoral transport computed')
+    disp('Wave Qs complete!')
 end
-
- 
-
-

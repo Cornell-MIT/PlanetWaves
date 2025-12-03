@@ -31,21 +31,33 @@ Mars_DistalFan.width = 27;
 Mars_CentralFan.slope = 0.01;
 Mars_CentralFan.width = 27;
 
-[~,bedload_dominated] = calc_riverine_flux(Mars,Mars_DistalFan);
-display_results(ab,bedload_dominated,'MARS','DISTAL FAN')
-[~,bedload_dominated] = calc_riverine_flux(Mars,Mars_CentralFan);
-display_results(bc,bedload_dominated,'MARS','CENTRAL FAN')
-
+% [~,bedload_dominated] = calc_riverine_flux(Mars,Mars_DistalFan);
+% display_results(NaN,bedload_dominated,'MARS','DISTAL FAN')
+% [~,bedload_dominated] = calc_riverine_flux(Mars,Mars_CentralFan);
+% display_results(NaN,bedload_dominated,'MARS','CENTRAL FAN')
 
 % Table S4
 Jezero.slope = 0.03;
 Jezero.width = 45;
+
+% [susload,bedload_dominated] = calc_riverine_flux(Mars,Jezero);
+% display_results(susload,bedload_dominated,'Mars','JEZERO')
+
 
 % Table S5
 Titan_saraswati_min.slope = 4e-4;
 Titan_saraswati_min.width = 175;
 Titan_saraswati_max.slope = 0.002;
 Titan_saraswati_max.width = 700;
+
+[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_min);
+display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (min)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_max);
+display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (max)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_min);
+display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (min)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_max);
+display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (max)')
 
 % Table S6
 Titan_VidFlum_min.slope = 0.0011;
@@ -54,7 +66,14 @@ Titan_VidFlum_max.slope = 0.0015;
 Titan_VidFlum_max.width = 175;
 
 
-
+[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_VidFlum_min);
+display_results(susload,bedload_dominated,'Titan (cold)','Vid Flumina (min)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_VidFlum_max);
+display_results(susload,bedload_dominated,'Titan (cold)','Vid Flumina (max)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_VidFlum_min);
+display_results(susload,bedload_dominated,'Titan (warm)','Vid Flumina (min)')
+[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_VidFlum_max);
+display_results(susload,bedload_dominated,'Titan (warm)','Vid Flumina (max)')
 
 
 function display_results(suspended_load,bedload,planet,rivername)

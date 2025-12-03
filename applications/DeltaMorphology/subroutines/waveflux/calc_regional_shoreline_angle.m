@@ -24,27 +24,30 @@ function shoreline_angle = calc_regional_shoreline_angle(x, y,window_size)
     shoreline_angle = NaN(1,numel(x));
     
     for i = 1:length(x)-1 % ignore the repeated element at the end
-        
-        % circular forward index 
-        idx_f = i + window_size;
-        if idx_f > length(x)
-            idx_f = idx_f - length(x);
+                
+        A = i - window_size; % start of window
+        B = i + window_size; % end of window
+        if A < 1
+            A = length(x) + A;
+        end
+        if B > length(x)
+            B = B - length(x);
         end
         
-        % circular backward index 
-        idx_b = i - window_size;
-        if idx_b < 1
-            idx_b = idx_b + length(x);
-        end
         
         % chord direction across the window size
-        dx = x(idx_f) - x(idx_b);
-        dy = y(idx_f) - y(idx_b);
+        dx = x(B) - x(A);
+        dy = y(B) - y(A);
+
+        
         
         shoreline_angle(i) = atan2(dy, dx);
     end
    
+
+    
     shoreline_angle(end) = shoreline_angle(1); % because closed shape
+   
     
     if make_plot
            figure('Name','Regional Shoreline Tangential Vector'); 
@@ -55,10 +58,10 @@ function shoreline_angle = calc_regional_shoreline_angle(x, y,window_size)
            scatter(x,y,50,rad2deg((shoreline_angle)),'filled')
            cb = colorbar();
            ylabel(cb,'Shoreline Angle [Deg]','FontSize',16, 'Rotation',270)
-           scale_arrow = 1;
+           L = sqrt(dx.^2 + dy.^2);
            u = cos(shoreline_angle);
            v = sin(shoreline_angle);
-           quiver(x, y, scale_arrow.*u, scale_arrow.*v, 'r', 'LineWidth', 2, 'MaxHeadSize', 2);
+           quiver(x, y, L .* u, L .* v, 0, 'r', 'LineWidth', 2, 'ShowArrowHead', 'off');
            axis equal padded
     end
    
