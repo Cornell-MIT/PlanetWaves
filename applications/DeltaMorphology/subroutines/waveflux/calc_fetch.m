@@ -37,8 +37,8 @@ function fetch = calc_fetch(x, y, wind_to_deg, min_fetch_distance)
 
     % make sure shoreline polygon is closed
     if x(1) ~= x(end) || y(1) ~= y(end)
-        x(end+1) = x(1);
-        y(end+1) = y(1);
+        x = [x x(1)];
+        y = [y y(1)];
     end
 
 

@@ -5,7 +5,7 @@ function [x_CCW,y_CCW] = untitled(x,y)
     signed_area = 0.5 * sum(x .* circshift(y, -1) - y .* circshift(x, -1));
     
     if signed_area < 0
-            % Polygon is clockwise → reverse order to make it CCW
+            % Polygon is clockwise -> reverse order to make it CCW
             x_CCW = flip(x);
             y_CCW = flip(y);
         else

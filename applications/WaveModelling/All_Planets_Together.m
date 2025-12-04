@@ -29,7 +29,7 @@ buoy_loc = [5 5];
 % e.g., wavethreshold('Earth') = 2.2
 
 
-Planet.wavethreshold = containers.Map( ...
+wavethreshold = containers.Map( ...
     {'Earth', ...
     'Mars-low', ...
     'Mars-high', ...
@@ -66,6 +66,7 @@ for pp = 1:numel(all_planets)
 
     planet_to_run = all_planets{pp};
 
+
     [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
     Model.gridX = grid_resolution(1);                                              
     Model.gridY = grid_resolution(2);   
@@ -83,7 +84,11 @@ for pp = 1:numel(all_planets)
     if strcmp(planet_to_run,'55-Cancrie') % skip non-growth values to run faster
         test_speeds = [35:40];
     end
-    
+  
+    % start of test speeds will always append the threshold value to the first wind tested
+    if ~ismember(test_speeds,wavethreshold(planet_to_run))
+       test_speeds = [wavethreshold(planet_to_run), test_speeds];
+    end
  
     time_vs_wave = NaN(numel(test_speeds),time_to_run);
     for i = 1:numel(test_speeds)
