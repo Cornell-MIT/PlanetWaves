@@ -2,11 +2,11 @@ clc
 clear
 close all
 
-addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\data\Earth')
-addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\validation')
+addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\PlanetWaves\data\Earth')
+addpath('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\PlanetWaves\validation')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % EXTRACT OBSERVATIONS FROM BUOYS
-loc = fullfile('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\umwm_titan\data\Earth\WindFetchLS_45004.csv');
+loc = fullfile('C:\Users\Owner\OneDrive\Documents\00_Main\Work\Github_Repos\PlanetWaves\data\Earth\WindFetchLS_45004.csv');
 A = readtable(loc,'VariableNamingRule', 'preserve');
 A.Properties.VariableNames = {'Dir_deg','Fetch_m'};
 dir_to_fetch = containers.Map(A.Dir_deg,A.Fetch_m);

@@ -6,7 +6,7 @@
   pm           = 72                    ! Number of directions
   fmin         = 0.05                ! Lowest frequency bin [Hz]
   fmax         = 35                   ! Highest frequency bin [Hz]
-  fprog        = 2.112                   ! Highest prognostic frequency bin [Hz]
+  fprog        = 5.3850                   ! Highest prognostic frequency bin [Hz]
   startTimeStr = '2012-01-01 00:00:00' ! Simulation start time
   stopTimeStr  = '2012-01-01 10:00:00' ! Simulation end time
   dtg          = 60                  ! Global (I/O) time step [s]
@@ -14,18 +14,18 @@
 /
 &PHYSICS
   g            = 9.81 ! Gravitational acceleration [m/s^2]
-  nu_air       = 1.8153e-8 ! Kinematic viscosity of air [m^2/s]
-  nu_water     = 1.2e-6 ! Kinematic viscosity of water [m^2/s]
-  sfct         = 0.074    ! Surface tension [N/m]
+  nu_air       = 1.4561e-05 ! Kinematic viscosity of air [m^2/s]
+  nu_water     = 1.1560e-06 ! Kinematic viscosity of water [m^2/s]
+  sfct         = 0.0738    ! Surface tension [N/m]
   kappa        = 0.4     ! Von Karman constant
   z            = 3.6     ! Height of the input wind speed [m]
   gustiness    = 0.0     ! Random wind gustiness factor (should be between 0 and 0.2)
-  dmin         = 10.     ! Depth limiter [m]
+  dmin         = 10.     ! Depth limiter [m] (no equivalent in planetwaves so can leave as is)
   explim       = 0.1     ! Exponent limiter (0.69 ~ 100% growth)
   sin_fac      = 0.11    ! Input factor from following winds
   sin_diss1    = 0    ! Damping factor from opposing winds
   sin_diss2    = 0   ! Damping factor from swell overrunning wind
-  sds_fac      = 42.     ! Breaking dissipation factor
+  sds_fac      = 42.     ! Breaking dissipation factor (aprox 42 in planetwave)
   sds_power    = 2.4     ! Saturation spectrum power
   mss_fac      = 360     ! Mean-square-slope adjustment to Sds
   snl_fac      = 3.1841  ! Wave energy downshifting factor

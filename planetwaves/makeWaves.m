@@ -487,6 +487,7 @@ for t = 1:model.num_time_steps                                                  
        if Etc.showplots
             plot_Sin = Sin;
        end
+
        for tj = 1:model.Dirdim
            short(:,:,:,tj) = sum(E.*cth2(:,:,:,rem((1:model.Dirdim)-tj+model.Dirdim,model.Dirdim)+1),4)*dth;                                                        % energy in each angular bin get the mean square slope (eqn. 16, Donelan+2012)
        end
@@ -742,7 +743,7 @@ for t = 1:model.num_time_steps                                                  
             xlabel('k [m^-1]')
            
             sgtitle(['u = ', num2str(UU), ' m/s'])
-
+            % drawnow
             % (2) SPATIAL VARIABILITY
             [~,pfi,~,pdi] = loc_peak_freq(E,model.long,model.lat,model);
             input_xy = squeeze(sum(wn(:,:,pfi,pdi).^2.*plot_Sin(:,:,pfi,pdi),4)*dthd*dr)';
@@ -768,7 +769,7 @@ for t = 1:model.num_time_steps                                                  
             colorbar
             clim([0 15e-3])
             title('total')
-
+            % drawnow
 
 
 

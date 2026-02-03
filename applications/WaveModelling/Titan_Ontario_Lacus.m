@@ -4,10 +4,10 @@ close all
 
 % PLOT WAVES IN ONTARIO LACUS
 
-addpath(fullfile('..','..','planetwaves'))  
-addpath(fullfile('..','..','planetwaves','pre_analysis'))
+
+addpath(genpath(fullfile('..','..','planetwaves')))
 addpath(fullfile('..','..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
-load('..\..\data\Titan\TitanLakes\Bathymetries\SAR_bathy_cleaned\ol_main_basin.mat','smoothed_ol');
+load('..\..\data\Titan\TitanLakes\Bathymetries\SAR_bathy_cleaned\ol_main_basin.mat','smoothed_ol'); % large file, saved locally
 
 % isolate main basin of interest
 zDep = smoothed_ol;
@@ -18,13 +18,15 @@ zDep(1:95,:) = [];
 zDep(90:end,:) = [];
 zDep = imrotate(zDep,-90);
 zDep = imrotate(zDep,180);
-
 zDep_orig = zDep;
 % MODEL INPUTS
-planet_to_run = 'Titan-OntarioLacus';
-buoy_loc = [40 35];                                                        % grid location [x,y]
+%planet_to_run = 'Titan-OntarioLacus';
+planet_to_run = 'Titan-N2';
+%buoy_loc = [40 35];                                                       % grid location [x,y] (Sarawati Delta)
+buoy_loc = [47 14];                                                        % smooth shoreline
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.3 1 1.5 2 2.5 3 3.5 4];                                   % wind speed
+%test_speeds = [0.6 1 1.5 2 2.5 3 3.5 4];                                  % wind speed
+test_speeds = [0.5 1 1.5 2 2.5 3 3.5 4];                                   % wind speed
 time_to_run = 60*10;                                                       % time to run model
 wind_direction = 0;                                                        % wind direction
 
@@ -43,12 +45,14 @@ for i = 1:numel(test_speeds)
     Wind.speed = test_speeds(i);
     Model = calc_cutoff_freq(Planet,Model,Wind);
 
-    [myHsig{i}, htgrid{i}, wn_e_spectrum, ~ , ~ , ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
+    [myHsig{i}, htgrid{i}, wn_e_spectrum, ~ , ~ , ~, PeakWaves{i}] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
     if ~isempty(wn_e_spectrum{end})
         energy{i} = squeeze(sum(wn_e_spectrum{end}.E(Model.long,Model.lat,:,:),4));
         wn{i} = squeeze(sum(wn_e_spectrum{end}.k(Model.long,Model.lat,:,:),4));
         cg{i} = squeeze(sum(wn_e_spectrum{end}.cg(Model.long,Model.lat,:,:),4));
     end
 end
-save('OntarioLacus.mat','myHsig','htgrid','wn','energy','cg')
+
+%save('Titan_N2_OL.mat','myHsig','htgrid','wn','energy','cg','PeakWaves')
+%save('Titan_OL.mat','myHsig','htgrid','wn','energy','cg','PeakWaves')
 make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

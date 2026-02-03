@@ -2,12 +2,13 @@ clc
 clear
 close all
 
+% Compares Results of Rubins+2022 wave heights in Gale crater with PlanetWaves
+
+addpath(genpath(fullfile('..','..','planetwaves')))
 addpath(fullfile('..','..','data','Mars','StevensRubin2022'))
-addpath(fullfile('..','..','planetwaves'))
-addpath(fullfile('..','..','planetwaves','pre_analysis/'))
+
 
 max_depth = 10;
-
 %downwind
 x = linspace(0, 20000, 50); 
 % crosswind

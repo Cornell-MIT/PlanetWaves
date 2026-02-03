@@ -2,28 +2,24 @@ clc
 clear
 close all
 
-% WAVES IN LAKE TITICACA (UNIFORM DEPTH)
-% rho_air = 0.785 kg/m3;
-% avg_depth = 107 m
-% max_width =  190 km
-% max_length = 80 km 
+% Compare waves in Lake Titicaca and normal Eath conditions (uniform basin depth)
 
-addpath(fullfile('..','..','planetwaves'))  
-addpath(fullfile('..','..','planetwaves','pre_analysis'))
-
+addpath(genpath(fullfile('..','..','planetwaves')))
 
 % MODEL INPUTS
-planet_to_run = 'Lake-Titicaca';
-                                                 
+planet_to_run = 'Lake-Titicaca';                            
 test_speeds = 1:10;                                                        % wind speed
 time_to_run = 60*10;                                                       % time to run model
 wind_direction = 0;                                                        % wind direction
-
 zDep = 107.*ones(19,8); 
 buoy_loc = [4 9];
 grid_resolution = [10*1000 10*1000];         
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
+% rho_air = 0.785 kg/m3;
+% avg_depth = 107 m
+% max_width =  190 km
+% max_length = 80 km 
 % populate model classes
 [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
 
@@ -41,8 +37,15 @@ htgrid = cell(1, numel(test_speeds));
 E_spec = cell(1, numel(test_speeds));
 Cg = cell(1,numel(test_speeds));
 
-figure;
+figure('Name','Wave heights on Earth');
+xlabel('$|u|$ [m/s]','FontSize',25,'interpreter','latex')
+ylabel('$H_{1/3}$ [m]','FontSize',25,'interpreter','latex')
+grid on
+box on;
+set(gca,'FontSize',16)
+set(gca,'FontWeight','bold')
 hold on;
+m
 for i = 1:numel(test_speeds)
 
     Wind.speed = test_speeds(i);
@@ -56,10 +59,10 @@ for i = 1:numel(test_speeds)
     end
 
     wv_ht(i) = myHsig{i}(end);
-    plot(test_speeds(i),wv_ht(i),'rs')
+    plot(test_speeds(i),wv_ht(i),'rs','HandleVisibility','off')
 end
 
-plot(test_speeds,wv_ht,'-rs')
+plot(test_speeds,wv_ht,'-rs','DisplayName',planet_to_run)
 planet_to_run = 'Earth';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FILL MODEL
@@ -83,6 +86,8 @@ for i = 1:numel(test_speeds)
     [myHsig_Earth{i}, ~, ~, ~ , ~ , ~, ~] = makeWaves(Planet, Model, Wind, Uniflow, Etc);  
     
     wv_ht_normal(i) = myHsig_Earth{i}(end);
-    plot(test_speeds(i),wv_ht_normal(i),'ks')
+    plot(test_speeds(i),wv_ht_normal(i),'ks','HandleVisibility','off')
 end
-plot(test_speeds,wv_ht_normal,'-ks')
+plot(test_speeds,wv_ht_normal,'-ks','DisplayName',planet_to_run)
+
+legend('show','Location','best')

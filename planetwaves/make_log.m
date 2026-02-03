@@ -53,8 +53,18 @@ function TitanResults = make_log(planet,model,wind,uniflow,Etc)
     dinfo = dir(fullfile(targetDir, '*.m'));                               % all files in planetwaves folder
     % Find the most recently modified .m file
     [~, idx] = max([dinfo.datenum]);
-    latestFile = dinfo(idx);
-    lastModStr = string(datetime(latestFile.datenum, 'ConvertFrom','datenum'));
+
+    latestFile = dinfo(idx); 
+    if isempty(dinfo)
+        % No .m files found → skip
+        lastModStr = "";
+    else
+        [~, idx] = max([dinfo.datenum]);
+        latestFile = dinfo(idx);
+        lastModStr = string(datetime(latestFile.datenum, ...
+            'ConvertFrom','datenum'));
+    end
+
 
     fprintf('Directional Wave Spectrum:\nLast modified: %s (%s)\n', lastModStr,latestFile.name);
 

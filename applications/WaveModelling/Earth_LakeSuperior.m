@@ -6,11 +6,10 @@ close all
 
 warning('need to streamline process of moving outputs of find_fetch.py to matlab scripts to run model')
 
-addpath(fullfile('..','..','planetwaves'))  
-addpath(fullfile('..','..','planetwaves','pre_analysis'))
+addpath(genpath(fullfile('..','..','planetwaves')))
 addpath(fullfile('..','..','data','Earth','GreatLakes','LakeSuperior'))
 % from find_fetch.py 
-load('..\..\data\Earth\GreatLakes\LakeSuperior\BathyData\LakeSuperior_cleaned.mat')
+load(fullfile('..','..','data','Earth','GreatLakes','LakeSuperior','BathyData','LakeSuperior_cleaned.mat'))
 zDep = -squeeze(LS);
 
 % MODEL INPUTS
@@ -61,6 +60,6 @@ for i = 1:numel(test_speeds)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  PLOT RESULTS
-save('lakesuperior_run.mat','myHsig','energy','wn','cg')
+%save('lakesuperior_run.mat','myHsig','energy','wn','cg')
 
 make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

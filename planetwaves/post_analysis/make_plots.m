@@ -50,7 +50,7 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             colormap linspecer
             xlabel('longitude [km]')
             ylabel('latitude [km]')
-            title(sprintf('u = %i m/s',test_speeds(speed)))
+            title(sprintf('u = %.1f m/s',test_speeds(speed)))
             c1 = colorbar;
             c1.Label.String = 'Hsig [m]';
             clim([0 ceil(max(buoy_waves))])
@@ -67,10 +67,10 @@ function make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)
             clabel(cc, hh, 'FontSize', 15, 'Color', 'k', 'LabelSpacing', 200, 'FontWeight', 'bold'); % Customize labels
         
             grid on
-            new_xtick = get(gca, 'XTick')*(Model.gridX)/1000;
-            new_ytick = get(gca, 'YTick')*(Model.gridY)/1000;
-            set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%d', x), new_xtick, 'UniformOutput', false));
-            set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%d', y), new_ytick, 'UniformOutput', false));
+            new_xtick = round(get(gca, 'XTick')*(Model.gridX)/1000,1);
+            new_ytick = round(get(gca, 'YTick')*(Model.gridY)/1000,1);
+            set(gca, 'XTick',  get(gca, 'XTick'), 'XTickLabel', arrayfun(@(x) sprintf('%.1f', x), new_xtick, 'UniformOutput', false));
+            set(gca, 'YTick',  get(gca, 'YTick'), 'YTickLabel', arrayfun(@(y) sprintf('%.1f', y), new_ytick, 'UniformOutput', false));
             set(gca,'Ydir','reverse')
         
             
