@@ -20,13 +20,13 @@ zDep = imrotate(zDep,-90);
 zDep = imrotate(zDep,180);
 zDep_orig = zDep;
 % MODEL INPUTS
-%planet_to_run = 'Titan-OntarioLacus';
-planet_to_run = 'Titan-N2';
+planet_to_run = 'Titan-OntarioLacus';
+%planet_to_run = 'Titan-N2';
 %buoy_loc = [40 35];                                                       % grid location [x,y] (Sarawati Delta)
 buoy_loc = [47 14];                                                        % smooth shoreline
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-%test_speeds = [0.6 1 1.5 2 2.5 3 3.5 4];                                  % wind speed
-test_speeds = [0.5 1 1.5 2 2.5 3 3.5 4];                                   % wind speed
+test_speeds = [0.6 1 1.5 2 2.5 3 3.5 4];                                   % wind speed
+%test_speeds = [0.5 1 1.5 2 2.5 3 3.5 4];                                  % wind speed
 time_to_run = 60*10;                                                       % time to run model
 wind_direction = 0;                                                        % wind direction
 
