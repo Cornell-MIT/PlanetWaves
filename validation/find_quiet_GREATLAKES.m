@@ -1,4 +1,4 @@
-function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_avail] = find_quiet_GREATLAKES(filename,data_cadence,window_size,u_threshold,direction_threshold,gust_threshold)
+function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_avail] = find_quiet_GREATLAKES(filename,data_cadence,window_size,viable_winds)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FUNCTION OBJECTIVE: 
 % Finds a period of quiet where the wind speed is relatively constant, the gusts are relatively similar to the wind speed,
@@ -7,9 +7,10 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_a
 %   filename            = Name of .txt file with Great Lake Buoy Table (e.g. for Bouy 45004 find it here: https://www.ndbc.noaa.gov/station_history.php?station=45004)
 %   data_cadence        = number of data points per hour 
 %   window_size         = size of window of interest (controlled by the fetch and speed of the waves of interest)
-%   u_threshold         = maximum allowable change in |u| within the window of time
-%   direction_threshold = maximum allowable change in the direction of the wind within the window of time
-%   gust_threshold      = maximum allowable fraction of gusts relative to average wind speed (e.g. 1.5 = 150% threshold)
+%   viable winds        = criteria for what is considered a relatively constant wind
+%       .u              = maximum allowable change in |u| within the window of time [m/s]
+%       .dir            = maximum allowable change in the direction of the wind within the window of time
+%       .gust           = maximum allowable fraction of gusts relative to average wind speed (e.g. 1.5 = 150% threshold)
 % OUTPUTS: 
 %   quiet_time          = index of a period of quiet within the buoy data that matches threshold criteria
 %   umag                = cleaned time series of wind speed [m/s]
@@ -21,16 +22,13 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_a
 
     yr = filename(end-3:end);
 
-    thd_dir = direction_threshold; % threshold for direction (less than 10 degree change)
-    thd_g = gust_threshold; % threshold for gust (less than 150%)
-    
     % LOAD IN DATA
-    warning('off','MATLAB:table:ModifiedAndSavedVarnames') % suppress annoying message about changing the year name column that I don't care about
+    warning('off','MATLAB:table:ModifiedAndSavedVarnames')                 % suppress annoying message about changing the year name column that I don't care about
     lakedatatable = readtable(strcat(filename,'.txt'),MissingRule="omitrow",ReadVariableNames=true);
     disp(filename)
     %disp(lakedatatable)
 
-    window_size = data_cadence*window_size; % window size in terms of number of measurements
+    window_size = data_cadence*window_size;                                % window size in terms of number of measurements
     
     % extract relevant data from table
     umag = lakedatatable.WSPD;
@@ -64,6 +62,7 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_a
     std_u = NaN(1,numel(umag)-window_size);
     std_ht = NaN(1,numel(umag)-window_size);
 
+    % filter out relative data
     for i = 1:length(umag) - window_size
     
        tm = i:i+window_size;
@@ -71,7 +70,7 @@ function [quiet_time,umag,gust,dir,waveht,avgu,avght,avgdir,std_u,std_ht, none_a
        chg_u = max(umag(tm)) - min(umag(tm));
        chg_dir = (max(dir(tm)) - min(dir(tm)));
 
-       if chg_u <= u_threshold && chg_dir <= thd_dir && frac_g <= thd_g
+       if chg_u <= viable_winds.u && chg_dir <= viable_winds.dir && frac_g <= viable_winds.gust
            quiet_time(i) = 1;
            avgu(i) = mean(umag(tm),"omitmissing");
            avght(i) = mean(sig_h(tm),"omitmissing");

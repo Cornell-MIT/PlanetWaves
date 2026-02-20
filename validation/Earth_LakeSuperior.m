@@ -6,10 +6,12 @@ close all
 
 warning('need to streamline process of moving outputs of find_fetch.py to matlab scripts to run model')
 
-addpath(genpath(fullfile('..','..','planetwaves')))
-addpath(fullfile('..','..','data','Earth','GreatLakes','LakeSuperior'))
+save_name = 'PlanetWaves_LakeSuperior.mat'; % save results to be checked in validation against buoy data and UMWM results
+ 
+addpath(genpath(fullfile('..','planetwaves')))
+addpath(fullfile('..','data','Earth','GreatLakes','LakeSuperior'))
 % from find_fetch.py 
-load(fullfile('..','..','data','Earth','GreatLakes','LakeSuperior','BathyData','LakeSuperior_cleaned.mat'))
+load(fullfile('..','data','Earth','GreatLakes','LakeSuperior','BathyData','LakeSuperior_cleaned.mat'))
 zDep = -squeeze(LS);
 
 % MODEL INPUTS
@@ -57,9 +59,12 @@ for i = 1:numel(test_speeds)
         wn{i} = squeeze(sum(wn_e_spectrum{end}.k(Model.long,Model.lat,:,:),4));
         cg{i} = squeeze(sum(wn_e_spectrum{end}.cg(Model.long,Model.lat,:,:),4));
     end
+    save(save_name,'myHsig','energy','wn','cg','-append')
+    
 end
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  PLOT RESULTS
-%save('lakesuperior_run.mat','myHsig','energy','wn','cg')
 
 make_plots(Planet,Model,Wind,test_speeds,myHsig, htgrid,energy,wn)

@@ -26,3 +26,6 @@ FC=gfortran
 CPPFLAGS=
 >> make clean
 >> make umwm
+
+These results are then compared with the results from PlanetWaves (saved as .mat file so don't need to re-run each time)
+from Earth_lakesuperior.mat

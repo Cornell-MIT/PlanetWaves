@@ -1,53 +1,57 @@
 function TitanResults = make_log(planet,model,wind,uniflow,Etc)
 % make a log and save file location for result outputs
 
+    TitanResults = [];
+    want2save = false; % saves log results to .txt file 
+    if want2save
+        % -- create output directory for results 
+        ResultsParent = 'results';
+        DiaryParent = 'model_logs';
+        TitanResults = strcat('wind_speed_',num2str(wind.speed)); 
+        TitanResults = fullfile(ResultsParent,TitanResults);
     
-    % -- create output directory for results 
-    ResultsParent = 'results';
-    DiaryParent = 'model_logs';
-    TitanResults = strcat('wind_speed_',num2str(wind.speed)); 
-    TitanResults = fullfile(ResultsParent,TitanResults);
-
-    
-    if exist(ResultsParent,'dir') ~= 7 && Etc.savedata
-        disp(['Creating folder ' ResultsParent ' to store model output'])
-        mkdir(ResultsParent);
-    end
-    if exist(DiaryParent,'dir') ~= 7 
-        disp(['Creating folder ' DiaryParent ' to store log files for model runs'])
-        mkdir(DiaryParent);
-    end    
-    if exist(TitanResults, 'dir') == 7  && Etc.savedata                        
-       oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
-       oldmatloc = dir(oldmatfiles);
-       disp(['Previous runs already exist in ' TitanResults])
-       for kk = 1:length(oldmatloc)
-           basemat = oldmatloc(kk).name;
-           fullmat = fullfile(TitanResults,basemat);
-           fprintf(1,'Deleting previous .mat files %s\n',fullmat);
-           delete(fullmat);
-       end
-       % oldlogfile = fullfile(ResultsParent,'*.txt');
-       % oldlogloc = dir(oldlogfile);
-       % for kk = 1:length(oldlogloc)
-       %    basetxt = oldlogloc(kk).name;
-       %    fulltxt = fullfile(ResultsParent,basetxt);
-       %    fprintf(1,'Deleting previous log files %s\n',fulltxt);
-       %    delete(fulltxt);
-       % end
-    elseif Etc.savedata
-        disp(['Creating subdirectories in ' ResultsParent ' to store model output'])
-	    mkdir(TitanResults)
-    end
+        
+        if exist(ResultsParent,'dir') ~= 7 && Etc.savedata
+            disp(['Creating folder ' ResultsParent ' to store model output'])
+            mkdir(ResultsParent);
+        end
+        if exist(DiaryParent,'dir') ~= 7 
+            disp(['Creating folder ' DiaryParent ' to store log files for model runs'])
+            mkdir(DiaryParent);
+        end    
+        if exist(TitanResults, 'dir') == 7  && Etc.savedata                        
+           oldmatfiles = fullfile(TitanResults, '*.mat');                          % empties output directory from previous runs
+           oldmatloc = dir(oldmatfiles);
+           disp(['Previous runs already exist in ' TitanResults])
+           for kk = 1:length(oldmatloc)
+               basemat = oldmatloc(kk).name;
+               fullmat = fullfile(TitanResults,basemat);
+               fprintf(1,'Deleting previous .mat files %s\n',fullmat);
+               delete(fullmat);
+           end
+           % oldlogfile = fullfile(ResultsParent,'*.txt');
+           % oldlogloc = dir(oldlogfile);
+           % for kk = 1:length(oldlogloc)
+           %    basetxt = oldlogloc(kk).name;
+           %    fulltxt = fullfile(ResultsParent,basetxt);
+           %    fprintf(1,'Deleting previous log files %s\n',fulltxt);
+           %    delete(fulltxt);
+           % end
+        elseif Etc.savedata
+            disp(['Creating subdirectories in ' ResultsParent ' to store model output'])
+	        mkdir(TitanResults)
+        end
     
         % -- prepare log file for commands 
-    dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_wind_speed_',num2str(wind.speed),'_RunLog.txt');
-    diary(fullfile(DiaryParent,dfile));
-    RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
+        dfile=strcat(string(datetime('now','TimeZone','local','Format','ddMMyy_HHmmss')),'_wind_speed_',num2str(wind.speed),'_RunLog.txt');
+        diary(fullfile(DiaryParent,dfile));
+        RAII.diary = onCleanup(@() diary('off'));                                  % auto-closes logging function on error
+    end
 
 % adds run details to console and saves to log file 
     disp('================================================================')
 
+    % checks latest modification to model
     targetDir = fullfile(pwd, '..', '..', 'planetwaves');                  % path to core model files
     targetDir = char(java.io.File(targetDir).getCanonicalPath);            % fixes annoying path problem
     dinfo = dir(fullfile(targetDir, '*.m'));                               % all files in planetwaves folder

@@ -6,12 +6,15 @@ close all
 
 addpath(genpath(fullfile('..','..','planetwaves')))
 
-save_file = ['AllPlanets_', datestr(datetime("today")), '.mat']; % name of file with saved data
 
+save_file = ['model_results/AllPlanets_Together_', datestr(datetime("today")), '.mat']; % name of file with saved data
+if not(isfolder('model_results'))
+    mkdir('model_results')
+end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Model Parameters
-test_speeds = 1:40;
-time_to_run = 60*10; % 10 hours  
+test_speeds = 1:40; % test wind speeds between 1 to 40 m/s
+time_to_run = 6*10; % 10 hours  
 wind_direction = 0;  
 
 % large, deep basin
@@ -50,7 +53,15 @@ wavethreshold = containers.Map( ...
     37.1 ] ...
 );
 
-all_planets = {'LHS-1140-b','55-Cancri-e'};
+all_planets = {'Earth', ...
+    'Mars-low', ...
+    'Mars-high', ...
+    'Titan-OntarioLacus', ...
+    'Titan-N2', ...
+     'Kepler-1649-b', ...
+     'LHS-1140-b', ...
+     '55-Cancri-e'};
+
 % wave height vs wind speed per planet
 figure('Name','Sig Wave Heights');
 sigH_ax = axes;
@@ -124,7 +135,11 @@ for pp = 1:numel(all_planets)
     end
 
     
-    save(save_file,"u_of_planet","myHsig","htgrid","T_p","L_p")
+    if isfile(save_file)
+        save(save_file,"u_of_planet","myHsig","htgrid","T_p","L_p","-append")
+    else
+        save(save_file,"u_of_planet","myHsig","htgrid","T_p","L_p")
+    end
 
     % PLOT MODEL
     WAVE_HEIGHT = wave_height(pp,:);
