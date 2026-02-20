@@ -42,7 +42,7 @@ x = Re_p(idx).^2;
 y1 = threshold_entrainment1(idx);
 y2 = threshold_entrainment2(idx);
 
-figure;
+figure('Name','Tidal Flow Competence');
 
 % plot(x, y1, '-k', 'LineWidth', 1, 'HandleVisibility', 'off');
 % plot(x, y2, '-k', 'HandleVisibility', 'off');
@@ -293,20 +293,20 @@ function [s1,s2,s3,s4] = calc_suspension_threshold(rho_s,rho,g,D50,nu)
         end
         van_rijn_1984(i) = sqrt(K)*parker_sus(i);
     end
-    plot(sqrt(D_star),bagnold_sus,'--r')
-    plot(sqrt(D_star),parker_sus,'--g')
-    plot(sqrt(D_star),van_rijn_1984,'--b')
-    legend('Dietrich','Bagnold','Parker','Van Rijn')
-
-    xlabel('$D_*$','Interpreter','latex')
-    ylabel('$\tau$','Interpreter','latex')
+    % plot(sqrt(D_star),bagnold_sus,'--r')
+    % plot(sqrt(D_star),parker_sus,'--g')
+    % plot(sqrt(D_star),van_rijn_1984,'--b')
+    % legend('Dietrich','Bagnold','Parker','Van Rijn')
+    % 
+    % xlabel('$D_*$','Interpreter','latex')
+    % ylabel('$\tau$','Interpreter','latex')
 
     s1 = suspension_threshold;
     s2 = bagnold_sus;
     s3 = parker_sus;
     s4 = van_rijn_1984;
 
-    title('suspension thresholds')
+    % title('suspension thresholds')
 end
 
 function tau_c_star = calc_original_shields_curve(s_star)

@@ -3,12 +3,14 @@ clear
 close all
 
 % DEEPWATER WAVES FOR SEDIMENT ENTRAINMENT AT ONTARIO LACUS
-addpath(fullfile('..','..','planetwaves'))  
-addpath(fullfile('..','..','planetwaves','pre_analysis'))
+addpath(genpath(fullfile('..','..','planetwaves')))
 addpath(fullfile('..','..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
 load('..\..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope','zDep');
 
-% infinite fetch?
+save_file = ['/past_runs/Waves03_43.mat.mat']; % name of file with saved data
+if not(isfolder('past_runs'))
+    mkdir('past_runs')
+end
 
 % MODEL INPUTS
 lakes = {'Titan-CH3H8N2','Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2'};
@@ -55,8 +57,6 @@ for c = 1:numel(lakes)
     title(planet_to_run)
     hold on;
 
-
-
     if c == 1
         figure;
         imagesc(zDep)
@@ -73,8 +73,6 @@ for c = 1:numel(lakes)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % RUN MODEL FOR DEEPWATER WAVES
-
-    
 
     for i = 1:numel(test_speeds)
 
@@ -103,11 +101,9 @@ for c = 1:numel(lakes)
             T_mat{c,i} = PeakWave.T;
             T(c,i) = PeakWave.T(Model.long,Model.lat);
 
-            %save(fullfile('..','past_run','Waves_03_43.mat')
+            save(save_file,'test_speeds','time_to_run','wind_direction','zDep','buoy_loc','lakes','Planet','Model','H0','L0','T','C0','Cg0')
             
 
-    
-         
     end
     
 
