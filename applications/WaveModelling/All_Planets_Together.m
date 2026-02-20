@@ -46,12 +46,11 @@ wavethreshold = containers.Map( ...
     0.6, ...
     0.5, ...
     5.3, ...
-    2.3, ...
+    2.7, ...
     37.1 ] ...
 );
 
-all_planets = {'Earth','Mars-low','Mars-high','Titan-OntarioLacus', 'Titan-N2', 'Kepler-1649-b','LHS-1140-b','55-Cancri-e'};
-
+all_planets = {'LHS-1140-b','55-Cancri-e'};
 % wave height vs wind speed per planet
 figure('Name','Sig Wave Heights');
 sigH_ax = axes;
@@ -70,9 +69,13 @@ for pp = 1:numel(all_planets)
 
 
     [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run,time_to_run,wind_direction,zDep,buoy_loc);
+
+
     Model.gridX = grid_resolution(1);                                              
     Model.gridY = grid_resolution(2);   
     Model.min_freq = 0.01;  % small min freq to allow wave period to grow large for Titan case
+    Model.DirDim = 8;       % only looking at collapsed non-directional spectrum so don't need a lot of directions
+    Model.Fdim = 100;       % large number of freqs to prevent steps in the peak period calculation
 
     % plot wave height vs time
     figure('Name',['Time Evolution of Waves on ',Planet.name]);
@@ -89,6 +92,7 @@ for pp = 1:numel(all_planets)
     if ~ismember(wavethreshold(planet_to_run), wind_speeds)
         wind_speeds = [wavethreshold(planet_to_run), wind_speeds];
     end
+    % wind_speeds = test_speeds;
     u_of_planet{pp} = wind_speeds; % save wind speeds to save file for reference
 
     time_vs_wave{pp} = cell(numel(wind_speeds),1);    % time evolution of wave height
@@ -104,6 +108,8 @@ for pp = 1:numel(all_planets)
         
         % peak weighted period
         T_p{pp,i} = PeakWaves.T_weighted;
+        wave_period(pp,i) = T_p{pp,i}(5,5);
+
         % peak wavelength
         L_p{pp,i} = PeakWaves.L;
        
@@ -117,11 +123,14 @@ for pp = 1:numel(all_planets)
         end
     end
 
-    save(save_file,"u_of_planet","myHsig","htgrid","T_p")
+    
+    save(save_file,"u_of_planet","myHsig","htgrid","T_p","L_p")
 
     % PLOT MODEL
     WAVE_HEIGHT = wave_height(pp,:);
+    PERIOD = wave_period(pp,:);
     p1 = plot(sigH_ax,wind_speeds(WAVE_HEIGHT ~= 0), WAVE_HEIGHT(WAVE_HEIGHT ~= 0),'-s','LineWidth',2,'DisplayName',planet_to_run);
+   %p2 = plot(sigH_ax,wind_speeds, PERIOD,'-s','LineWidth',2,'DisplayName',planet_to_run);
 
     drawnow;
 
@@ -130,5 +139,5 @@ end
 legend('show','Location','best')
 
 % write out final results to a table
-waveHeight = make_table(all_planets, u_of_planet, wave_height)
+% waveHeight = make_table(all_planets, u_of_planet, wave_height);
 % writetable(waveHeight,'WaveHeights.csv','WriteRowNames',true)

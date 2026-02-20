@@ -143,7 +143,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
     % Map each wind direction to its closest directional index
     theta_fetch_deg = theta_fetch_deg(:);
     [~, dir_idx] = min(abs(theta_fetch_deg - wind_angle_deg(:)'), [], 1);  % [1 x numel(wind)]
-    fetch_at_pt = fetch(dir_idx, :);                                       %  [numel(wind) x numel(x)]
+    fetch_at_pt = fetch(dir_idx, :);                                       % [numel(wind) x numel(x)]
 
     if make_plot
         
@@ -260,6 +260,9 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
         % convert wind -> wave crest direction
         wave_crests_angle_deg = wrapTo360(wind_angle_deg + 90);         % angle phi0 in Ashton+2006, Figure 1
         
+        rel_angle_2_shore_deg = wrapTo180(wave_crests_angle_deg - shoreline_angle_deg(pt));
+        is_stable(pt) = is_shoreline_stable(wave_height(:,pt),wave_period(:,pt),rel_angle_2_shore_deg);
+            
         [wave_crests, Epdf] = make_wave_Epdf(wave_height(:,pt), wave_crests_angle_deg,wave_period(:,pt));
         
        if make_plot
@@ -301,9 +304,25 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
         % end
      end
     
+
+     
+     figure('Name','Shoreline Stability')
+     scatter(x,y,50,is_stable,'filled')
+     colorbar;
+
+     is_stable_binary = is_stable;
+     is_stable_binary(is_stable>0) = 1;
+     is_stable_binary(is_stable<0) = -1;
+     is_stable_binary(is_stable==0) = NaN;
+
+     figure('Name','Shoreline Stability Sign')
+     scatter(x,y,50,is_stable_binary,'filled')
+     colorbar;
+
      if added_point
          Qs_max(end) = [];
      end
+
     disp('Littoral transport computed')
     disp('Wave Qs complete!')
 end

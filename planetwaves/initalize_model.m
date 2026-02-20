@@ -118,7 +118,7 @@ elseif strcmp(planet_name,'Mars-low')
     Planet.nu_liquid             = liquid_H2O_dyn_viscosity_288K/Planet.rho_liquid;    % liquid (kinematic) Viscosity [m2/s]
     Planet.gravity               = 3.71;                                               % Mars gravity
     Planet.surface_temp          = 288;                                                % Earth-like warmth for liquid water to exist
-    Planet.surface_press         = 50000;                                              % low pressure case
+    Planet.surface_press         = 50000;                                              % low pressure case (50 kPa)
     Planet.surface_tension       = liquid_H2O_surface_tension_288K;                    % liquid water surface tension at 288 K (DIPPR)
     Planet.kgmolwt               = CO2_atm_kgmolwt;                                    % (CO2)
     Planet.rhoa                  = ideal_gas_law(Planet);                              % Atm density from ideal gas [kg/m3]
@@ -131,7 +131,7 @@ elseif strcmp(planet_name,'Mars-high')
     Planet.nu_liquid             = liquid_H2O_dyn_viscosity_288K/Planet.rho_liquid;    % liquid water viscocity at 288 K (DIPPR) 
     Planet.gravity               = 3.71;                                               % Mars gravity
     Planet.surface_temp          = 288;                                                % Earth-like warmth for liquid water to exist
-    Planet.surface_press         = 4*50000;                                            % high pressure case
+    Planet.surface_press         = 4*50000;                                            % high pressure case (200 kPa)
     Planet.surface_tension       = liquid_H2O_surface_tension_288K;                    % liquid water surface tension at 288 K (DIPPR)
     Planet.kgmolwt               = CO2_atm_kgmolwt;                                    % (CO2)
     Planet.rhoa                  = ideal_gas_law(Planet);                              % Atm density from ideal gas [kg/m3] 

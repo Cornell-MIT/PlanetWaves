@@ -1,66 +1,69 @@
-clc
-clear
-close all
-
-% compute the Pierson-Moskowitz curve for wave height
-
-addpath(genpath(fullfile('..','..','planetwaves')))
-
-
-% Model
-planet_to_run  = 'Earth';
-test_speeds    = 10;            % m/s
-time_to_run    = 60*10;         % 10 hours
-wind_direction = pi/2;
-buoy_loc       = [3 40];
-grid_resolution = [1*1000 0.01*1000];
-
-zDep = 100 .* ones(80,10);
-
-%% Initialize model
-[Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run, time_to_run, wind_direction, zDep, buoy_loc);
-Model.gridX = grid_resolution(1);
-Model.gridY = grid_resolution(2);
-
-% sweep across ratios
-rat = [0.25 0.5 1 2 4];
-
-% parameters to sweep across
-
-paramList = { ...
-    'rho_liquid', ...
-    'nu_liquid', ...
-    'nua', ...
-    'gravity', ...
-    'surface_temp', ...
-    'surface_press', ...
-    'surface_tension', ...
-    'kgmolwt', ...
-    };
-
-
-% SWEEP AWAY, BABY!!! (all but wind speed and fetch)
-results = struct();
-for k = 1:numel(paramList)
-
-    paramName = paramList{k};
-
-    fprintf('\nRunning power-law sweep for %s\n', paramName);
-
-    [n,rat,Hsig] = powerlaw_wave_sweep(paramName, rat,Planet, Model, Wind, Uniflow, Etc, test_speeds);
-
-    results.(paramName).n    = n;
-    results.(paramName).rat  = rat;
-    results.(paramName).Hsig = Hsig;
-
-end
-
-% sweep for wind speed
-Urat = [0.5 0.75 1 1.25 1.5 2];
-[n_U, Urat, HU] = powerlaw_wind_sweep(Urat, Planet, Model, Wind, Uniflow, Etc);
-fprintf('Hs \\alpha U^{%.3f}\n', n_U);
+% clc
+% clear
+% close all
+% 
+% % compute the Pierson-Moskowitz curve for wave height
+% 
+% addpath(genpath(fullfile('..','..','planetwaves')))
+% 
+% save_file = ['PM_curve_fits_', datestr(datetime("today")), '.mat']; % name of file with saved data
+% 
+% % Model
+% planet_to_run  = 'Earth';
+% test_speeds    = 10;            % m/s
+% time_to_run    = 60*10;         % 10 hours
+% wind_direction = 0;
+% buoy_loc       = [5 5];
+% grid_resolution = [10*1000 1*1000];
+% 
+% zDep = 100 .* ones(10,10);
+% 
+% % Initialize model
+% [Planet,Model,Wind,Uniflow,Etc] = initalize_model(planet_to_run, time_to_run, wind_direction, zDep, buoy_loc);
+% Model.gridX = grid_resolution(1);
+% Model.gridY = grid_resolution(2);
+% 
+% % sweep across ratios
+% rat = [0.25 0.5 1 2 4];
+% 
+% % parameters to sweep across
+% paramList = { ...
+%     'rho_liquid', ...
+%     'nu_liquid', ...
+%     'nua', ...
+%     'gravity', ...
+%     'surface_temp', ...
+%     'surface_press', ...
+%     'surface_tension', ...
+%     'kgmolwt', ...
+%     };
+% 
+% 
+% % SWEEP AWAY, BABY!!! (all but wind speed and fetch)
+% results = struct();
+% for k = 1:numel(paramList)
+% 
+%     paramName = paramList{k};
+% 
+%     fprintf('\n*******Running power-law sweep for %s*************\n', paramName);
+% 
+%     [n,rat,Hsig] = powerlaw_wave_sweep(paramName, rat,Planet, Model, Wind, Uniflow, Etc, test_speeds);
+% 
+%     results.(paramName).n    = n;
+%     results.(paramName).rat  = rat;
+%     results.(paramName).Hsig = Hsig;
+% 
+% end
+% 
+% % % sweep for wind speed
+% Urat = rat;
+% Wind.speed = test_speeds;
+% fprintf('\n************* Running power-law sweep for wind speed *************\n');
+% [n_U, Urat, HU] = powerlaw_wind_sweep(Urat, Planet, Model, Wind, Uniflow, Etc);
+% fprintf('Hs \\alpha U^{%.3f}\n', n_U);
 
 % sweep for fetch
+fprintf('\n ************* Running power-law sweep for fetch *************\n');
 [n_fetch, fetch_m, Hfetch] = powerlaw_fetch_sweep(Planet, Model, Wind, Uniflow, Etc, test_speeds, 5);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,6 +87,7 @@ fprintf('%-20s : %8.4f\n', 'fetch', n_fetch);
 fprintf('============================================\n');
 
 
+%save(save_file,"results")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % POWER LAW SWEEPS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,6 +102,7 @@ function [n, rat, Hsig] = powerlaw_wave_sweep(paramName, rat, Planet, Model, Win
     
     % hold reference value
     p0 = Planet.(paramName);
+    pa0 = Planet.rhoa;
     % initialize
     Hsig = zeros(size(rat));
     
@@ -106,6 +111,13 @@ function [n, rat, Hsig] = powerlaw_wave_sweep(paramName, rat, Planet, Model, Win
     
         % Reset parameter 
         Planet.(paramName) = p0 * rat(i);
+
+        if strcmp(paramName,'surface_press') || strcmp(paramName, 'kgmolwt')
+            Planet.rhoa =  pa0* rat(i);
+        elseif strcmp(paramName,'surface_temp')
+           Planet.rhoa = pa0 / rat(i);
+        end
+
         % Reset wind
         Wind.speed = test_speeds;
         % Recompute cutoff freq 
@@ -139,8 +151,10 @@ function [n, rat, Hsig] = powerlaw_wave_sweep(paramName, rat, Planet, Model, Win
     set(gca,'XScale','log','YScale','log')
     xlabel(['$', paramName, '/', paramName, '_0$'], 'Interpreter','latex')
     ylabel('$H_s / H_{s,0}$', 'Interpreter','latex')
-    title(['Power law: $H_s \propto ', paramName, '^{', num2str(n,'%.2f'), '}$'], 'Interpreter','latex')
 
+    title_name = replace(paramName, "_", "\_");
+    title(['Power law: $H_s \propto ', title_name, '^{', num2str(n,'%.f'), '}$'], 'Interpreter','latex')
+    drawnow;
 end
 
 
@@ -189,7 +203,7 @@ function [n, Urat, Hsig] = powerlaw_wind_sweep( Urat, Planet, Model, Wind, Unifl
     set(gca,'XScale','log','YScale','log')
     xlabel('$U / U_0$', 'Interpreter','latex')
     ylabel('$H_s / H_{s,0}$', 'Interpreter','latex')
-    title(['Wind scaling: $H_s \propto U^{',num2str(n,'%.2f'), '}$'], 'Interpreter','latex')
+    title(['Wind scaling: $H_s \propto U^{',num2str(n,'%.f'), '}$'], 'Interpreter','latex')
 
 end
 
@@ -199,7 +213,7 @@ function [n, fetch_m, H_vs_fetch] = powerlaw_fetch_sweep(Planet, Model, Wind, Un
 %       Hs ∝ X^n
   
     if nargin < 7
-        col_idx = 5;   % default cross-fetch column (center of basin)
+        col_idx = round(Model.LatDim/2);   % default cross-fetch column (center of basin)
     end
     
     % model inputs
@@ -218,7 +232,7 @@ function [n, fetch_m, H_vs_fetch] = powerlaw_fetch_sweep(Planet, Model, Wind, Un
     % H vs fetch at fixed cross-fetch location
     H_vs_fetch = plot_grid(:, col_idx);
     % clean up
-    valid_idx = fetch_m > 0 & H_vs_fetch > 0;
+    valid_idx = 1:round(Model.LonDim/2);
     fetch_m = fetch_m(valid_idx);
     H_vs_fetch = H_vs_fetch(valid_idx);
     
@@ -232,10 +246,10 @@ function [n, fetch_m, H_vs_fetch] = powerlaw_fetch_sweep(Planet, Model, Wind, Un
     figure; hold on; grid on;
     loglog(fetch_m, H_vs_fetch, 'ko', 'MarkerFaceColor','k')
     loglog(fetch_m, a * fetch_m.^n, 'r--', 'LineWidth',1.5)
-    xlabel('Fetch [m]', 'Interpreter','latex')
+    xlabel('Fetch X [m]', 'Interpreter','latex')
     ylabel('$H_s$ [m]', 'Interpreter','latex')
-    title(sprintf('Fetch scaling: $H_s = %.3f\\,F^{%.2f}$', a, n),'Interpreter','latex')
-    fprintf('Estimated fetch law: H = %.4f * F^{%.4f}\n', a, n);
+    title(sprintf('Fetch scaling: $H_s \propto \\,X^{%.f}$', a, n),'Interpreter','latex')
+    fprintf('Estimated fetch law: H \propto \\X^{%.f}\n', a, n);
 
 end
 
