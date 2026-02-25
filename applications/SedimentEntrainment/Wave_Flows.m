@@ -2,25 +2,32 @@ clc
 clear
 close all
 
+
+disp('====== RUNNING WAVE FLOW ENTRAINMENT ==================')
+% calculates sediment entrainment under shoaling waves at Titan
+
 run_waves = 0; % if true, will run PlanetWaves (Titan_DeepwaterWaves.m), otherwise will load wave results from past run
 
-
+% wave model
 addpath(genpath(fullfile('..','..','planetwaves')))
-
+% GCM surface winds
 addpath(fullfile('..','..','data/Titan/TAMwTopo/'))
+% simple bathymetry for Ontario Lacus using constant slope
 addpath(fullfile('..','..','data/Titan/TitanLakes/Bathymetries/bathtub_bathy'))
-
 
 if run_waves
     Titan_DeepwaterWaves;
 else
+    pathname = [pwd,'\past_runs\Titan_DeepWaterWaves.mat'];
+    last_created = dir(pathname).date;
+    fprintf('Loading data from file run: %s\n',last_created);
     % Results from last run of Titan_DeepwaterWaves
-    load('./past_runs/Waves03_43.mat','test_speeds','time_to_run','wind_direction','zDep','buoy_loc','lakes','Planet','Model','H0','L0','T','C0','Cg0')
+    load('./past_runs/Titan_DeepwaterWaves.mat','test_speeds','time_to_run','wind_direction','zDep','buoy_loc','lakes','Planet','Model','H0','L0','T','C0','Cg0')
 end
 
 lakecolors = {'#F2D1C9','#E086D3','#8332AC','#462749'};
 
-figure;
+figure('Name','u v H inputs');
 for i = 1:numel(lakecolors)
     plot(test_speeds,H0(i,:),'-','LineWidth',5,'Color',lakecolors{i},'DisplayName',lakes{i})
     hold on;
@@ -34,7 +41,7 @@ legend('show')
 lake_slope = 2e-3;
 alpha_0 = 0;
 min_depth = 10^-4;
-d50 = [6.35e-5:1e-5:0.1];  % [fines gravel]
+d50 = 6.35e-5:1e-5:0.1;  % [fines gravel]
 
 d = max(max(Model.bathy_map)):-lake_slope:min_depth;
 d50 = linspace(d50(1),d50(end),100);
@@ -125,7 +132,11 @@ icecolor = {'#42F2F7','#46ACC2','#498C8A','#4B6858'}; % ice colors (blues)
 organicicecolor = {'#ffa5ab','#da627d','#a53860','#450920'}; % organic-ice (reds)
 organiccolor =  {'#f8ed62','#e9d700','#dab600','#a98600'}; % organics (yellows)
 
-figure
+figure('Name','u vs entrainment depth')
+hold on
+xline(0.39,'-','summer daily average','LabelHorizontalAlignment','left','LineWidth',4,'Color','k','HandleVisibility','off','LabelVerticalAlignment','middle','FontSize',20)
+xline(1.42,'-','summer storm average','LabelHorizontalAlignment','left','LineWidth',4,'Color','k','HandleVisibility','off','LabelVerticalAlignment','middle','FontSize',20)
+xline(4.05,'-','summer maximum','LabelHorizontalAlignment','left','LineWidth',4,'Color','k','HandleVisibility','off','LabelVerticalAlignment','middle','FontSize',20)
 for s = 1:numel(rho_s)
 
     if s == 1
@@ -142,24 +153,27 @@ for s = 1:numel(rho_s)
         depth_entrain_sand(depth_entrain_sand==-999) = NaN;
         depth_entrain_grav = d_crash{s,c}(:,end);
         depth_entrain_grav(depth_entrain_grav==-999) = NaN;
-        plot(test_speeds,depth_entrain_sand,'-^','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand (rho = ' num2str(rho_s(s)) ')'])
-        hold on
-        plot(test_speeds,depth_entrain_grav,'-s','Color',mycolor{c},'LineWidth',3,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel(rho = ' num2str(rho_s(s)) ')'])
+        plot(test_speeds,depth_entrain_sand,':','Color',mycolor{c},'LineWidth',4,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand (rho = ' num2str(rho_s(s)) ')'])
+        plot(test_speeds,depth_entrain_grav,'-','Color',mycolor{c},'LineWidth',4,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel(rho = ' num2str(rho_s(s)) ')'])
     end
 
     legend('show','Location','best')
     grid on;
-    xlabel('wind speed [m/s]')
-    ylabel('entrainment depth [m]')
+    xlabel('Wind speed [m/s]')
+    ylabel('Maximum entrainment depth [m]')
+    xlim([0 4.5])
 
 end
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT TWO: ENTRAINMENT DEPTH VS GRAIN SIZE (w LAKE COMPOSITION)
 
 
-figure;
+figure('Name','d50 vs entrainment depth');
 for c = 1:numel(lakes)
     entrainment_depth = d_crash{ice,c}(end,:);
     entrainment_depth(entrainment_depth==-999) = NaN;
@@ -173,242 +187,104 @@ grid on;
 hold off
 set(gca,'XScale','log')
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% PLOT THREE: PLOT OF WOLMAN-MILLER GEOMORPHOLOGICAL EFFECTIVENESS 
-
-% JUAN'S TAM WIND MODEL WINDS AT ONTARIO LACUS
-% load('TAM_OL_winds.mat')
-% str = '#F0C808';
-% wind_color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
-% 
-% figHandle = figure;
-% yyaxis left
-% h = histogram(mag_wind,'BinEdges',0:0.1:max(mag_wind), 'Normalization','probability','FaceColor',wind_color);
-% axisHandle = figHandle.Children;
-% histHandle = axisHandle.Children;
-% histHandle.BinEdges = histHandle.BinEdges + histHandle.BinWidth/2;
-% aa = histHandle.BinEdges;
-% percent_time = h.Values;
-% grid on
-% xlabel('wind speed [m/s]')
-% ylabel('pdf time')
-% 
-% tt = [0 0 test_speeds];
-% Qs = NaN(numel(lakes),numel(tt));
-% max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
-% for c = [4 ol 1]
-% 
-%     yyaxis left
-%     Hw = [0 0 H0(c,:)];
-%     Tw = [0 0 T(c,:)];
-%     Qs(c,:) = max_angle.*(Hw.^(5/6)).*(Tw.^(1/5));
-%     Qs(c,:) = (Qs(c,:)./max(Qs(c,:)));
-% 
-%     Wolman_Miller(c,:) = Qs(c,:).*(percent_time*100);
-% 
-%     nBins = length(Wolman_Miller(c,:));
-%     x = (0:nBins-0.9).*0.1 + 0.1;
-%     yyaxis right
-%     hold on;
-%     if c == ol
-%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0.3);
-%     else
-%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0,'LineStyle','--');
-%     end
-% 
-% 
-%     start_plot = find(Qs(c,:)==0,1,'last');
-% 
-%     plot(tt(start_plot:end),Qs(c,start_plot:end),':','LineWidth',2,'Color',lakecolors{c})
-% 
-% end
-% ylabel('Qs')
-
-% JUAN'S TAM WIND MODEL WINDS AT LIGEIA MARE
-% load('TAM_LM_winds.mat')
-% str = '#F0C808';
-% wind_color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
-% 
-% figHandle = figure;
-% yyaxis left
-% h = histogram(mag_wind,'BinEdges',0:0.1:4.5, 'Normalization','probability','FaceColor',wind_color);
-% axisHandle = figHandle.Children;
-% histHandle = axisHandle.Children;
-% histHandle.BinEdges = histHandle.BinEdges + histHandle.BinWidth/2;
-% aa = histHandle.BinEdges;
-% percent_time = h.Values;
-% grid on
-% xlabel('wind speed [m/s]')
-% ylabel('pdf time')
-% 
-% tt = [0 0 test_speeds];
-% Qs = NaN(numel(lakes),numel(tt));
-% max_angle = (cos(deg2rad(45))^(6/5))*sin(deg2rad(45));
-% for c = [4 lm 1]
-% 
-%     yyaxis left
-%     Hw = [0 0 H0(c,:)];
-%     Tw = [0 0 T(c,:)];
-%     Qs(c,:) = max_angle.*(Hw.^(5/6)).*(Tw.^(1/5));
-%     Qs(c,:) = (Qs(c,:)./max(Qs(c,:)));
-% 
-%     Wolman_Miller(c,:) = Qs(c,:).*(percent_time*100);
-% 
-%     nBins = length(Wolman_Miller(c,:));
-%     x = (0:nBins-0.9).*0.1 + 0.1;
-%     yyaxis right
-%     hold on;
-%     if c == lm
-%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0.3);
-%     else
-%         b1 = bar(x, Wolman_Miller(c,:),1,'FaceColor',lakecolors{c},'FaceAlpha',0);
-%     end
-% 
-% 
-%     start_plot = find(Qs(c,:)==0,1,'last');
-% 
-%     plot(tt(start_plot:end),Qs(c,start_plot:end),':','LineWidth',2,'Color',lakecolors{c})
-% 
-% end
-% ylabel('Qs')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% PLOT FOUR: CONTOURS OF ENTRAINMENT IN ONTARIO LACUS
-% load('ol_bathtub_0.002000_slope.mat')
-% 
-% zDep(isnan(zDep))=-1;
-% zDep_entrain = zDep;
-% zDep_entrain(zDep_entrain>d_crash{ice,ol}(18,1)) = -1;
-% figure;
-% M2 = contourf(zDep_entrain,[0 d_crash{ice,ol}(18,1)],'-w','LineWidth',3);
-% colormap([0.5 0.5 0.5])
-% hold on;
-% M1 = contour(zDep,[0:10:max(max(zDep))],'-k','LineWidth',3,'ShowText','on');
-% set(gca,'YTickLabel',[]);
-% set(gca,'XTickLabel',[]);
-% %exportgraphics(gcf, 'ol_smallsand_medwind.pdf', 'ContentType', 'vector');
-% 
-% load('lm_bathtub_0.002000_slope.mat')
-% zDep(isnan(zDep))=-1;
-% zDep_entrain = zDep;
-% zDep_entrain(zDep_entrain>d_crash{ice,lm}(18,1)) = -1;
-% figure;
-% M2 = contourf(zDep_entrain,[0 d_crash{ice,lm}(18,1)],'-w','LineWidth',3);
-% colormap([0.5 0.5 0.5])
-% hold on;
-% M1 = contour(zDep,[0:20:max(max(zDep))],'-k','LineWidth',3,'ShowText','on');
-% 
-% set(gca,'YTickLabel',[]);
-% set(gca,'XTickLabel',[]);
-%exportgraphics(gcf, 'lm_smallsand_maxwind.pdf', 'ContentType', 'vector');
 
-% Entrainment Frequency PLot
+% PLOT 3: ENTRAINMENT DEPTH FOR SMALL ICE GRAINS IN ONTARIO LACUS
+[~,summer_avg] = min(abs(test_speeds - 1.42)); % use summer wind average (~1.42 m/s)
+ice_entrain_summer_average = d_crash{ice,2}(summer_avg,1);
+map_entrainment_depth_in_Ontario_Lacus(ice_entrain_summer_average)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PLOT 4: Entrainment Frequency PLot
+
 % climate model results for surface wind speeds
 load('OL_winds','mag_wind','angle_wind');
 
-u = round(mag_wind,1);
-psi = round(angle_wind,1);
-
-edges =  0:0.5:max(u) + 0.5; % slice every 0.5 m/s
-[counts, ~] = histcounts(u, edges);  
-frac_time = counts / numel(u);
-
-
-
+% Isolate southern summer winds
 points_per_day = 64;
-titan_days_per_year = 674;          % approx
+titan_days_per_year = 674;         
 points_per_year = titan_days_per_year * points_per_day;
 points_per_season = floor(points_per_year / 4);
-
 years = floor(length(mag_wind) / points_per_year);
-
 autumn_idx = cell(years,1);
 winter_idx = cell(years,1);
 spring_idx = cell(years,1);
 summer_idx = cell(years,1);
-
 for y = 1:years
     year_start = (y-1)*points_per_year + 1;
-    
     autumn_idx{y} = year_start : year_start + points_per_season - 1;
     winter_idx{y} = year_start + points_per_season : year_start + 2*points_per_season - 1;
     spring_idx{y} = year_start + 2*points_per_season : year_start + 3*points_per_season - 1;
     summer_idx{y} = year_start + 3*points_per_season : year_start + 4*points_per_season - 1;
 end
-
 autumn_all = [autumn_idx{:}];
 winter_all = [winter_idx{:}];
 spring_all = [spring_idx{:}];
 summer_all = [summer_idx{:}];
+wind_S_summer = mag_wind(winter_all); % northern winter = southern summer
 
-wind_S_summer = mag_wind(winter_all);
-
-
-
-colors = [
-    0 0 0 % black
-    1 0 0 % red
-];
-
-figure;
+% Calculate fraction of time for max entrainment
+figure('Name','Frac time for bed entrainment');
 hold on
 grid on
-xlabel('Fraction of time ', 'Interpreter', 'latex', 'FontSize', 20)
-ylabel('Entrainment Depth [m]', 'Interpreter', 'latex', 'FontSize', 20)
-legend('Location','best','Interpreter','latex')
-%set(gca,'XScale','log')
-xlim([0 0.5])
-ylim([0 10])
+ylabel('Entrainment Depth [m]', 'Interpreter', 'latex', 'FontSize', 18)
+xlabel('Percent time (\%)','Interpreter','latex','FontSize',18)
+set(gca,'XScale','log')
+xlim([10^-3 100])
+ylim([0 11])
 set(gca,'YDir','reverse')
+yline(ice_entrain_summer_average,'-','summer storm average (u$_{10}$ = 1.42 m/s)','Color',[0.5 0.5 0.5],'LineWidth',2,'HandleVisibility','off','Interpreter','latex')
+
 
 wind_label = {'All Seasons','Southern Summer'};
-for wind_climate = 1:2
+for wind_climate = 1:2 % first loop is all winds, second is just the subset for southern summer
 
+    %  Entrainment Depth vs Fraction of time
+    if wind_climate == 1
+        wind = mag_wind;
+        linecolor = 'k';
+    elseif wind_climate == 2
+        wind = wind_S_summer;
+        linecolor = 'r';
+    end
 
+    % make wind speed bins 
+    bin_size = 0.2; % m/s
+    edges_hist = 0.0:bin_size:max(wind)+bin_size;                           % edge of bins for histcount 
+    [counts, ~] = histcounts(wind, edges_hist);                             % count up number of occurences within each bin
+    
 
-%  Entrainment Depth vs Fraction of time
+    frac_time_bins = counts / sum(counts);                                  % fraction of time per bin
+    bin_centers = edges_hist(1:end-1) + diff(edges_hist)/2;                 % assign wind speed to value at center of bin
+    
 
-if wind_climate == 1
-    wind = mag_wind;
-elseif wind_climate == 2
-    wind = wind_S_summer;
-else
-    error('no')
-end
-edges_hist = 0:0.1:max(wind)+0.1;          
-[counts, ~] = histcounts(wind, edges_hist);% count up number of occurences within each bin
-frac_time_bins = counts / sum(counts);         % fraction of time per bin
-bin_centers = edges_hist(1:end-1) + diff(edges_hist)/2; % assign wind speed to value at center of bin
+    depth_entrain_grav(isnan(depth_entrain_grav)) = 0;
+    depth_entrain_sand(isnan(depth_entrain_sand)) = 0;
+    depth_entrain_sand_interp  = interp1(test_speeds, depth_entrain_sand, bin_centers, 'linear', NaN);
+    depth_entrain_grav_interp = interp1(test_speeds, depth_entrain_grav, bin_centers, 'linear', NaN);
 
-% For each model wind speed, find closest histogram bin center
-[~, idx] = min(abs(bin_centers' - test_speeds), [], 1); % find index of wind speed for bin centers to associate it with depth of entrainment
-frac_time_exceed_hist = flip(cumsum(flip(frac_time_bins))); % CDF for exceedance winds: starting w strongest wind, add up how often the wind is at least that strong, reverse back to associate it with depth of entrainment
-frac_time_exceed_depth = frac_time_exceed_hist(idx); % only take values of CDF at wind speeds I care about
-
-
-depth_sand  = interp1(test_speeds, depth_entrain_sand, bin_centers, 'linear', NaN);
-depth_gravel = interp1(test_speeds, depth_entrain_grav, bin_centers, 'linear', NaN);
-
-
-[frac_unique, ia_unique] = unique(frac_time_exceed_depth, 'stable');
-depth_sand_unique = depth_entrain_sand(ia_unique);
-depth_grav_unique = depth_entrain_grav(ia_unique);
-wind_unique = test_speeds(ia_unique);
-
-depth_sand_smooth = smooth(depth_sand_unique, 5, 'loess');
-depth_grav_smooth = smooth(depth_grav_unique, 5, 'loess');
-depth_sand_smooth(depth_sand_smooth<0) = 0;
-depth_grav_smooth(depth_grav_smooth<0) = 0;
-
-
-plot(frac_unique, depth_sand_smooth, ':', 'LineWidth', 3, 'Color', colors(wind_climate,:), 'DisplayName',['Fine Sand (63.5 μm), ', wind_label{wind_climate}]);
-plot(frac_unique, depth_grav_smooth, '-', 'LineWidth', 3, 'Color', colors(wind_climate,:), 'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);
-
-
+    % put all no movement in single bin with depth of zero (for wind less than threshold (0.6))
+    no_move = bin_centers<=0.6;
+    % amount of time with no movement
+    no_move_frac_time = sum(frac_time_bins(no_move));
+    % only keep bins where there is movement
+    depth_entrain_grav_interp = depth_entrain_grav_interp(~no_move);
+    depth_entrain_sand_interp = depth_entrain_sand_interp(~no_move);
+    frac_time_bins = frac_time_bins(~no_move);
+   
+    plot([no_move_frac_time frac_time_bins].*100,[0 depth_entrain_sand_interp], ':', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Fine Sand (63.5 $\mu$m), ', wind_label{wind_climate}]);
+    plot([no_move_frac_time frac_time_bins].*100,[0 depth_entrain_grav_interp], '-', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);    
 
 end
+
+
+legend('show','Location','best','Interpreter','latex')
 
 hold off
+
+
+
 
