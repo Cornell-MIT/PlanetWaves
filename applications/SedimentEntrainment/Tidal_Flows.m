@@ -207,50 +207,39 @@ legend('show', 'Interpreter', 'latex');
 xlim([10^-2.5 10^11]);
 ylim([10^-4 10^3]);
 
+% effect of liquid on shields parameter
 Re_liq_min = calc_particle_Reynolds(rho_s(2),rho_liq_pos(1),g,d50,nu_liq_pos(1));
 Re_liq_max = calc_particle_Reynolds(rho_s(2),rho_liq_pos(2),g,d50,nu_liq_pos(2));
-
 shields_liq_min = calc_shields_number(rho_s(2),rho_liq_pos(1),depth_strait,u_max_strait,d50,man_coef_max_strait,g);
 shields_liq_max = calc_shields_number(rho_s(2),rho_liq_pos(2),depth_strait,u_max_strait,d50,man_coef_max_strait,g);
-
 plot(Re_liq_min.^2,shields_liq_min,'--b','DisplayName','Minimum Density Liquid')
 plot(Re_liq_max.^2,shields_liq_max,'--r','DisplayName','Maximum Density Liquid')
-
-
 x1 = Re_liq_min.^2;
 x2 = Re_liq_max.^2;
 y1 = shields_liq_min;
 y2 = shields_liq_max;
-
-% 1. Find the overlap
+% Find the overlap
 x_min = max(min(x1), min(x2));
 x_max = min(max(x1), max(x2));
-
-% 2. Create a common x-vector in the overlap region
-x_common = linspace(x_min, x_max, 100); % finer resolution if needed
-
-% 3. Interpolate both datasets to x_common
+x_common = linspace(x_min, x_max, 100); 
 y1_interp = interp1(x1, y1, x_common, 'linear');
 y2_interp = interp1(x2, y2, x_common, 'linear');
-
-% 4. Compute average difference
 avg_diff = mean(y2_interp - y1_interp);
-
-% Display result
 fprintf('Average difference (y2 - y1) over overlapping x: %.4f\n', avg_diff);
-% Re_lake_max_print = calc_particle_Reynolds(rho_s(3),rho_lake, g, d50, kin_vis_lake);
-% 
-% Re = calc_particle_Reynolds(rho_s(3),rho_lake, g,  1.2533e-04, kin_vis_lake);
-% D50 = calc_D50_from_Re_p(rho_s(3), rho_lake, g, kin_vis_lake, 0.7);
 
+% report key D50 values
+D501 = calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(41.4149));
+D502 = calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(6.6438));
+fprintf('Dense organic grains can be suspended between %f and %f m\n',D501,D502);
 
-%D50 = calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(6.6438))
-%D50 = calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(971.144))
-%D50 = calc_D50_from_Re_p(rho_s(2), rho_strait, g, kin_vis_strait, sqrt(303.014))
-%D50 = calc_D50_from_Re_p(rho_s(2), rho_strait, g, kin_vis_strait, sqrt(10156.4))
-%D50 = calc_D50_from_Re_p(rho_s(1), rho_strait, g, kin_vis_strait, sqrt(2951.05))
-% D50 = calc_D50_from_Re_p(rho_s(1), rho_strait, g, kin_vis_strait, sqrt(28394))
-D50 = calc_D50_from_Re_p(rho_s(1), rho_strait, g, kin_vis_strait, sqrt(0.93))
+fprintf('Water ice as bedload for grains at %f\n',calc_D50_from_Re_p(rho_s(2), rho_strait, g, kin_vis_strait, sqrt(62.917)))
+fprintf('Light organics as bedload for grains at %f\n',calc_D50_from_Re_p(rho_s(1), rho_strait, g, kin_vis_strait, sqrt(103.781)))
+
+fprintf('No dense organic grains are moving in strait for grains than %f\n',calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(1024.35)))
+fprintf('No ice grains are moving in strait for grains than %f\n',calc_D50_from_Re_p(rho_s(2), rho_strait, g, kin_vis_strait, sqrt(10156.4)))
+fprintf('No fluffy organic grains are moving in strait for grains than %f\n',calc_D50_from_Re_p(rho_s(1), rho_strait, g, kin_vis_strait, sqrt(30252.5)))
+
+fprintf('Dense organic grains are moving from immobile to suspension for grains %f\n',calc_D50_from_Re_p(rho_s(3), rho_strait, g, kin_vis_strait, sqrt(31.073)))
 
 % ---- internal functions -------------------------------------------- %
 function [s1,s2,s3,s4] = calc_suspension_threshold(rho_s,rho,g,D50,nu)

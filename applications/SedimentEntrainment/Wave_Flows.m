@@ -153,6 +153,10 @@ for s = 1:numel(rho_s)
         depth_entrain_sand(depth_entrain_sand==-999) = NaN;
         depth_entrain_grav = d_crash{s,c}(:,end);
         depth_entrain_grav(depth_entrain_grav==-999) = NaN;
+
+        compare_sand{s}(c,:) = depth_entrain_sand;
+        compare_grav{s}(c,:) = depth_entrain_grav;
+        
         plot(test_speeds,depth_entrain_sand,':','Color',mycolor{c},'LineWidth',4,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' sand (rho = ' num2str(rho_s(s)) ')'])
         plot(test_speeds,depth_entrain_grav,'-','Color',mycolor{c},'LineWidth',4,'MarkerFaceColor',mycolor{c},'DisplayName',[lakes{c} ' gravel(rho = ' num2str(rho_s(s)) ')'])
     end
@@ -165,8 +169,16 @@ for s = 1:numel(rho_s)
 
 end
 
+box on;
+ax = gca;
+ax.FontSize = 16;
 
+avg_sand_diff = mean(compare_sand{2}(2,:)-compare_sand{2}(3,:),'omitnan');
+avg_grav_diff = mean(compare_grav{2}(2,:)-compare_grav{2}(3,:),'omitnan');
+std_sand_diff = std(compare_sand{2}(2,:)-compare_sand{2}(3,:),'omitnan');
+std_grav_diff = std(compare_grav{2}(2,:)-compare_grav{2}(3,:),'omitnan');
 
+fprintf('Average difference:\n%f pm %f m (sand)\n%f pm %f (gravel)\n',avg_sand_diff,std_sand_diff,avg_grav_diff,std_grav_diff)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,6 +207,8 @@ set(gca,'XScale','log')
 [~,summer_avg] = min(abs(test_speeds - 1.42)); % use summer wind average (~1.42 m/s)
 ice_entrain_summer_average = d_crash{ice,2}(summer_avg,1);
 map_entrainment_depth_in_Ontario_Lacus(ice_entrain_summer_average)
+
+fprintf('Ice fine sand grains in Ontario Lacus composition %0.1f m\n',ice_entrain_summer_average)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -227,17 +241,19 @@ summer_all = [summer_idx{:}];
 wind_S_summer = mag_wind(winter_all); % northern winter = southern summer
 
 % Calculate fraction of time for max entrainment
-figure('Name','Frac time for bed entrainment');
+figure('Name','Rarity of observation');
+subplot(2,2,[2 4])
 hold on
 grid on
-ylabel('Entrainment Depth [m]', 'Interpreter', 'latex', 'FontSize', 18)
-xlabel('Percent time (\%)','Interpreter','latex','FontSize',18)
+ylabel('Minimum entrainment depth [m]', 'Interpreter', 'latex', 'FontSize',25)
+xlabel('Fraction of time (\%)','Interpreter','latex','FontSize',25)
 set(gca,'XScale','log')
-xlim([10^-3 100])
+xlim([10^-5 2])
 ylim([0 11])
 set(gca,'YDir','reverse')
 yline(ice_entrain_summer_average,'-','summer storm average (u$_{10}$ = 1.42 m/s)','Color',[0.5 0.5 0.5],'LineWidth',2,'HandleVisibility','off','Interpreter','latex')
-
+ax = gca;
+ax.FontSize = 20; 
 
 wind_label = {'All Seasons','Southern Summer'};
 for wind_climate = 1:2 % first loop is all winds, second is just the subset for southern summer
@@ -252,7 +268,7 @@ for wind_climate = 1:2 % first loop is all winds, second is just the subset for 
     end
 
     % make wind speed bins 
-    bin_size = 0.2; % m/s
+    bin_size = 0.1; % m/s
     edges_hist = 0.0:bin_size:max(wind)+bin_size;                           % edge of bins for histcount 
     [counts, ~] = histcounts(wind, edges_hist);                             % count up number of occurences within each bin
     
@@ -265,26 +281,63 @@ for wind_climate = 1:2 % first loop is all winds, second is just the subset for 
     depth_entrain_sand(isnan(depth_entrain_sand)) = 0;
     depth_entrain_sand_interp  = interp1(test_speeds, depth_entrain_sand, bin_centers, 'linear', NaN);
     depth_entrain_grav_interp = interp1(test_speeds, depth_entrain_grav, bin_centers, 'linear', NaN);
+    depth_entrain_sand_interp(isnan(depth_entrain_sand_interp)) = 0;
+    depth_entrain_grav_interp(isnan(depth_entrain_grav_interp)) = 0;
 
-    % put all no movement in single bin with depth of zero (for wind less than threshold (0.6))
-    no_move = bin_centers<=0.6;
-    % amount of time with no movement
-    no_move_frac_time = sum(frac_time_bins(no_move));
-    % only keep bins where there is movement
-    depth_entrain_grav_interp = depth_entrain_grav_interp(~no_move);
-    depth_entrain_sand_interp = depth_entrain_sand_interp(~no_move);
-    frac_time_bins = frac_time_bins(~no_move);
-   
-    plot([no_move_frac_time frac_time_bins].*100,[0 depth_entrain_sand_interp], ':', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Fine Sand (63.5 $\mu$m), ', wind_label{wind_climate}]);
-    plot([no_move_frac_time frac_time_bins].*100,[0 depth_entrain_grav_interp], '-', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);    
+    %cumulative time at least depth Y 
+    cum_time_sand = flip(cumsum(flip(frac_time_bins)));
+    cum_time_grav = cum_time_sand;  % same time distribution
+    % Add zero-depth no-move time to beginning
+    xvals = [1; cum_time_sand'];   % start at 100% at zero depth
+    y_sand = [0; depth_entrain_sand_interp'];
+    y_grav = [0; depth_entrain_grav_interp'];
+    
 
+    plot(xvals, y_sand, ':', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Fine Sand (63.5 $\mu$m), ', wind_label{wind_climate}]);
+    plot(xvals, y_grav, '-', 'LineWidth', 3, 'Color', linecolor,'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);
+
+    
 end
 
-
+box on;
 legend('show','Location','best','Interpreter','latex')
-
 hold off
 
+% wind speed histogram
+edges = 0:0.01:max(mag_wind);
+centers = edges(1:end-1) + diff(edges)/2;
+no_waves = mag_wind < 0.5;
+no_waves_count = histcounts(mag_wind(no_waves), edges)/ numel(mag_wind);
+waves_count = histcounts(mag_wind(~no_waves), edges)/ numel(mag_wind);
+subplot(2,2,1)
+stairs(centers, no_waves_count, 'k', 'LineWidth', 1.5)
+hold on
+bar(centers, waves_count, 1, 'FaceColor','k','EdgeColor','k')
+xlabel('wind speed, u$_{10}$ [m/s]','Interpreter','latex','FontSize',25)
+ylabel('Fraction of time','Interpreter','latex','FontSize',25)
+xlim([0 5])
+grid on;
+box on;
+ax = gca;
+ax.FontSize = 20; 
 
+% wind speed vs wave height
+subplot(2,2,3)
+for i = 1:numel(lakecolors)
+    H = H0(i,:);
+    H(H==0) = NaN;
+    plot(test_speeds,H,'-','LineWidth',5,'Color',lakecolors{i},'DisplayName',lakes{i})
+    hold on;
+end
+xline(0.5,':k','HandleVisibility','off')
+xlabel('wind speed, u$_{10}$ [m/s]','Interpreter','latex','FontSize',25)
+ylabel('wave height [m]','Interpreter','latex','FontSize',25)
+grid on
+legend('show')
+xlim([0 5])
+box on;
+ax = gca;
+ax.FontSize = 20; 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
