@@ -1,4 +1,5 @@
 # *PlanetWaves*
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18906357.svg)](https://doi.org/10.5281/zenodo.18906357)
 ### Four-dimensional spectral wave model adapted from the University of Miami wave model ([UMWM](https://github.com/umwm/umwm)) to produce surface waves for a given bathymetry and a given wind climate on different planets. The model has been validated using buoy data at the Great Lakes and previous wave tank experiments for different surface pressure, temperature, and salinity.
 
 ## Getting started
