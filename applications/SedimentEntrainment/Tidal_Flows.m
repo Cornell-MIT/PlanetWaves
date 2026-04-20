@@ -159,11 +159,13 @@ for i = 1:length(rho_s)
     shields_strait_min(i,:) = calc_shields_number(rho_s(i),rho_strait,max_depth_strait,u_min_strait,d50,man_coef_min_strait,g);
 
     % LAKES (NEARSHORE)
-    Re_lake_max(i,:) = calc_particle_Reynolds(rho_s(i),rho_lake, g, d50, kin_vis_lake);
+    % Re_lake_max(i,:) = calc_particle_Reynolds(rho_s(i),rho_lake, g, d50, kin_vis_lake);
+    Re_lake_max(i,:) = calc_particle_Reynolds(rho_s(i),rho_strait,g,d50,kin_vis_strait);
     shields_lake_max(i,:) = calc_shields_number(rho_s(i), rho_lake, depth_lake, u_max_lake, d50, man_coef_lake,g);
 
-
-    Re_lake_min(i,:) = calc_particle_Reynolds(rho_s(i),rho_lake, g, d50, kin_vis_lake);
+    %Re_lake_min(i,:) = calc_particle_Reynolds(rho_s(i),rho_lake, g, d50, kin_vis_lake);
+    Re_lake_min(i,:) = calc_particle_Reynolds(rho_s(i),rho_strait,g,d50,kin_vis_strait);
+   
     shields_lake_min(i,:) =  calc_shields_number(rho_s(i), rho_lake, depth_lake, u_min_lake, d50, man_coef_lake,g);
 
 end

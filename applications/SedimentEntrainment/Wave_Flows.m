@@ -89,30 +89,74 @@ for c = 1:numel(lakes)
 
             shields = zeros(length(d), size(S, 1), size(S, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
             KM_crash = zeros(length(d), size(A, 1), size(A, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
-
+            KM_turb_crash =  zeros(length(d), size(A, 1), size(A, 2));
             for z = 1:length(d)
                 shields(z, :, :) = (Planet.rho_liquid * (um_shoal(z)^2)) ./ ((S - Planet.rho_liquid) * Planet.gravity .* A);
-                KM_crash(z, :, :) = 0.3 .* sqrt(d0_shoal(z) ./ A);  
+                KM_crash(z, :, :) =   0.341300 .* sqrt(d0_shoal(z) ./ A);    % fit for laminar data in Figure 4, Komar & Miller 1973 (see boundary_layer_threshold.m in estimating boundary layer folder)
+                KM_turb_crash(z, :, :) = 0.182849 .* sqrt(d0_shoal(z) ./ A); % fit for laminar data in Figure 4, Komar & Miller 1973 (see boundary_layer_threshold.m in estimating boundary layer folder)
             end
 
             for s = 1:numel(rho_s)
+
                 for a = 1:numel(d50)
-                    % across all depths                    
+
+                    % across all depths                
                     shield_across_depth = squeeze(shields(:, a, s));  
                     KM_crash_across_depth = squeeze(KM_crash(:, a, s)); 
+                    KM_turb_crash_across_depth = squeeze(KM_turb_crash(:,a,s));
 
+                    
                     % shields number exceed Komar threshold 
-                    entrained_depth_index = find(shield_across_depth > KM_crash_across_depth, 1, 'first');
+                    entrained_depth_index_laminar = find(shield_across_depth > KM_crash_across_depth, 1, 'first');
+                    entrained_depth_index_turb = find(shield_across_depth > KM_turb_crash_across_depth, 1, 'first');
 
+                    % figure('Name','Shields Curves');
+                    % plot(d,shield_across_depth,'-k')
+                    % hold on
+                    % plot(d,KM_crash_across_depth,'-r')
+                    % plot(d,KM_turb_crash_across_depth,'-b')
+                    % plot(d(entrained_depth_index_laminar),shield_across_depth(entrained_depth_index_laminar),'or')
+                    % plot(d(entrained_depth_index_turb),shield_across_depth(entrained_depth_index_turb),'ob')
+                    % set(gca,'YScale','log')
+                    % ylabel('$\rho * u_m^2 / ((\rho_s - \rho)gD_{50}$','Interpreter','latex')
+                    % xlabel('depth')
+                    
+                    if ~isempty(entrained_depth_index_turb) && ~isempty(entrained_depth_index_laminar)
+                        Re_particle_opt1 = (um_shoal(entrained_depth_index_laminar)*d50(a))/Planet.nu_liquid;
+                        Re_particle_opt2 = (um_shoal(entrained_depth_index_turb)*d50(a))/Planet.nu_liquid;
+    
+                        % if particle Re says boundary layer is turbulent, use turbulent boundary prediction curve
+                        % else, use laminar boundary prediction curve
+                        if Re_particle_opt2 > 100 && Re_particle_opt1 > 100
+                            entrained_depth_index = entrained_depth_index_turb;
+                        elseif Re_particle_opt1 > 100 
+                            entrained_depth_index = entrained_depth_index_turb;
+                        else
+                            entrained_depth_index = entrained_depth_index_laminar;
+                        end
+                    elseif ~isempty(entrained_depth_index_turb)
+                        
+                        entrained_depth_index = entrained_depth_index_turb;
 
+                    elseif ~isempty(entrained_depth_index_laminar)
+
+                        entrained_depth_index = entrained_depth_index_laminar;    
+
+                    else
+                        entrained_depth_index = [];
+                    end
+  
                     if isempty(entrained_depth_index)
                         d_crash{s, c}(u, a) = NaN;  % Does not reach entrainment
+                        boundary_layer_RE{s, c}(u, a) = NaN;
                     else
                         % Check if the wave breaks before entrainment happens
                         if H_shoal(entrained_depth_index) / L_shoal(entrained_depth_index) < max_steepness
                             d_crash{s, c}(u, a) = d(entrained_depth_index);  % Entrainment happens before breaking
+                            boundary_layer_RE{s, c}(u, a) = (um_shoal(entrained_depth_index)*d50(a))/Planet.nu_liquid;
                         else
                             d_crash{s, c}(u, a) = -999;  % Reaches entrainment after breaking occurs
+                            boundary_layer_RE{s, c}(u, a) = -999;
                         end
                     end
                 end
@@ -248,7 +292,7 @@ grid on
 ylabel('Minimum entrainment depth [m]', 'Interpreter', 'latex', 'FontSize',25)
 xlabel('Fraction of time (\%)','Interpreter','latex','FontSize',25)
 set(gca,'XScale','log')
-xlim([10^-5 2])
+xlim([10^-2 200])
 ylim([0 11])
 set(gca,'YDir','reverse')
 yline(ice_entrain_summer_average,'-','summer storm average (u$_{10}$ = 1.42 m/s)','Color',[0.5 0.5 0.5],'LineWidth',2,'HandleVisibility','off','Interpreter','latex')
@@ -293,15 +337,33 @@ for wind_climate = 1:2 % first loop is all winds, second is just the subset for 
     y_grav = [0; depth_entrain_grav_interp'];
     
 
-    plot(xvals, y_sand, ':', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Fine Sand (63.5 $\mu$m), ', wind_label{wind_climate}]);
-    plot(xvals, y_grav, '-', 'LineWidth', 3, 'Color', linecolor,'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);
+    plot(xvals.*100, y_sand, ':', 'LineWidth', 3, 'Color', linecolor, 'DisplayName',['Fine Sand (63.5 $\mu$m), ', wind_label{wind_climate}]);
+    plot(xvals.*100, y_grav, '-', 'LineWidth', 3, 'Color', linecolor,'DisplayName',['Cobbles (0.1 m), ', wind_label{wind_climate}]);
 
+    [y_sand_unique,i_unique,~] = unique(y_sand);
+    x_vals_sand_unique = xvals(i_unique).*100;
+    [y_grav_unique,i_unique,~] = unique(y_grav);
+    x_vals_grav_unique = xvals(i_unique).*100;
+
+    time_at_1m_sand(wind_climate) = interp1(y_sand_unique,x_vals_sand_unique,1);
+    time_at_1m_grav(wind_climate) = interp1(y_grav_unique,x_vals_grav_unique,1);
+    time_at_6p6m_sand(wind_climate) = interp1(y_sand_unique,x_vals_sand_unique,6.6);
+    time_at_6p6m_grav(wind_climate) = interp1(y_grav_unique,x_vals_grav_unique,6.6);
+    
+    
     
 end
 
 box on;
 legend('show','Location','best','Interpreter','latex')
 hold off
+
+disp('===========')
+fprintf('Sand time at 1-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_1m_sand)
+fprintf('Cobble time at 1-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_1m_grav)
+fprintf('Sand time at 6.6-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_6p6m_sand)
+fprintf('Cobble time at 6.6-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_6p6m_grav)
+disp('===========')
 
 % wind speed histogram
 edges = 0:0.01:max(mag_wind);
@@ -340,4 +402,34 @@ ax = gca;
 ax.FontSize = 20; 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% close all
+% % PLOT 5: Boundary Layer Reynold's Number (Fig 6 Komar & Miller 1973)
+% 
+% speed_color = winter(numel(test_speeds));
+% figure('Name','D vs Re')
+% hold on
+% yline(100)
+% for s = 2%1:numel(rho_s)
+% 
+%     if s == 1
+%         mycolor = organicicecolor;
+%     elseif s == 2
+%         mycolor = icecolor;
+%     elseif s == 3
+%         mycolor = organiccolor;
+%     end
+% 
+%     for c = 2%1:numel(lakes)
+% 
+%         for u = 1:numel(test_speeds)
+%             RE_waves = boundary_layer_RE{s, c}(u, :);
+%             plot(d50,RE_waves,'Color',speed_color(u,:));
+%         end
+% 
+%     end
+% 
+% end
+% xlabel('D50')
+% ylabel('Re = u_mD/v')
+% set(gca,'YScale','log')
+% set(gca,'XScale','log')
