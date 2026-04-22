@@ -1,4 +1,4 @@
-function Qs = calc_Diegaard_wave_flux(H0, L0, R, g, D50, nu, beta, alpha0)
+function Qs = calc_Diegaard_wave_flux(H0, L0, rho_s,rho, g, D50, nu, beta, alpha0)
 % CALC_DIEGAARD_WAVE_FLUX
 %   Computes wave-driven sediment transport rate (Qs) based on the 
 %   Diegaarde (1986) model.
@@ -16,37 +16,56 @@ function Qs = calc_Diegaard_wave_flux(H0, L0, R, g, D50, nu, beta, alpha0)
 % OUTPUT:
 %   Qs      - Sediment transport rate for each angle in alpha0 (same size as alpha0)
 
-    % Compute settling velocity using R
-    w = calc_settling_velocity(R, g, D50, nu);
-    % Dimensionless fall velocity
+    H0(isnan(H0)) = 0;
+    L0(isnan(L0)) = 0;
+
+    alpha0 = rad2deg(alpha0);
+
+    % Compute settling velocity
+    w = calc_settling_velocity(rho_s,rho, g, D50, nu);
+    
+    % Dimensionless fall velocity according to Diegaard
     w_star = w / sqrt(g * D50); % equation 13
 
+    % net wave properties (Neinhuis 2015 supplement)
+    Hnet = (sum(H0.^(2.8))/length(H0)).^(1/2.8);
+    L0net = (sum(L0.^(0.5))/length(L0)).^(1/0.5);
+    
     % Reference Shields parameter (Diegaarde 1986)
-    theta_0 = 0.1 * (H0 / D50)^2.3 * sqrt(H0 / L0) * exp(-6.1 * w_star); % eqn 7
+    theta_0 = 0.1 * ((Hnet / D50)^2.3) * sqrt(Hnet / L0net) * exp(-6.1 * w_star); % at alpha = 45; eqn 7
 
     Qs = NaN(size(alpha0));
     for a = 1:numel(alpha0)
-        alpha_rad = alpha0(a);
 
         % Only compute if wave comes from seaward side
-        if abs(alpha_rad) < pi/2
-
-            alpha_norm = abs(alpha_rad) / (pi/2); % alpha0/90 deg in eqn 14
-
-            % angular dependance for sed flux
-            theta = ((sin(2.*alpha0.*(1-(0.4.*(alpha_norm).*(1-(alpha_norm)))))).^(5/2)).*theta_0; % eqn 14
-
-            % Final sediment transport rate
-            Qs(a) = theta * (H0 * sqrt(beta) * sqrt(R) * g * D50^3); % eqn 12
+        alpha = alpha0(a);
+    
+        if abs(alpha) < 90 && alpha ~= 0
+            
+            alpha_norm = abs(alpha) / 90; 
+        
+            % angular dependence for sed flux
+            sin_val = sind(2*abs(alpha)*(1 - ((0.4*alpha_norm)*(1 - alpha_norm))));
+            
+            theta_mag = (abs(sin_val).^(5/2)) * theta_0; % magnitude only
+            
+            theta = sign(alpha) * theta_mag; % reflect over zero to be CERC-like
+        
+            s = rho_s / rho; % relative density
+            Qs(a) = theta * (Hnet * sqrt(beta) * sqrt((s-1) * g * (D50^3))); % eqn 12
+        
+        else
+            Qs(a) = 0;
         end
+        
     end
 
-    function w = calc_settling_velocity(R, g, D50, nu)
+    function w = calc_settling_velocity(rho_s, rho, g, D50, nu)
         % CALC_SETTLING_VELOCITY
         %   Computes settling velocity using Dietrich (1982) 
 
-        D_star = (R * g * D50^3) / (nu^2);
-        log_D_star = log10(D_star);
+        D_star = ((rho_s - rho)*g*(D50^3))/(rho*(nu^2));
+        log_D_star = log(D_star);
 
         % Empirical fit for log10(W*)
         log_W_star = -3.76715 + ...
@@ -55,9 +74,9 @@ function Qs = calc_Diegaard_wave_flux(H0, L0, R, g, D50, nu, beta, alpha0)
                       0.00575 * log_D_star^3 + ...
                       0.00056 * log_D_star^4;
 
-        W_star = 10^log_W_star;
+        W_star = exp(log_W_star);
 
         % Settling velocity
-        w = (W_star * R * g * nu)^(1/3);
+        w = (W_star * ((rho_s/rho)-1) * g * nu)^(1/3);
     end
 end

@@ -2,6 +2,7 @@ clc
 clear
 close all
 
+addpath(genpath(fullfile('..','subroutines')));
 
 % Table S1
 Earth.rho_s = 2.65*1000;
@@ -50,14 +51,14 @@ Titan_saraswati_min.width = 175;
 Titan_saraswati_max.slope = 0.002;
 Titan_saraswati_max.width = 700;
 
-[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_min);
-display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (min)')
-[susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_max);
-display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (max)')
-[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_min);
-display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (min)')
-[susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_max);
-display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (max)')
+% [susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_min);
+% display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (min)')
+% [susload,bedload_dominated] = calc_riverine_flux(Titan_cold,Titan_saraswati_max);
+% display_results(susload,bedload_dominated,'Titan (cold)','Saraswati (max)')
+% [susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_min);
+% display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (min)')
+% [susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_saraswati_max);
+% display_results(susload,bedload_dominated,'Titan (warm)','Saraswati (max)')
 
 % Table S6
 Titan_VidFlum_min.slope = 0.0011;
@@ -75,6 +76,79 @@ display_results(susload,bedload_dominated,'Titan (warm)','Vid Flumina (min)')
 [susload,bedload_dominated] = calc_riverine_flux(Titan_warm,Titan_VidFlum_max);
 display_results(susload,bedload_dominated,'Titan (warm)','Vid Flumina (max)')
 
+
+%%%%
+slopes = [0.0004,0.0013,0.002]; 
+widths = [175:25:700];
+j = 0;
+for S = 1:numel(slopes) % slope
+  j = j + 1;
+    i = 0;
+    for B = 1:numel(widths) %channel width
+        i = i + 1;
+        ThisRiver.slope = slopes(S);
+        ThisRiver.width = widths(B);
+        [susload,bedload] = calc_riverine_flux(Titan_warm,ThisRiver);
+        myD50(j,i) = bedload.D50;
+        myQ(j,i) = bedload.Q;
+        myQs(j,i) = bedload.Qs;
+        myD50_sand(j,i) = susload.D50;
+        myQ_sand(j,i) = susload.Q;
+        myQs_sand(j,i) = susload.Qs;
+        myRe_p(j,i) = susload.Re_p;
+
+    end
+end
+
+load("Ayako_SaraswatiFlumen_gravel.mat","D50_gravel","Q_gravel","Qs_gravel")
+
+make_comparison_plot(myD50.*100,D50_gravel.*100,'the dimensional bed grain size (cm)','Saraswati Flumen, cold gravel')
+make_comparison_plot(myQ,Q_gravel,'flow discharge','Saraswati Flumen, cold gravel')
+make_comparison_plot(myQs,Qs_gravel,'sed flux','Saraswati Flumen, cold gravel')
+
+load('Ayako_SaraswatiFlumen_sand.mat','D50_sand','Q_sand','Qs_sand','Rep')
+
+make_comparison_plot(myD50_sand.*100,D50_sand.*100,'the dimensional bed grain size (cm)','Saraswati Flumen, cold sand')
+make_comparison_plot(myQ_sand,Q_sand,'flow discharge','Saraswati Flumen, cold sand')
+make_comparison_plot(myRe_p,Rep,'Particle Reynolds Number','Saraswati Flumen, cold sand')
+make_comparison_plot(myQs_sand,Qs_sand,'sed flux','Saraswati Flumen, cold sand')
+
+
+
+
+function make_comparison_plot(my_Vals,Ayako_Vals,name_val,regime)
+
+    widths = [175:25:700];
+    slopes = [0.0004,0.0013,0.002]; 
+    clrs = winter(numel(slopes));
+
+   
+    figure;
+    subplot(1,2,1)
+    for i = 1:numel(slopes)
+        plot(widths,Ayako_Vals(i,:),'--','LineWidth',3,'Color',clrs(i,:),'DisplayName',sprintf('S = %f, Ayako',slopes(i)))
+        hold on
+        plot(widths,my_Vals(i,:),'-','LineWidth',2,'Color',clrs(i,:),'DisplayName',sprintf('S = %f, Me',slopes(i)))
+    end
+    xlabel('channel width (m)')
+    ylabel(name_val)
+    title(regime)
+    legend('show','Location','best')
+    subplot(1,2,2)
+    for i = 1:numel(slopes)
+        plot(widths,round(Ayako_Vals(i,:)-my_Vals(i,:),2),'-','LineWidth',3,'Color',clrs(i,:))
+        hold on
+    end
+    xlabel('channel width (m)')
+    ylabel(name_val)
+    if Ayako_Vals(i,:)-my_Vals(i,:) < 1e-2
+        title(['no difference for ',regime])
+    else
+        title(['Differences of ',regime])
+    end
+    
+    fprintf('[%s] Range of %s: %.2f - %.2f\n',regime,name_val,min(my_Vals,[],'all'),max(my_Vals,[],'all'))
+end
 
 function display_results(suspended_load,bedload,planet,rivername)
 

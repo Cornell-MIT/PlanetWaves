@@ -4,7 +4,7 @@ function [theta_centers, Epdf] = make_wave_Epdf(H, theta,T)
 % T = time series of all waves periods
 % theta = time series of all wave directions 
 % OUTPUT
-% Epdf = wave energy matrix 
+% Epdf = wave energy matrix [m^(-12/5).s^(1/5)]
 % theta_centers = wave directions associated with wave heights in Epdf 
 
     num_H_bins = 20;
@@ -36,9 +36,9 @@ function [theta_centers, Epdf] = make_wave_Epdf(H, theta,T)
     end
 
     % Epdf is 1D vector for a point on the shoreline for angles 0:360
-    Epdf = sum(Epdf,1,'omitmissing'); % sum over H index so just a function of theta
+    Epdf = sum(Epdf,1,'omitmissing'); % sum over H index so just a function of theta 
     Epdf(isnan(Epdf)) = 0;
-    Epdf = Epdf./sum(Epdf); % normalize PDF to sum to one
+    Epdf = Epdf./sum(Epdf); % normalize PDF to sum to one (denominator of eqn 3, Nienhuis 2015, supplement)
    
 
     theta_centers = theta_edges(1:end-1);  % bin centers: 0,1,2,..,359

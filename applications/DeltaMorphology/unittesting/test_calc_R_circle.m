@@ -25,26 +25,22 @@ Earth_river.slope = 0.002;
 Earth_river.width = 700;
 
 % simple climate
-% wind_mag = 5.*ones(1,100);%[5 5 5];
-% wind_angle = 90.*ones(1,100);%[0 90 290]; % wind going from west to east = 0, positive CCW
+% wind_mag = [5 5 5];%5.*ones(1,100); %
+% wind_angle_deg = [0 90 290]; % 90.*ones(1,100); % wind going from west to east = 0, positive CCW
 
 % TAM
 load('OL_winds.mat','mag_wind','angle_wind')
 wind_mag = mag_wind;
 wind_angle_deg = wrapTo360(round((angle_wind))); % wind going from west to east = 0, positive CCW
-
-
 step_size = 100;
 end_size = numel(wind_mag);
-
 wind_mag = wind_mag(1:step_size:end_size);
 wind_angle_deg = wind_angle_deg(1:step_size:end_size);
-
 wind_mag = round(wind_mag,1);
 
 figure;
 wind_rose(wind_angle_deg,wind_mag)
-title('TAM, Ontario lacus')
+title('Winds Going To')
 
 % run model for estimated river input
 [susload_dominated,bedload_dominated] = calc_riverine_flux(Titan,Earth_river);

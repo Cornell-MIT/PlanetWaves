@@ -1,4 +1,4 @@
-function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
+function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,L,rho,nu,rho_s, g,wave_dir_deg,sang)
     % Calculates the maximum wave transport to the left or right of a shoreline by waves
     % can be compared with riverine input to get R = Q_river / Qsmax where Qsmax is this function
 
@@ -13,13 +13,15 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
     %   for example,
     %       if sang = 0 then shoreline goes from North -> South with liquid on the East side
     %       if sang = 90 then shoreline goes from West -> East with liquid on top
-
+    % OUTPUTS
+    % (1) Qsmax = maximum wave transport [kg/s]
+    
+    compute_LST = 'CERC';
     
     make_main_plot = 0;                                                    % make a plot of the wave energy pdf & the Qsmax as a function of the regional shoreline orientation 
     make_subplot = 0;                                                      % shows intermediate plots for comparison with Nienhuis+2015
 
-    %wave_mean = wrapTo180(mean(wave_dir_deg));
-    thetas = -90:90;                                                     % all possible delta flank orientation (CCW) theta = 0 corresponds to
+    thetas = -90:90;                                                       % all possible delta flank orientation (CCW) theta = 0 corresponds to
                                                                            % the same orientation as the regional shoreline. positive theta 
                                                                            % corresponds to the left flank of the delta (with theta = 90 meaning 
                                                                            % a left delta flank that juts out perpendicular to the coast)
@@ -41,6 +43,7 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
                                                                            % right as you look offshore. phi0 = -90 means waves are propagating 
                                                                            % to the left as you look offshore. Compare with Jaap's Fig. 1A,B.
 
+
     % Zero out portions of wave climate not seen for a given regional 
     % shoreline orientation. Should be zero for winds coming from land 
     % (zero fetch, so no waves). Already being done with fetch calculation
@@ -61,8 +64,19 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
        
 
         % longshore transport
-        LST = CERC(H,T,rho,rho_s,g,wrapTo180(phi0 - theta));  
+        if strcmp(compute_LST,'CERC')
+            %warning('Using CERC for longshore transport\n')
+            LST = CERC(H,T,rho,rho_s,g,wrapTo180(phi0 - theta));               % kg/s 
+        elseif strcmp(compute_LST,'Diegaard')
+            D50 = 6.35e-5; % fine sand
+            beta = 1e-3; % slope
+            %warning('Using Diegaard 1986 for longshore transport\n')
+            LST = calc_Diegaard_wave_flux(H, L, rho_s,rho, g, D50, nu, beta, wrapTo180(phi0 - theta)); 
+        else
+            error('LST transport?')
+        end
         LST(isnan(LST)) = 0;
+
      
         Qsnet(i) = sum(E_pdf_relative.*LST);                               % Nienhuis2015 supplement Equation 4
 
@@ -76,42 +90,42 @@ function Qsmax = calc_wave_flux_w_PDF(E_pdf,H,T,rho,rho_s, g,wave_dir_deg,sang)
     Qsmax(c) = Qsmaxright - Qsminleft;
 
     if make_subplot
-        figure;
-        tiledlayout("horizontal")
+
+        if ~isempty(thetaminL) || ~isempty(thetamaxR)
+            figure;
+            tiledlayout("horizontal")
+            
+            nexttile
+            [phi0sort, I] = sort(phi0);
+            plot(phi0sort,E_pdf_relative(I),'-k')                              % Nienhuis2015, Fig. 1B
+            hold on;
+            set(gca,'xdir','reverse','xlim',[-180 180])
+            xlabel('Waves wrt Regional, \phi_0 = wave - regional (\circ)')
+            ylabel('Wave energy PDF [m^(-12/5).s^(-1/5)')
+            title(['Regional shoreline angle: ' num2str(regional_shoreline) '\circ'])
         
-        nexttile
-        [phi0sort, I] = sort(phi0);
-        plot(phi0sort,E_pdf_relative(I),'-k')                              % Nienhuis2015, Fig. 1B
-        hold on;
-        %xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
-        set(gca,'xdir','reverse','xlim',[-180 180])
-        xlabel('Waves wrt Regional, \phi_0 = wave - regional (\circ)')
-        ylabel('Wave energy PDF')
-        title(['Regional shoreline angle: ' num2str(regional_shoreline) '\circ'])
-    
-        nexttile
-        plot(thetas,CERC(1,1,1,1,1,thetas),'-k')                                 % Nienhuis2015, Fig. 1C
-        xline(0)
-        yline(0)
-        grid on
-        set(gca,'xdir','reverse','xlim',[-90 90])
-        xlabel('Delta angle \theta (\circ)')
-        ylabel('Q_s')
-        %title(['wave mean  - regional shore: ' num2str(wave_mean - sang(c))])
-        
-        nexttile
-        plot(thetas,Qsnet,'-k')                                            % Nienhuis2015, Fig. 1D
-        hold on
-        plot(thetaminL,Qsminleft,'ob')
-        plot(thetamaxR,Qsmaxright,'or')
-        xline(0)
-        yline(0)
-        %xline(wave_mean - sang(c),'-r','wave mean - regional shoreline')
-        grid on
-        set(gca,'xdir','reverse','xlim',[-90 90])
-        xlabel('Deltaic shoreline angle, \theta (\circ)')
-        ylabel('Net Q_s ')
-        title(['Q_{s,max} = ' num2str(Qsmaxright) ' - ' num2str(Qsminleft) ' = ' num2str(Qsmax(c))])
+            nexttile
+            plot(thetas,CERC(1,1,1,1,1,thetas),'-k')                                 % Nienhuis2015, Fig. 1C
+            xline(0)
+            yline(0)
+            grid on
+            set(gca,'xdir','reverse','xlim',[-90 90])
+            xlabel('Delta angle \theta (\circ)')
+            ylabel('Q_s')
+            
+            nexttile
+            plot(thetas,Qsnet,'-k')                                            % Nienhuis2015, Fig. 1D
+            hold on
+            plot(thetaminL,Qsminleft,'ob')
+            plot(thetamaxR,Qsmaxright,'or')
+            xline(0)
+            yline(0)
+            grid on
+            set(gca,'xdir','reverse','xlim',[-90 90])
+            xlabel('Deltaic shoreline angle, \theta (\circ)')
+            ylabel('Net Q_s ')
+            title(['Q_{s,max} = ' num2str(Qsmaxright) ' - ' num2str(Qsminleft) ' = ' num2str(Qsmax(c))])
+        end
     end
 
    end

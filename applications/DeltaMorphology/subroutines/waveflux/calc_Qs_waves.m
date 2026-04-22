@@ -1,4 +1,4 @@
-function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
+function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,nu,rho_s,g)
 % Calculates maximum wave-driven littoral transport (Nienhuis+2015) for 
 % a shoreline (x,y) undergoing a time series of winds
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,9 +86,9 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
 
     if make_plot
         figure('Name','regional shoreline angle');
-        plot(x,y,'-k','LineWidth',2)
-        fill(x,y,[0 0.7 0.7],'FaceAlpha',0.2)
-        hold on
+        % plot(x,y,'-k','LineWidth',2)
+        % fill(x,y,[0 0.7 0.7],'FaceAlpha',0.2)
+        % hold on
         scatter(x,y,50,rad2deg(wrapToPi(shoreline_angle_rad)),'filled')
         cb = colorbar();
         clim([-180 180])
@@ -263,7 +263,7 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
         rel_angle_2_shore_deg = wrapTo180(wave_crests_angle_deg - shoreline_angle_deg(pt));
         is_stable(pt) = is_shoreline_stable(wave_height(:,pt),wave_period(:,pt),rel_angle_2_shore_deg);
             
-        [wave_crests, Epdf] = make_wave_Epdf(wave_height(:,pt), wave_crests_angle_deg,wave_period(:,pt));
+       [wave_crests, Epdf] = make_wave_Epdf(wave_height(:,pt), wave_crests_angle_deg,wave_period(:,pt));
         
        if make_plot
 
@@ -297,28 +297,53 @@ function [Qs_max] = calc_Qs_waves(x,y,wind_mag,wind_angle_deg,rho,rho_s,g)
 
        end
 
-        Qs_max(pt) = calc_wave_flux_w_PDF(Epdf,wave_height(:,pt),wave_period(:,pt),rho,rho_s,g,wave_crests,shoreline_angle_deg(pt)); % [1 x numel(points)-1] ,wave_height(1:end,1:end-1),wave_period(1:end,1:end-1)
+        Qs_max(pt) = calc_wave_flux_w_PDF(Epdf,wave_height(:,pt),wave_period(:,pt),wave_length(:,pt),rho,nu,rho_s,g,wave_crests,shoreline_angle_deg(pt)); % [1 x numel(points)-1] ,wave_height(1:end,1:end-1),wave_period(1:end,1:end-1)
      
         % if pt == numel(x)
         %     Qs_max(pt) = Qs_max(1); % closed shape so start and end are the same
         % end
      end
+
+     sinuosity = calculate_sinuosity(x, y, 30);
+     maxLag_val = min(50, floor(length(x)/10));
+     nperm_val = 5000; % 5000;
+     stat_test_results = compare_diffusivity_sinuosity(x, y, is_stable, sinuosity, 'nperm', nperm_val, 'maxLag', maxLag_val); % 5000; 
     
 
      
      figure('Name','Shoreline Stability')
-     scatter(x,y,50,is_stable,'filled')
-     colorbar;
+     
+     cmap1 = winter(128);
+     cmap2 = spring(128);
+     combined = [cmap1; cmap2];  
+     % scatter(x,y,50,is_stable,'filled')
+     % colorbar;
 
      is_stable_binary = is_stable;
      is_stable_binary(is_stable>0) = 1;
      is_stable_binary(is_stable<0) = -1;
      is_stable_binary(is_stable==0) = NaN;
 
-     figure('Name','Shoreline Stability Sign')
-     scatter(x,y,50,is_stable_binary,'filled')
-     colorbar;
-
+     pt_sign = is_stable_binary;
+     pos_sign = pt_sign(pt_sign==1);
+     neg_sign = pt_sign(pt_sign==-1);
+     zero_sign = pt_sign(isnan(pt_sign));
+     % scatter(x(is_stable_binary==1),y(is_stable_binary==1),10, is_stable(is_stable_binary==1),'filled','o')
+     % hold on;
+     % scatter(x(is_stable_binary==-1),y(is_stable_binary==-1),50, is_stable(is_stable_binary==-1),'filled','o')
+     % scatter(x(isnan(is_stable_binary)),y(isnan(is_stable_binary)),50, is_stable(isnan(is_stable_binary)),'filled','o')
+     scatter(x,y,10,is_stable,'filled','o')
+     colormap(combined)
+     set(gca, 'CLim', [-1500 1500]); 
+     % 
+     % figure('Name','Shoreline Stability Sign')
+     % scatter(x,y,50,is_stable_binary,'filled')
+     % colorbar;
+    colorbar
+    set(gca,'YTickLabel',[]);
+    set(gca,'XTickLabel',[]);
+    cb = colorbar(); 
+    ylabel(cb,'shoreline stability','FontSize',16,'Rotation',270)
      if added_point
          Qs_max(end) = [];
      end

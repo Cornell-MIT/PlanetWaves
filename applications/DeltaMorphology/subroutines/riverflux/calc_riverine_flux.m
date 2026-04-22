@@ -29,10 +29,9 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
     % calculate river discharge, sediment size, and sediment flux for bedload dominated
     bedload_dominated = calc_bedload_dominated(river.width,river.slope,planet.g,constants_bedload(R));
     
-    Re_p = (bedload_dominated.D50*sqrt(R*planet.g*bedload_dominated.D50))/planet.nu;
     % calculate river discharge, sediment size, and sediment flux for suspended load dominated river
-    suspendedload_dominated = calc_susload_dominated(river.width,river.slope,planet.g,planet.nu,R,constants_suspended_load(R,Re_p));
-
+    suspendedload_dominated = calc_susload_dominated(river.width,river.slope,planet.g,planet.nu,R,constants_suspended_load(R));
+    
 % -- BEDLOAD -------------------------------------------------------------------------- %
     function bedload_dominated = calc_bedload_dominated(B,S,g,constants)
 
@@ -49,11 +48,12 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
         % returns the values with SI units (not the non dimensional forms)
         D50 = (B/alpha_b)*((alpha_s/S)^((n_b + 0.4)/n_s)); % Eqn. 4bb
         Q = ((S/alpha_s)^(1/n_s))*(g^0.5)*(D50^2.5); % Eqn. 4aa
+
         H = alpha_h*(Q^(0.4+n_h)*g^(-0.2 - 0.5*n_h)*(D50^(-2.5*n_h)));
 
         Q_nondim = Q/((g^0.5)*(D50^2.5));
-
-        Qs = alpha_y*(Q_nondim^n_y);
+        Qs_nondim = alpha_y*(Q_nondim^n_y);
+        Qs = Qs_nondim*((g^0.5)*(D50^2.5));
 
         bedload_dominated.D50 = D50;
         bedload_dominated.H = H;
@@ -67,8 +67,6 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
         alpha_b = constants.alpha_b;
         alpha_h = constants.alpha_h;
         alpha_s = constants.alpha_s;
-        alpha_y = constants.alpha_y;
-        
 
         m_b = constants.m_b;
         m_h = constants.m_h;
@@ -83,20 +81,26 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
         exp2 = -0.5*n_b*(m_s/n_s) - 0.2*(m_s/n_s) + 0.5*m_b;
         exp3 = 1/(1.5*n_b*(m_s/n_s) + 0.6*(m_s/n_s) - 1.5*m_b - 1);
         D50 = ((alpha_b/B)*((S/alpha_s)^(exp1))*(((R*g)/(nu^2))^exp2))^exp3; % Eqn. 5b
+        
+        Re_p = (D50*sqrt(R*g*D50))/nu;
+        alpha_y = (3.6e-5)*(Re_p^-0.12); % equation 3 (eqn 33 in supplement)
+
         Q = ((B/alpha_b)*(g^(0.5*(n_b - m_b)+0.2))*(D50^(2.5*n_b - 1.5*m_b))*(R^(-0.5*m_b))*(nu^m_b))^(1/(n_b + 0.4)); % Eqn. 5a
+
         H = alpha_h*(Q^(n_h + 0.4)*(g^(0.5*(m_h - n_h)-0.2)*(D50^(1.5*m_h - 2.5*n_h))*(R^(0.5*m_h))*(nu^(-m_h)))); 
         Qs = alpha_y*(Q^n_y)*(g^((1-n_y)/2))*(D50^(2.5*(1-n_y)));
 
-
+    
         susload_dominated.D50 = D50;
         susload_dominated.H = H;
         susload_dominated.Q = Q;
         susload_dominated.Qs = Qs;
+        susload_dominated.Re_p = Re_p;
     end
 
 % -- POWER LAW CONSTANTS ---------------------------------------------------------------- %
     % SUSPENDED LOAD
-    function susload = constants_suspended_load(R,Re_p)
+    function susload = constants_suspended_load(R)
         % Table S2
         susload.alpha_b = 0.95/(sqrt(R)); % eqn 3
         susload.n_b = 0.11; % Table S2
@@ -110,8 +114,16 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
         susload.n_s = -0.17; % Table S2
         susload.m_s = -0.05; % Table S2
 
-        susload.alpha_y = (3.6e-5)*(Re_p^-0.12); % equation 3 (eqn 33 in supplement)
         susload.n_y = 1.1; % equation 31 in supplement
+
+        % fields = fieldnames(susload);
+        % for i = 1:length(fields)
+        %     fieldName = fields{i};
+        %     value = susload.(fieldName);
+        %     fprintf('%s = %g\n', fieldName, value);
+        % end
+
+
     
     end
     % BEDLOAD
@@ -129,8 +141,16 @@ function [suspendedload_dominated,bedload_dominated] = calc_riverine_flux(planet
         bedload.n_s = -0.33; % Table S2
         bedload.m_s = NaN; % Table S2
 
-        bedload.alpha_y = 0.01/(1+R); % eqn 2
-        bedload.n_y = 0.53; % equation 23 in supplement
+        bedload.alpha_y = round(0.01/(1+R),4); % eqn 2
+        bedload.n_y =  bedload.n_b + 1.5*(bedload.n_s + bedload.n_h) + 1; % equation 23 in supplement
+
+        % fields = fieldnames(bedload);
+        % for i = 1:length(fields)
+        %     fieldName = fields{i};
+        %     value = bedload.(fieldName);
+        %     fprintf('%s = %g\n', fieldName, value);
+        % end
+
 
     end
 
