@@ -44,5 +44,17 @@ umwm_titan
 └── validation : scripts comparing wave heights in model to buoy data on Earth and past empirical models
 ```
 
+
+```
+CHANGE LOG
+
+7/29/2026: (U. Schneck) A limiter min_height was added to restrict the minimum height of retrieval for
+the wind profile. For values very close to the boundary layer, the velocity profile steepens due
+ to the log relationship, which can artificially boost/limit the forcing from the wind.
+This created non-monotonic behavior for the high wavenumber section of the spectrum, which affected
+the growth of MSS with increasing wind speed. 
+
+```
+
 ## Funding
 This material is based upon work supported by the National Science Foundation Graduate Research Fellowship under grant 214106, the Future Investigators in NASA Earth and Space Sciences and Technology (FINESST) SMD's Graduate Student Research Fellowship under grant 171064, the Office of Naval Research grant N000142412598, and the NASA Cassini Data Analysis Program under grants 80NSSC18K1057 and 80NSSC20K0484.
