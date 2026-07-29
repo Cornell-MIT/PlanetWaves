@@ -301,6 +301,11 @@ lz=abs(c)./(2*pi.*f);                                                           
 l2(l2 > zref) = zref;
 lz(lz > zref) = zref;
 
+% limiter to prevent anomolous MSS values due to sensitivity near top of boundary layer
+min_height = 1.0;
+l2(l2 < min_height) = min_height;
+lz(lz < min_height) = min_height;
+
 % if Etc.showplots
 % 
 %     surf_extrema(l2,'l2',model,'tallest')
@@ -417,7 +422,7 @@ for t = 1:model.num_time_steps                                                  
 
        % wind speed scaled to half the wavelength above the surface (function of freq)
        Ul = (1/kappa).*Ustar.*log(l2/model.z_data) + U;                                                                                                           % U(z2)/U(z1) = ln(z2/z0)/ln(z1/z0)
-       
+
        % if Etc.showplots% && sum(sum(sum(sum(any(Ul<0))))) > 0 && sumt > 0  
        %     close all
        %     plot_freq_depend(Ul,'U_{L/2}',D,freqs,model)
@@ -453,7 +458,7 @@ for t = 1:model.num_time_steps                                                  
        
        ustw = repmat(ustarw,[1 1 model.Fdim model.Dirdim]);
        Ud = - ustw./kappa.*log(lz/model.z_data);                                                                                                                   % drift speed (scaled to 1/wavenumber (function of frequency))
-      
+       
        % calculate wind input as a fraction of stress
        relative_angle = windir-waveang;
        Ul_term = Ul.*cos(relative_angle)-c-Ud.*cos(relative_angle)-Uer.*cth-Uei.*sth;
