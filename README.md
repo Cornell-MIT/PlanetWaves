@@ -56,5 +56,15 @@ the growth of MSS with increasing wind speed.
 
 ```
 
+## Citations
+
+2\. [Detelich et al. (2026) Modeling the Seasonality of Wind-Driven Hydrocarbon Waves in Titan's Polar Lakes, Journal of Geophysical Research: Planets](10.1029/2026JE009693)
+
+1\. [Schneck et al. (2026) Modeling Wind‐Driven Waves on Other Planets: Applications to Mars, Titan, and Exoplanets, Journal of Geophysical Research: Planets](10.1029/2025JE009490)
+
+
+
+
+
 ## Funding
 This material is based upon work supported by the National Science Foundation Graduate Research Fellowship under grant 214106, the Future Investigators in NASA Earth and Space Sciences and Technology (FINESST) SMD's Graduate Student Research Fellowship under grant 171064, the Office of Naval Research grant N000142412598, and the NASA Cassini Data Analysis Program under grants 80NSSC18K1057 and 80NSSC20K0484.
