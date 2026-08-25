@@ -32,7 +32,7 @@ function map_entrainment_depth_in_Ontario_Lacus(entrain_depth_m)
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % (3) Create synthetic bathymetries for possible slopes
-    used_saved_data = false; % false if dont want to run bathtub function to make new bathymetry each time
+    used_saved_data = true; % false if dont want to run bathtub function to make new bathymetry each time
     
     A_slope = 2e-3; % section A from altimeter Hayes2010
     L_slope = 1e-3; % section L from altimeter Hayes2010

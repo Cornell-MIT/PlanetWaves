@@ -1,37 +1,48 @@
 clc
 clear
 close all
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate the threshold for oscillatory flow entrainment given spread in
+% data as seen in FIGURE 4 (Komar and Miller 1973). This data was digitized
+% and then fit with a line below and above the cutoff for laminar or 
+% turbulent particle Reynolds numbers. The digitized data is stored in
+% lam_turb_data.csv. The fits for the thresholds will be reported to the
+% console.
+% PLOTS:
+%   (1) ratio of grain size and orbital diameter size to  particle Re
+% Author: Una Schneck
+% Last Modified: 8/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% FIGURE 4 (Komar and Miller 1973)
+% load in data from Komar and Miller 1973
 data = readtable('lam_turb_data.csv');
 % X = sqrt(d0/D)
 % Y = rho * um^2 / ((rho_s - rho)gD)
 
+% seperate laminar and turbulent data 
 X_laminar = data.x(data.y>12);
 Y_laminar = data.y(data.y>12);
 X_turb = data.x(data.y<=12);
 Y_turb = data.y(data.y<=12);
 
-% (rho*um)/(rho_s - rho)gT
+% plot the data
 figure('Name','Komar & Miller 1973; Figure 4');
-
-
 plot(data.x,data.y,'ok')
 hold on;
-
 plot(X_laminar,Y_laminar,'ok','MarkerFaceColor','r')
 plot(X_turb,Y_turb,'ok','MarkerFaceColor','b')
 
 % laminar_threshold_manohar_reported = 0.392.*X_laminar;
 % plot(X_laminar,laminar_threshold_manohar_reported,'-r','LineWidth',3)
 
-
+% fit the data for turbulent and laminar seperatly
 coef_turb =  polyfit(X_turb,Y_turb,1);
 turbulent_threshold_manohar = polyval(coef_turb,X_turb);
 
 coef_lam = polyfit(X_laminar,Y_laminar,1);
 laminar_threshold_manohar = polyval(coef_lam,X_laminar);
 
+% plot the linear fits
 plot(X_turb,turbulent_threshold_manohar,'-b','LineWidth',3)
 plot(X_laminar,laminar_threshold_manohar,'-r','LineWidth',3)
 grid on;

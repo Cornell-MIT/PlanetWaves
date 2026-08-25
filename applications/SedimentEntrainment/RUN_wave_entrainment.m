@@ -2,11 +2,34 @@ clc
 clear
 close all
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script will calculate the maximum entrainment depth for wave-driven
+% flows in Titan's lakes of varying composition over varying grain sizes
+% and densities by comparing the oscillatory Shields threshold to the Shields
+% number at the bed for the shoaling waves.
+% The waves are produced by the script calc_Titan_OL_waves.m which is 
+% invoked if run_waves = 1, otherwise it will run a past saved version to
+% save on computation time. You can also set if the thresholds to be considered
+% are 'constant' (boundary layer is always laminar, most conservative) or
+% 'variable', in which case the boundary layer can be smooth or rough depending
+% on the relative size of the grains. It will also report key values to the
+% console including a table for average summer and maximum wind speeds
+% across all grain types and liquid compositions.
+% MAIN PLOTS PRODUCED:
+%   (1) wind speed vs wave height for varying lake compositions (input waves)
+%   (2) entrainment depth vs wind speed
+%   (3) entrainment depth vs grain size
+%   (4) entrainment frequency as a function of depth
+%   (5) contours of entrainment depth for avg summer storms on Ontario Lacus
+%   (6) wind speed histogram and associated wave heights
+% Author: Una Schneck (ugschneck@gmail.com)
+% Last Modified: 8/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 disp('====== RUNNING WAVE FLOW ENTRAINMENT ==================')
-% calculates sediment entrainment under shoaling waves at Titan
 
-run_waves = 0; % if true, will run PlanetWaves (Titan_DeepwaterWaves.m), otherwise will load wave results from past run
+
+run_waves = 0; % if true, will run PlanetWaves (calc_Titan_OL_waves.m), otherwise will load wave results from past run
 
 % wave model
 addpath(genpath(fullfile('..','..','planetwaves')))
@@ -16,7 +39,7 @@ addpath(fullfile('..','..','data/Titan/TAMwTopo/'))
 addpath(fullfile('..','..','data/Titan/TitanLakes/Bathymetries/bathtub_bathy'))
 
 if run_waves
-    Titan_DeepwaterWaves;
+    calc_Titan_OL_waves;
 else
     pathname = [pwd,'\past_runs\Titan_DeepWaterWaves.mat'];
     last_created = dir(pathname).date;
@@ -38,20 +61,35 @@ grid on
 legend('show')
 
 
-lake_slope = 2e-3;
-alpha_0 = 0;
-min_depth = 10^-4;
-d50 = 6.35e-5:1e-5:0.1;  % [fines gravel]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% type of threshold
+case_types = {'constant','variable'}; % constant will assume data is laminar everywhere (~0.3 threshold) (including 'variable' in supplement)
+case_variable = case_types{1}; 
 
-d = max(max(Model.bathy_map)):-lake_slope:min_depth;
-d50 = linspace(d50(1),d50(end),100);
-rho_s = [800 940 1500]; % [organic-ice ice organic]
-max_steepness = 1/7;
+if strcmp(case_variable,'constant')
+    disp('Using laminar boundary layer threshold everywhere')
+else
+    disp('Using variable boundary layer threshold that depends on if the boundary layer is turbulent or laminar')
+end
 
-ol = 2; lm = 3;
-org = 1; ice = 2; fluffy = 3;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+lake_slope = 2e-3;                                                         % slope of lake
+alpha_0 = 0;                                                               % direction of wave impacting the shoreline
+min_depth = 10^-4;                                                         % smallest depth of liquid column
+d50 = 6.35e-5:1e-5:0.1;                                                    % median grain size [fines gravel] 
+
+d = max(max(Model.bathy_map)):-lake_slope:min_depth;                       % liquid depth
+d50 = linspace(d50(1),d50(end),100);                                       % vector of median grain size
+rho_s = [800 940 1500];                                                    % sediment density [organic-ice ice organic]
+max_steepness = calculate_critical_steepness([10 20 30]);                  % deepwater waves ~1/7 (Stokes 1880, Michell 1893, Toffoli 2010), shallow waves ~1/20 (10-20 degrees, Deigaard 1989, Shaffer 1993)
+max_steepness = max_steepness(end);                                        % use the most steep to be most conservative
+
+ol = 2; lm = 3;                                                            % labels for lake composition
+org = 1; ice = 2; fluffy = 3;                                              % labels for grain density
 
 max_d0_shoal = [];
+
 % CALCULATE ENTRAINMENT DEPTH FOR SAND AND GRAVEL
 for c = 1:numel(lakes)
 
@@ -65,9 +103,8 @@ for c = 1:numel(lakes)
     for u = 1:numel(test_speeds)
 
             % shoaling waves
-            L_shoal = L0(c,u) * sqrt(tanh(4*(pi^2)*d/(T(c,u)^2*Planet.gravity))); % Eckhart aproximation to not solve recursively 
+            L_shoal = L0(c,u) * sqrt(tanh(4*(pi^2)*d/(T(c,u)^2*Planet.gravity))); % Eckhart aproximation to not solve recursively for computation speed
             d_L = d ./ L_shoal;
-      
             alpha = asin(tanh((2*pi.*d_L).*sin(alpha_0)));
             C_shoal = C0(c,u) * tanh(2*pi*d_L);
             n = 0.5 * (1 + ((4*pi*d_L)./sinh(4*pi*d_L)));
@@ -84,16 +121,16 @@ for c = 1:numel(lakes)
             break_frac = H_shoal ./ L_shoal;
             break_frac(break_frac >= max_steepness) = NaN;
 
-             % meshgrid to vectorizing for computational speed
+            % meshgrid to vectorizing for computational speed
             [S, A] = meshgrid(rho_s, d50);  % [S,A] : [numel(d50), numel(rho_s)]
 
-            shields = zeros(length(d), size(S, 1), size(S, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
-            KM_crash = zeros(length(d), size(A, 1), size(A, 2));  % size : [numel(d), numel(d50), numel(rho_s)]
+            shields = zeros(length(d), size(S, 1), size(S, 2));            % size : [numel(d), numel(d50), numel(rho_s)]
+            KM_crash = zeros(length(d), size(A, 1), size(A, 2));           % size : [numel(d), numel(d50), numel(rho_s)]
             KM_turb_crash =  zeros(length(d), size(A, 1), size(A, 2));
             for z = 1:length(d)
                 shields(z, :, :) = (Planet.rho_liquid * (um_shoal(z)^2)) ./ ((S - Planet.rho_liquid) * Planet.gravity .* A);
                 KM_crash(z, :, :) =   0.341300 .* sqrt(d0_shoal(z) ./ A);    % fit for laminar data in Figure 4, Komar & Miller 1973 (see boundary_layer_threshold.m in estimating boundary layer folder)
-                KM_turb_crash(z, :, :) = 0.182849 .* sqrt(d0_shoal(z) ./ A); % fit for laminar data in Figure 4, Komar & Miller 1973 (see boundary_layer_threshold.m in estimating boundary layer folder)
+                KM_turb_crash(z, :, :) = 0.182849 .* sqrt(d0_shoal(z) ./ A); % fit for turbulent data in Figure 4, Komar & Miller 1973 (see boundary_layer_threshold.m in estimating boundary layer folder)
             end
 
             for s = 1:numel(rho_s)
@@ -122,28 +159,37 @@ for c = 1:numel(lakes)
                     % xlabel('depth')
                     
                     if ~isempty(entrained_depth_index_turb) && ~isempty(entrained_depth_index_laminar)
-                        Re_particle_opt1 = (um_shoal(entrained_depth_index_laminar)*d50(a))/Planet.nu_liquid;
-                        Re_particle_opt2 = (um_shoal(entrained_depth_index_turb)*d50(a))/Planet.nu_liquid;
-    
-                        % if particle Re says boundary layer is turbulent, use turbulent boundary prediction curve
-                        % else, use laminar boundary prediction curve
-                        if Re_particle_opt2 > 100 && Re_particle_opt1 > 100
+                    
+                        Re_particle_opt1 = um_shoal(entrained_depth_index_laminar) * d50(a) / Planet.nu_liquid;
+                        Re_particle_opt2 = um_shoal(entrained_depth_index_turb)   * d50(a) / Planet.nu_liquid;
+                    
+                        if strcmp(case_variable, 'constant')
+                            % if constant, use laminar
+                            entrained_depth_index = entrained_depth_index_laminar;
+                    
+                        elseif Re_particle_opt1 > 100 || Re_particle_opt2 > 100
+                            % turbulent particle boundary layer
                             entrained_depth_index = entrained_depth_index_turb;
-                        elseif Re_particle_opt1 > 100 
-                            entrained_depth_index = entrained_depth_index_turb;
+                    
                         else
+                            % laminar boundary layer
                             entrained_depth_index = entrained_depth_index_laminar;
                         end
+                    
                     elseif ~isempty(entrained_depth_index_turb)
-                        
+                    
+                        % only turbulent prediction exists
                         entrained_depth_index = entrained_depth_index_turb;
-
+                    
                     elseif ~isempty(entrained_depth_index_laminar)
-
-                        entrained_depth_index = entrained_depth_index_laminar;    
-
-                    else
+                    
+                        % only laminar prediction exists
+                        entrained_depth_index = entrained_depth_index_laminar;
+                    
+                    else 
+                        % otherwise leave empty
                         entrained_depth_index = [];
+                    
                     end
   
                     if isempty(entrained_depth_index)
@@ -152,10 +198,10 @@ for c = 1:numel(lakes)
                     else
                         % Check if the wave breaks before entrainment happens
                         if H_shoal(entrained_depth_index) / L_shoal(entrained_depth_index) < max_steepness
-                            d_crash{s, c}(u, a) = d(entrained_depth_index);  % Entrainment happens before breaking
+                            d_crash{s, c}(u, a) = d(entrained_depth_index);% Entrainment happens before breaking
                             boundary_layer_RE{s, c}(u, a) = (um_shoal(entrained_depth_index)*d50(a))/Planet.nu_liquid;
                         else
-                            d_crash{s, c}(u, a) = -999;  % Reaches entrainment after breaking occurs
+                            d_crash{s, c}(u, a) = -999;                    % Reaches entrainment after breaking occurs
                             boundary_layer_RE{s, c}(u, a) = -999;
                         end
                     end
@@ -172,9 +218,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT ONE: PLOT OF ENTRAINMENT DEPTH VS WIND SPEED (w LAKE COMPOSITION)
 
-icecolor = {'#42F2F7','#46ACC2','#498C8A','#4B6858'}; % ice colors (blues)
-organicicecolor = {'#ffa5ab','#da627d','#a53860','#450920'}; % organic-ice (reds)
-organiccolor =  {'#f8ed62','#e9d700','#dab600','#a98600'}; % organics (yellows)
+icecolor = {'#42F2F7','#46ACC2','#498C8A','#4B6858'};                      % ice colors (blues)
+organicicecolor = {'#ffa5ab','#da627d','#a53860','#450920'};               % organic-ice (reds)
+organiccolor =  {'#f8ed62','#e9d700','#dab600','#a98600'};                 % organics (yellows)
+
 
 figure('Name','u vs entrainment depth')
 hold on
@@ -217,23 +264,120 @@ box on;
 ax = gca;
 ax.FontSize = 16;
 
+u_avgsummer = 1.42;
+u_max = 4.5;
+[~, idx_summer] = min(abs(test_speeds - u_avgsummer));
+[~, idx_max]    = min(abs(test_speeds - u_max));
+grain_labels = {'organic-ice', 'ice', 'organic'};
+
+disp('============================================================================')
+
+% Average summer velocity
+fprintf('\nEntrainment depth at %.2f m/s\n', test_speeds(idx_summer));
+
+% MAKE TABLE FOR SAND
+fprintf('\nSAND (m)\n');
+fprintf('%-20s', 'Lake');
+for s = 1:numel(rho_s)
+    fprintf('%15s', grain_labels{s});
+end
+fprintf('\n');
+
+fprintf('%s\n', repmat('-', 1, 20 + 15*numel(rho_s)));
+
+for c = 1:numel(lakes)
+    fprintf('%-20s', lakes{c});
+
+    for s = 1:numel(rho_s)
+        sand_depth = compare_sand{s}(c, idx_summer);
+        fprintf('%15.3f', sand_depth);
+    end
+
+    fprintf('\n');
+end
+
+% MAKE TABLE FOR GRAVEL
+fprintf('\nGRAVEL (m)\n');
+fprintf('%-20s', 'Lake');
+for s = 1:numel(rho_s)
+    fprintf('%15s', grain_labels{s});
+end
+fprintf('\n');
+
+fprintf('%s\n', repmat('-', 1, 20 + 15*numel(rho_s)));
+
+for c = 1:numel(lakes)
+    fprintf('%-20s', lakes{c});
+
+    for s = 1:numel(rho_s)
+        grav_depth = compare_grav{s}(c, idx_summer);
+        fprintf('%15.3f', grav_depth);
+    end
+
+    fprintf('\n');
+end
+
+disp('============================================================================')
+fprintf('\n\nEntrainment depth at %.2f m/s\n', test_speeds(idx_max));
+
+% MAKE SAND TABLE
+fprintf('\nSAND (m)\n');
+fprintf('%-20s', 'Lake');
+for s = 1:numel(rho_s)
+    fprintf('%15s', grain_labels{s});
+end
+fprintf('\n');
+
+fprintf('%s\n', repmat('-', 1, 20 + 15*numel(rho_s)));
+
+for c = 1:numel(lakes)
+    fprintf('%-20s', lakes{c});
+
+    for s = 1:numel(rho_s)
+        sand_depth = compare_sand{s}(c, idx_max);
+        fprintf('%15.3f', sand_depth);
+    end
+
+    fprintf('\n');
+end
+
+% MAKE GRAVEL TABLE
+fprintf('\nGRAVEL (m)\n');
+fprintf('%-20s', 'Lake');
+for s = 1:numel(rho_s)
+    fprintf('%15s', grain_labels{s});
+end
+fprintf('\n');
+
+fprintf('%s\n', repmat('-', 1, 20 + 15*numel(rho_s)));
+
+for c = 1:numel(lakes)
+    fprintf('%-20s', lakes{c});
+
+    for s = 1:numel(rho_s)
+        grav_depth = compare_grav{s}(c, idx_max);
+        fprintf('%15.3f', grav_depth);
+    end
+
+    fprintf('\n');
+end
+disp('============================================================================')
+
 avg_sand_diff = mean(compare_sand{2}(2,:)-compare_sand{2}(3,:),'omitnan');
 avg_grav_diff = mean(compare_grav{2}(2,:)-compare_grav{2}(3,:),'omitnan');
 std_sand_diff = std(compare_sand{2}(2,:)-compare_sand{2}(3,:),'omitnan');
 std_grav_diff = std(compare_grav{2}(2,:)-compare_grav{2}(3,:),'omitnan');
-
-fprintf('Average difference:\n%f pm %f m (sand)\n%f pm %f (gravel)\n',avg_sand_diff,std_sand_diff,avg_grav_diff,std_grav_diff)
+fprintf('Average difference between depth of entrainment over varying surface winds:\n\t%f %c %f m (sand)\n\t%f %c %f (gravel)\n',avg_sand_diff,char(177),std_sand_diff,avg_grav_diff,char(177),std_grav_diff)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% PLOT TWO: ENTRAINMENT DEPTH VS GRAIN SIZE (w LAKE COMPOSITION)
 
-
 figure('Name','d50 vs entrainment depth');
 for c = 1:numel(lakes)
     entrainment_depth = d_crash{ice,c}(end,:);
     entrainment_depth(entrainment_depth==-999) = NaN;
-    plot(d50,d_crash{ice,c}(end,:),'-','LineWidth',3,'Color',lakecolors{c},'DisplayName',lakes{c})
+    plot(d50,d_crash{ice,c}(end,:),'-','LineWidth',3,'Color',lakecolors{c},'DisplayName',strrep(lakes{i},'-',' '))
     hold on
 end
 legend('show')
@@ -252,7 +396,7 @@ set(gca,'XScale','log')
 ice_entrain_summer_average = d_crash{ice,2}(summer_avg,1);
 map_entrainment_depth_in_Ontario_Lacus(ice_entrain_summer_average)
 
-fprintf('Ice fine sand grains in Ontario Lacus composition %0.1f m\n',ice_entrain_summer_average)
+fprintf('Fine sand ice grains in Ontario Lacus composition are entrained to depth %0.1f m for summer storm conditions\n',ice_entrain_summer_average)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -282,11 +426,10 @@ autumn_all = [autumn_idx{:}];
 winter_all = [winter_idx{:}];
 spring_all = [spring_idx{:}];
 summer_all = [summer_idx{:}];
-wind_S_summer = mag_wind(winter_all); % northern winter = southern summer
+wind_S_summer = mag_wind(winter_all);                                      % northern winter = southern summer
 
 % Calculate fraction of time for max entrainment
 figure('Name','Rarity of observation');
-subplot(2,2,[2 4])
 hold on
 grid on
 ylabel('Minimum entrainment depth [m]', 'Interpreter', 'latex', 'FontSize',25)
@@ -300,7 +443,7 @@ ax = gca;
 ax.FontSize = 20; 
 
 wind_label = {'All Seasons','Southern Summer'};
-for wind_climate = 1:2 % first loop is all winds, second is just the subset for southern summer
+for wind_climate = 1:2                                                     % first loop is all winds, second is just the subset for southern summer
 
     %  Entrainment Depth vs Fraction of time
     if wind_climate == 1
@@ -347,9 +490,8 @@ for wind_climate = 1:2 % first loop is all winds, second is just the subset for 
 
     time_at_1m_sand(wind_climate) = interp1(y_sand_unique,x_vals_sand_unique,1);
     time_at_1m_grav(wind_climate) = interp1(y_grav_unique,x_vals_grav_unique,1);
-    time_at_6p6m_sand(wind_climate) = interp1(y_sand_unique,x_vals_sand_unique,6.6);
-    time_at_6p6m_grav(wind_climate) = interp1(y_grav_unique,x_vals_grav_unique,6.6);
-    
+    time_at_avgsum_sand(wind_climate) = interp1(y_sand_unique,x_vals_sand_unique,ice_entrain_summer_average);
+    time_at_avgsum_grav(wind_climate) = interp1(y_grav_unique,x_vals_grav_unique,ice_entrain_summer_average);
     
     
 end
@@ -359,19 +501,20 @@ legend('show','Location','best','Interpreter','latex')
 hold off
 
 disp('===========')
-fprintf('Sand time at 1-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_1m_sand)
-fprintf('Cobble time at 1-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_1m_grav)
-fprintf('Sand time at 6.6-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_6p6m_sand)
-fprintf('Cobble time at 6.6-m depth: %0.1f (all) -- %0.1f (southern summer) percent of time\n',time_at_6p6m_grav)
+fprintf('Sand time at 1-m depth: %f (all) -- %f (southern summer) percent of time\n',time_at_1m_sand)
+fprintf('Cobble time at 1-m depth: %f (all) -- %f (southern summer) percent of time\n',time_at_1m_grav)
+fprintf('Sand time at %0.1f-m depth: %f (all) -- %f (southern summer) percent of time\n',ice_entrain_summer_average,time_at_avgsum_sand)
+fprintf('Cobble time at %0.1f-m depth: %f (all) -- %f (southern summer) percent of time\n',ice_entrain_summer_average,time_at_avgsum_grav)
 disp('===========')
 
+figure('Name','Wind climate and waves reference')
 % wind speed histogram
 edges = 0:0.01:max(mag_wind);
 centers = edges(1:end-1) + diff(edges)/2;
 no_waves = mag_wind < 0.5;
 no_waves_count = histcounts(mag_wind(no_waves), edges)/ numel(mag_wind);
 waves_count = histcounts(mag_wind(~no_waves), edges)/ numel(mag_wind);
-subplot(2,2,1)
+subplot(2,1,1)
 stairs(centers, no_waves_count, 'k', 'LineWidth', 1.5)
 hold on
 bar(centers, waves_count, 1, 'FaceColor','k','EdgeColor','k')
@@ -384,11 +527,11 @@ ax = gca;
 ax.FontSize = 20; 
 
 % wind speed vs wave height
-subplot(2,2,3)
+subplot(2,1,2)
 for i = 1:numel(lakecolors)
     H = H0(i,:);
     H(H==0) = NaN;
-    plot(test_speeds,H,'-','LineWidth',5,'Color',lakecolors{i},'DisplayName',lakes{i})
+    plot(test_speeds,H,'-','LineWidth',5,'Color',lakecolors{i},'DisplayName',strrep(lakes{i},'-',' '))
     hold on;
 end
 xline(0.5,':k','HandleVisibility','off')
@@ -433,3 +576,10 @@ ax.FontSize = 20;
 % ylabel('Re = u_mD/v')
 % set(gca,'YScale','log')
 % set(gca,'XScale','log')
+
+
+function crit_steepness = calculate_critical_steepness(breaking_angle_deg)
+
+    crit_steepness = tan(deg2rad(breaking_angle_deg))./pi; 
+
+end

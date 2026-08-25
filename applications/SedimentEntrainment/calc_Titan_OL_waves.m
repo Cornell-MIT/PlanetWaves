@@ -3,6 +3,8 @@ clear
 close all
 
 % DEEPWATER WAVES FOR SEDIMENT ENTRAINMENT AT ONTARIO LACUS
+% (to be used as inputs in RUN_wave_entrainment.m)
+
 addpath(genpath(fullfile('..','..','planetwaves')))
 addpath(fullfile('..','..','data','Titan','TitanLakes','Bathymetries','bathtub_bathy'))
 load('..\..\data\Titan\TitanLakes\Bathymetries\bathtub_bathy\ol_bathtub_0.002000_slope','zDep');
@@ -22,7 +24,7 @@ lakes = {'Titan-CH3H8N2','Titan-OntarioLacus','Titan-LigeiaMare','Titan-CH4N2'};
 [by, bx] = ind2sub(size(zDep),I);
 buoy_loc = [bx by];                                                        % measure at deepest location
 grid_resolution = [1000 1000];                                             % pixel width and pixel height [m]
-test_speeds = [0.3:0.1:4.6];                                               % surface wind speeds [m/s]
+test_speeds = 0.3:0.1:4.6;                                                 % surface wind speeds [m/s]
 time_to_run = 60*10;                                                       % time to run model [s]
 wind_direction = deg2rad(-45);                                             % wind direction [rad], towards annuli in Barnes+2014
 
@@ -40,8 +42,6 @@ xlim([0 max(test_speeds)+0.5])
 [zDep,buoy_loc,grid_resolution] = degrade_depth_resolution(zDep,buoy_loc,grid_resolution,0.03);
 % remove empty column
 zDep(:,end) = [];
-
-
 
 for c = 1:numel(lakes)
 

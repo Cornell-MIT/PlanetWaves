@@ -13,7 +13,8 @@ function [Xmesh,Ymesh,zDep] = make_bathtub_lake(bath_slope,shoreline)
 %   Ymesh = mesh in Y-axis
 %   Zmesh = mesh in depth
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+warning('off','MATLAB:polyshape:repairedBySimplify')
+make_plot = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% --------------------------------------------------- 1 . EXTRACT COORDINATES OF SHORELINE ------------------------------------------------ %% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -21,9 +22,12 @@ function [Xmesh,Ymesh,zDep] = make_bathtub_lake(bath_slope,shoreline)
 x = shoreline(:,1);
 y = shoreline(:,2);
 
-figure;
-plot(x,y)
-hold on;
+
+if make_plot
+    figure;
+    plot(x,y)
+    hold on;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% --------------------------------------------------- 2 . MAKE GRID ------------------------------------------------------------------------ %% 
@@ -50,8 +54,10 @@ polyout = polybuffer(polyin,2e3);
 
 [in,on] = inpolygon(X,Y,polyout.Vertices(:,1),polyout.Vertices(:,2));
 
-plot(X(~in),Y(~in),'ro')
-plot(X(in|on),Y(in|on),'go')
+if make_plot
+    plot(X(~in),Y(~in),'ro')
+    plot(X(in|on),Y(in|on),'go')
+end
 
 X_lake = X(in|on); % includes points within the boundary and on the boundary
 Y_lake = Y(in|on); % includes points within the boundary and on the boundary
@@ -74,13 +80,14 @@ end
 
 [max_distance,imax] = max(min_dis); % find what point is furthest from shore
 
-figure;
-scatter(X_lake,Y_lake,[],min_dis')
-colorbar;
-hold on
-%scatter(X_lake(imax),Y_lake(imax),[],'k','filled')
-title('distance from shore')
-
+if make_plot
+    figure;
+    scatter(X_lake,Y_lake,[],min_dis')
+    colorbar;
+    hold on
+    %scatter(X_lake(imax),Y_lake(imax),[],'k','filled')
+    title('distance from shore')
+end
 min_dep = (bath_slope).*min_dis; % assume constant slope on all sides
 
 xLon = linspace(min(X_lake), max(X_lake), 1E+3); % for mesh
@@ -91,17 +98,18 @@ zDep = griddata(X_lake, Y_lake, min_dep, Xmesh, Ymesh,'linear'); % interpolates 
 [in,on] =inpolygon(Xmesh,Ymesh,x,y); % finds all points within or along the boundary of the basin
 zDep(~in&~on) = NaN; % assigns all depth outside the basin to NaN
 
-figure;
-mesh(Xmesh, Ymesh, zDep);
-hold on;
-[Mcon,Ccon] = contour3(Xmesh, Ymesh, zDep,[0 0],'k', 'LineWidth',2,'ShowText',1,'LabelSpacing',2000);
-h = plot(x,y,'--k','LineWidth',2);
-z = get(h,'ZData');
-set(h,'ZData',z+10) 
-view(0,90)  % XYplane view
-title('Bathtub Model for Lake Depth')
-colorbar;
-    
+if make_plot
+    figure;
+    mesh(Xmesh, Ymesh, zDep);
+    hold on;
+    [Mcon,Ccon] = contour3(Xmesh, Ymesh, zDep,[0 0],'k', 'LineWidth',2,'ShowText',1,'LabelSpacing',2000);
+    h = plot(x,y,'--k','LineWidth',2);
+    z = get(h,'ZData');
+    set(h,'ZData',z+10) 
+    view(0,90)  % XYplane view
+    title('Bathtub Model for Lake Depth')
+    colorbar;
+end
          
 
 

@@ -2,46 +2,52 @@ clc
 clear
 close all
 
-
-% VERTICAL VELOCITY PROFILE IN THE FLOW (affect of hydraulic roughness assumption)
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This script will calculate the bed normal velocity profile of the tidal
+% flows as affected by assumptions of hydraulic roughness. 
 % u(z) = (u_star/k)*ln(z/z0) <- Law of the Wall
 %   z = from z0 to H
 %   k = 0.4 (Von Karman Constant, dimensionless)
 %   z0 = d_mean/30 <- assume rough turbulence (constant z0)
+% This script will produce a plot of the vertical velocity profiles for the
+% nearshore and strait conditions under assumptions of rough or smooth
+% boundary layer conditions and report the percent difference to console.
+% Author: Una Schneck (ugschneck@gmail.com)
+% Last modified: 8/2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % CONSTANTS
-d50 = [6.35e-5:1e-4:0.01];% diameters for [finegrain sand gravel] [m]
-D_mean = mean(d50); %[m]
-H = 15; % mean depth (good aprox for nearshore for all bath models in Vincent 2016)
-k = 0.4;
+d50 = 6.35e-5:1e-4:0.1;                                                    % median diameters of grains [finegrain sand gravel] [m]
+D_mean = mean(d50);                                                        % m
+H = 15;                                                                    % mean depth (good aprox for nearshore for all bath models in Vincent 2016)
+k = 0.4;                                                                   % von Karman constant
 
 % liquid
-rho_w = 610; %kg/m3
-kin_visc = 9e-7; %m2/s
+rho_w = 610;                                                               % liquid density kg/m3
+kin_visc = 9e-7;                                                           % liquid kin viscosity m2/s
 
 % flows from prev models
-u_coast =  0.046; %m/s 
-u_strait = 0.64; %m/s 
+u_coast =  0.046;                                                          % m/s 
+u_strait = 0.64;                                                           % m/s 
 
 % (1) At the nearshore, rough
-z0_coast = D_mean/30; % rough turbulences
-u_star_coast = (u_coast*k)/log(0.37*H/z0_coast); % using 4/10 rule to define u_star
+z0_coast = D_mean/30;                                                      % layer thickness for rough turbulences
+u_star_coast = (u_coast*k)/log(0.37*H/z0_coast);                           % using 4/10 rule to define u_star
 z_coast = [z0_coast:16];
 u_z_coast = (u_star_coast/k).*log(z_coast./z0_coast);
 % (1b) At the nearshore, smooth
-z0_coast_smooth = kin_visc/(9*u_star_coast); %smooth turbulence
+z0_coast_smooth = kin_visc/(9*u_star_coast);                               % layer thickness for smooth turbulence
 u_star_coast_smooth = (u_coast*k)/log(0.37*H/z0_coast_smooth);
 z_coast_smooth = [z0_coast_smooth:16];
 u_z_coast_smooth = (u_star_coast_smooth/k).*log(z_coast_smooth./z0_coast_smooth);
 
 % (2) At straits, rough
-z0_strait = D_mean/30; %m, rough turbulences
+z0_strait = D_mean/30;                                                     % rough turbulences
 u_star_strait = (u_strait*k)/log(0.37*H/z0_strait);
 z_strait = [z0_strait:16];
 u_z_strait = (u_star_strait/k).*log(z_strait./z0_strait);
 % (2b) At straits, smooth
-z0_strait_smooth = kin_visc/(9*u_star_strait); %smooth turbulence
+z0_strait_smooth = kin_visc/(9*u_star_strait);                             % smooth turbulence
 u_star_strait_smooth = (u_strait*k)/log(0.37*H/z0_strait_smooth);
 z_strait_smooth = [z0_strait_smooth:16];
 u_z_strait_smooth = (u_star_strait_smooth/k).*log(z_strait_smooth./z0_strait_smooth);
